@@ -5,5 +5,30 @@
     <AssemblyName>TerrariaEncyclopedia.Host.Mono</AssemblyName>
     <RootNamespace>TerrariaEncyclopedia.Host.Mono</RootNamespace>
     <Nullable>disable</Nullable>
+    <EnableEncyclopediaFeature Condition="'$(EnableEncyclopediaFeature)' == '' and '$(TerrariaReferencePath)' != '' and '$(FnaReferencePath)' != ''">true</EnableEncyclopediaFeature>
+    <EnableEncyclopediaFeature Condition="'$(EnableEncyclopediaFeature)' == ''">false</EnableEncyclopediaFeature>
+    <DefineConstants Condition="'$(EnableEncyclopediaFeature)' == 'true'">$(DefineConstants);ENCYCLOPEDIA_FEATURE;TERRARIA_FNA</DefineConstants>
   </PropertyGroup>
+
+  <ItemGroup Condition="'$(EnableEncyclopediaFeature)' != 'true'">
+    <Compile Remove="GameHost.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(EnableEncyclopediaFeature)' == 'true'">
+    <ProjectReference Include="..\TerrariaEncyclopedia.Runtime\TerrariaEncyclopedia.Runtime.csproj"
+                      AdditionalProperties="GameFramework=FNA;FnaReferencePath=$(FnaReferencePath)" />
+    <ProjectReference Include="..\TerrariaEncyclopedia\TerrariaEncyclopedia.csproj"
+                      AdditionalProperties="GameFramework=FNA;TerrariaReferencePath=$(TerrariaReferencePath);FnaReferencePath=$(FnaReferencePath)" />
+    <Reference Include="Terraria">
+      <HintPath>$(TerrariaReferencePath)</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="FNA">
+      <HintPath>$(FnaReferencePath)</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+  <Target Name="ValidateFeatureReferences" BeforeTargets="PrepareForBuild" Condition="'$(EnableEncyclopediaFeature)' == 'true'">
+    <Error Condition="!Exists('$(TerrariaReferencePath)')" Text="TerrariaReferencePath does not exist: $(TerrariaReferencePath)" />
+    <Error Condition="!Exists('$(FnaReferencePath)')" Text="FnaReferencePath does not exist: $(FnaReferencePath)" />
+  </Target>
 </Project>

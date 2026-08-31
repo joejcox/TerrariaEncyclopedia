@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Terraria.ID;
 using TerrariaEncyclopedia.Content;
-using TerrariaModder.Core.UI;
-using TerrariaModder.Core.UI.Widgets;
 
 namespace TerrariaEncyclopedia.UI
 {
@@ -22,19 +20,17 @@ namespace TerrariaEncyclopedia.UI
 
         private enum ViewMode { Grid, Detail }
 
-        private enum SortMode { NameAsc, NameDesc, RarityAsc, RarityDesc, Oldest, Newest, SetGrouped }
-
-        private static readonly (SortMode Mode, string Label)[] SortModes =
+        private static readonly (ItemSortMode Mode, string Label)[] SortModes =
         {
-            (SortMode.NameAsc, "A-Z"),
-            (SortMode.NameDesc, "Z-A"),
-            (SortMode.RarityAsc, "Rarity: Low-High"),
-            (SortMode.RarityDesc, "Rarity: High-Low"),
+            (ItemSortMode.NameAscending, "A-Z"),
+            (ItemSortMode.NameDescending, "Z-A"),
+            (ItemSortMode.RarityAscending, "Rarity: Low-High"),
+            (ItemSortMode.RarityDescending, "Rarity: High-Low"),
             // "Oldest"/"Newest" approximate release order using item ID — Terraria assigns IDs
             // roughly in the order items were added, though old removed/reused IDs mean it's not exact.
-            (SortMode.Oldest, "Oldest First"),
-            (SortMode.Newest, "Newest First"),
-            (SortMode.SetGrouped, "By Set"),
+            (ItemSortMode.Oldest, "Oldest First"),
+            (ItemSortMode.Newest, "Newest First"),
+            (ItemSortMode.SetGrouped, "By Set"),
         };
 
         private const int SlotSize = 44;
@@ -57,8 +53,9 @@ namespace TerrariaEncyclopedia.UI
             (ItemCategory.Misc, "Miscellaneous", ItemID.Bone),
         };
 
+        private readonly IEncyclopediaDataSource _data;
         private readonly DraggablePanel _panel;
-        private readonly TextInput _search = new TextInput("Search items...", 200);
+        private readonly TextInput _search;
         private readonly ScrollView _scroll = new ScrollView();
         private readonly ScrollView _detailScroll = new ScrollView();
 
@@ -73,26 +70,24 @@ namespace TerrariaEncyclopedia.UI
 
         private ViewMode _view = ViewMode.Grid;
         private ItemEntry _detailItem;
-        private readonly Stack<int> _history = new Stack<int>();
+        private readonly EntryNavigation _navigation = new EntryNavigation();
 
         private Section _section = Section.Items;
 
         // ── NPC section state ──
-        private enum NpcTab { All, Town, Enemies, Bosses }
-        private static readonly (NpcTab Tab, string Label)[] NpcTabs =
+        private static readonly (NpcFilter Tab, string Label)[] NpcTabs =
         {
-            (NpcTab.All, "All"), (NpcTab.Town, "Town NPCs"), (NpcTab.Enemies, "Enemies"), (NpcTab.Bosses, "Bosses"),
+            (NpcFilter.All, "All"), (NpcFilter.Town, "Town NPCs"), (NpcFilter.Enemies, "Enemies"), (NpcFilter.Bosses, "Bosses"),
         };
-        private enum NpcSortMode { NameAsc, NameDesc, LifeAsc, LifeDesc }
         private static readonly (NpcSortMode Mode, string Label)[] NpcSortModes =
         {
-            (NpcSortMode.NameAsc, "A-Z"), (NpcSortMode.NameDesc, "Z-A"),
-            (NpcSortMode.LifeAsc, "Life: Low-High"), (NpcSortMode.LifeDesc, "Life: High-Low"),
+            (NpcSortMode.NameAscending, "A-Z"), (NpcSortMode.NameDescending, "Z-A"),
+            (NpcSortMode.LifeAscending, "Life: Low-High"), (NpcSortMode.LifeDescending, "Life: High-Low"),
         };
 
         private List<NpcEntry> _allNpcs = new List<NpcEntry>();
         private List<NpcEntry> _filteredNpcs = new List<NpcEntry>();
-        private readonly TextInput _npcSearch = new TextInput("Search NPCs...", 200);
+        private readonly TextInput _npcSearch;
         private readonly ScrollView _npcScroll = new ScrollView();
         private readonly ScrollView _npcDetailScroll = new ScrollView();
         private int _npcActiveTab;
@@ -103,16 +98,25 @@ namespace TerrariaEncyclopedia.UI
         private ViewMode _npcView = ViewMode.Grid;
         private NpcEntry _npcDetailItem;
 
-        public ItemBrowserPanel()
+        public ItemBrowserPanel(IEncyclopediaDataSource data)
         {
+            _data = data ?? throw new ArgumentNullException(nameof(data));
+            _search = new TextInput("terraria-encyclopedia-items", "Search items...", 200);
+            _npcSearch = new TextInput("terraria-encyclopedia-npcs", "Search NPCs...", 200);
             _panel = new DraggablePanel("terraria-encyclopedia", "Terraria Encyclopedia", 1200, 750);
             // Same UIScale/scissor-rect mismatch found in Phase 1 — see Mod.cs history.
             _panel.ClipContent = false;
             _panel.RegisterDrawCallback(OnDraw);
             _panel.OnClose = () => { _search.Unfocus(); _npcSearch.Unfocus(); };
-            _search.KeyBlockId = "terraria-encyclopedia";
-            _npcSearch.KeyBlockId = "terraria-encyclopedia";
         }
+
+        public bool IsOpen => _panel.IsOpen;
+
+        public bool IsTextEntryFocused => _search.IsFocused || _npcSearch.IsFocused;
+
+        public int LoadedItemCount => _all.Count;
+
+        public int LoadedNpcCount => _allNpcs.Count;
 
         public void Toggle()
         {
@@ -124,16 +128,14 @@ namespace TerrariaEncyclopedia.UI
 
             if (_all.Count == 0)
             {
-                _all = ItemCatalogue.Build();
+                _all = _data.LoadItems().ToList();
                 _byId = _all.ToDictionary(e => e.Id);
-                RecipeCatalogue.EnsureBuilt(_all);
                 Filter();
             }
 
             if (_allNpcs.Count == 0)
             {
-                _allNpcs = NpcCatalogue.Build();
-                DropCatalogue.EnsureBuilt(_allNpcs);
+                _allNpcs = _data.LoadNpcs().ToList();
                 FilterNpcs();
             }
 
@@ -145,10 +147,13 @@ namespace TerrariaEncyclopedia.UI
 
         public void Update()
         {
+            _panel.Update();
             if (!_panel.IsOpen) return;
             _search.Update();
             _npcSearch.Update();
         }
+
+        public void Render() => _panel.Draw();
 
         public void Unload()
         {
@@ -159,48 +164,23 @@ namespace TerrariaEncyclopedia.UI
 
         private void Filter()
         {
-            IEnumerable<ItemEntry> source = _all;
-
-            if (_activeTab > 0)
-            {
-                var category = (ItemCategory)(_activeTab - 1);
-                source = source.Where(e => e.Category == category);
-            }
-
-            if (_hardmodeOnly)
-                source = source.Where(e => WikiEnrichment.IsHardmodeItem(e.Name));
-
-            string search = _search.Text;
-            if (!string.IsNullOrEmpty(search))
-            {
-                string lower = search.ToLowerInvariant();
-                bool isIdSearch = int.TryParse(search, out int searchId);
-                source = source.Where(e => (isIdSearch && e.Id == searchId) || e.Name.ToLowerInvariant().Contains(lower));
-            }
-
-            _filtered = ApplySort(source).ToList();
+            ItemCategory? category = _activeTab == 0
+                ? (ItemCategory?)null
+                : (ItemCategory)(_activeTab - 1);
+            _filtered = EncyclopediaQueries.FilterItems(
+                _all,
+                category,
+                _hardmodeOnly,
+                _search.Text,
+                SortModes[_sortModeIndex].Mode,
+                _data.IsHardmodeItem).ToList();
             _scroll.ResetScroll();
             _panel.Title = $"Terraria Encyclopedia ({_filtered.Count}/{_all.Count})";
         }
 
-        private IEnumerable<ItemEntry> ApplySort(IEnumerable<ItemEntry> source)
-        {
-            switch (SortModes[_sortModeIndex].Mode)
-            {
-                case SortMode.NameDesc: return source.OrderByDescending(e => e.Name);
-                case SortMode.RarityAsc: return source.OrderBy(e => e.Rarity).ThenBy(e => e.Name);
-                case SortMode.RarityDesc: return source.OrderByDescending(e => e.Rarity).ThenBy(e => e.Name);
-                case SortMode.Oldest: return source.OrderBy(e => e.Id);
-                case SortMode.Newest: return source.OrderByDescending(e => e.Id);
-                case SortMode.SetGrouped:
-                    return source.OrderBy(e => ItemCatalogue.TierIndex(e.Set)).ThenBy(e => e.Set).ThenBy(e => e.Name);
-                default: return source.OrderBy(e => e.Name); // NameAsc
-            }
-        }
-
         private void GoHome()
         {
-            _history.Clear();
+            _navigation.Home();
             _detailItem = null;
             _view = ViewMode.Grid;
             _npcDetailItem = null;
@@ -209,9 +189,7 @@ namespace TerrariaEncyclopedia.UI
 
         private void OpenDetail(ItemEntry entry)
         {
-            if (_view == ViewMode.Detail && _detailItem != null)
-                _history.Push(_detailItem.Id);
-
+            _navigation.Open(entry.Id);
             _detailItem = entry;
             _view = ViewMode.Detail;
             _detailScroll.ResetScroll();
@@ -219,13 +197,12 @@ namespace TerrariaEncyclopedia.UI
 
         private void GoBack()
         {
-            if (_history.Count == 0)
+            int prevId;
+            if (!_navigation.TryGoBack(out prevId))
             {
                 GoHome();
                 return;
             }
-
-            int prevId = _history.Pop();
             _byId.TryGetValue(prevId, out _detailItem);
             _detailScroll.ResetScroll();
         }
@@ -496,9 +473,9 @@ namespace TerrariaEncyclopedia.UI
             int y = _panel.ContentY + SectionToggleHeight;
             int width = _panel.ContentWidth - DetailPadX * 2;
 
-            DrawNavBar(x, y, width, GoBack, GoHome, _history.Count > 0);
+            DrawNavBar(x, y, width, GoBack, GoHome, _navigation.CanGoBack);
             string badge = entry.IsExpertExclusive ? "EXPERT" : null;
-            if (WikiEnrichment.IsHardmodeItem(entry.Name)) badge = badge == null ? "HARDMODE" : badge + "  HARDMODE";
+            if (_data.IsHardmodeItem(entry.Name)) badge = badge == null ? "HARDMODE" : badge + "  HARDMODE";
             if (badge != null) DrawHardmodeMarker(x, y, width, badge);
             y += NavBarHeight + 6;
 
@@ -632,8 +609,8 @@ namespace TerrariaEncyclopedia.UI
 
         private void DrawRecipeSection(int x, int y, int width, int height, ItemEntry entry)
         {
-            var recipes = RecipeCatalogue.RecipesFor(entry.Id);
-            var usedIn = RecipeCatalogue.UsedIn(entry.Id);
+            var recipes = _data.RecipesFor(entry.Id);
+            var usedIn = _data.UsedIn(entry.Id);
 
             // Build a flat list of rows to render inside one scroll area: section headers + item rows.
             var rows = new List<(string Header, ItemEntry Item, string Suffix, int IndentX)>();
@@ -650,7 +627,7 @@ namespace TerrariaEncyclopedia.UI
                     rows.Add(("Crafting", null, null, 0));
                     if (recipe.StationTileIds.Count > 0)
                     {
-                        string station = string.Join(", ", recipe.StationTileIds.Select(RecipeCatalogue.StationName));
+                        string station = string.Join(", ", recipe.StationTileIds.Select(_data.StationName));
                         rows.Add((null, null, $"At: {station}", 0));
                     }
                     foreach (var ing in recipe.Ingredients)
@@ -708,7 +685,7 @@ namespace TerrariaEncyclopedia.UI
 
             if (depth >= MaxCraftingTreeDepth || !visited.Add(ingEntry.Id)) return;
 
-            var subRecipes = RecipeCatalogue.RecipesFor(ingEntry.Id);
+            var subRecipes = _data.RecipesFor(ingEntry.Id);
             if (subRecipes.Count > 0)
             {
                 foreach (var subIng in subRecipes[0].Ingredients)
@@ -764,35 +741,13 @@ namespace TerrariaEncyclopedia.UI
 
         private void FilterNpcs()
         {
-            IEnumerable<NpcEntry> source = _allNpcs;
-
-            switch (NpcTabs[_npcActiveTab].Tab)
-            {
-                case NpcTab.Town: source = source.Where(e => e.IsTownNpc); break;
-                case NpcTab.Enemies: source = source.Where(e => !e.IsTownNpc && !e.IsBoss); break;
-                case NpcTab.Bosses: source = source.Where(e => e.IsBoss); break;
-            }
-
-            if (_npcHardmodeOnly)
-                source = source.Where(e => WikiEnrichment.IsHardmodeNpc(e.Name));
-
-            string search = _npcSearch.Text;
-            if (!string.IsNullOrEmpty(search))
-            {
-                string lower = search.ToLowerInvariant();
-                bool isIdSearch = int.TryParse(search, out int searchId);
-                source = source.Where(e => (isIdSearch && e.Id == searchId) || e.Name.ToLowerInvariant().Contains(lower));
-            }
-
-            switch (NpcSortModes[_npcSortModeIndex].Mode)
-            {
-                case NpcSortMode.NameDesc: source = source.OrderByDescending(e => e.Name); break;
-                case NpcSortMode.LifeAsc: source = source.OrderBy(e => e.Life).ThenBy(e => e.Name); break;
-                case NpcSortMode.LifeDesc: source = source.OrderByDescending(e => e.Life).ThenBy(e => e.Name); break;
-                default: source = source.OrderBy(e => e.Name); break; // NameAsc
-            }
-
-            _filteredNpcs = source.ToList();
+            _filteredNpcs = EncyclopediaQueries.FilterNpcs(
+                _allNpcs,
+                NpcTabs[_npcActiveTab].Tab,
+                _npcHardmodeOnly,
+                _npcSearch.Text,
+                NpcSortModes[_npcSortModeIndex].Mode,
+                _data.IsHardmodeNpc).ToList();
             _npcScroll.ResetScroll();
             _panel.Title = $"Terraria Encyclopedia ({_filteredNpcs.Count}/{_allNpcs.Count})";
         }
@@ -998,7 +953,7 @@ namespace TerrariaEncyclopedia.UI
             int width = _panel.ContentWidth - DetailPadX * 2;
 
             DrawNavBar(x, y, width, GoHome, GoHome, false); // no cross-NPC nav chain — Back == Home here
-            if (WikiEnrichment.IsHardmodeNpc(entry.Name)) DrawHardmodeMarker(x, y, width);
+            if (_data.IsHardmodeNpc(entry.Name)) DrawHardmodeMarker(x, y, width);
             y += NavBarHeight + 6;
 
             UIRenderer.DrawNPC(entry.Id, x, y, 48, 48);
@@ -1013,7 +968,7 @@ namespace TerrariaEncyclopedia.UI
 
             if (entry.IsBoss)
             {
-                var wiki = WikiEnrichment.GetBossInfo(entry.Name);
+                var wiki = _data.GetBossInfo(entry.Name);
                 if (wiki != null) y += DrawBossInfoLine(x, y, width, wiki) + 6;
             }
 
@@ -1087,7 +1042,7 @@ namespace TerrariaEncyclopedia.UI
         }
 
         /// <summary>Minimal word-wrap for the Bestiary description (plain UIRenderer.DrawText has none). Returns height used.</summary>
-        private int DrawWrappedText(string text, int x, int y, int maxWidth, TerrariaModder.Core.UI.Color4 color)
+        private int DrawWrappedText(string text, int x, int y, int maxWidth, Color4 color)
         {
             var lines = WrapTextLines(text, maxWidth);
             int lineHeight = UIRenderer.TextLineHeight;
@@ -1190,7 +1145,7 @@ namespace TerrariaEncyclopedia.UI
                 rows.Add(new BodyRow { Suffix = "", Height = 8 }); // spacer
             }
 
-            var drops = DropCatalogue.DropsFor(entry.Id).OrderByDescending(d => d.Chance).ToList();
+            var drops = _data.DropsFor(entry.Id).OrderByDescending(d => d.Chance).ToList();
             AddSection(rows, "Drops", () =>
             {
                 if (drops.Count == 0)
@@ -1215,7 +1170,7 @@ namespace TerrariaEncyclopedia.UI
 
             if (entry.IsBoss)
             {
-                var wiki = WikiEnrichment.GetBossInfo(entry.Name);
+                var wiki = _data.GetBossInfo(entry.Name);
                 if (wiki != null)
                 {
                     rows.Add(new BodyRow { Suffix = "", Height = 8 });
@@ -1312,7 +1267,7 @@ namespace TerrariaEncyclopedia.UI
                 {
                     // Cross-section navigation: jump straight to the item's own detail page.
                     _section = Section.Items;
-                    _history.Clear();
+                    _navigation.Home();
                     OpenDetail(row.Item);
                     WidgetInput.ConsumeClick();
                 }

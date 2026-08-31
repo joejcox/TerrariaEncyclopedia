@@ -6,39 +6,6 @@ using Terraria.ID;
 
 namespace TerrariaEncyclopedia.Content
 {
-    public enum ItemCategory
-    {
-        Weapon,
-        Armor,
-        Accessory,
-        Tool,
-        Consumable,
-        Placeable,
-        Misc
-    }
-
-    public class ItemEntry
-    {
-        public int Id;
-        public string Name;
-        public int MaxStack;
-        public int Rarity;
-        public int Damage;
-        public int Defense;
-        public ItemCategory Category;
-        public string Set; // material tier, e.g. "Gold" — null if not part of a recognized set
-
-        public int SellValue; // copper; 0 = not sellable
-        public bool IsExpertExclusive;
-        public int BuffType; // 0 = grants no buff
-        public string BuffName;
-        public string BuffTooltip;
-        public int BuffDurationSeconds;
-        public int ProjectileType; // 0 = doesn't shoot/create a projectile
-        public string ProjectileName;
-        public int ResearchCount; // Journey Mode sacrifice-to-unlock count; 0 = not researchable
-    }
-
     /// <summary>
     /// Reads Terraria's currently-loaded item definitions dynamically (never hardcoded) —
     /// same approach already proven working by the framework's own ItemSpawner mod.
@@ -51,30 +18,8 @@ namespace TerrariaEncyclopedia.Content
         // word, and to sort sets in roughly the order you'd unlock them in-game). It will miss
         // anything not in this list and can't distinguish e.g. "Necro" (armor-only, no ore) from
         // a real ore tier. Refine this list based on what's missing/wrong once it's actually used.
-        private static readonly string[] TierOrder =
-        {
-            "Wood", "Copper", "Tin", "Iron", "Lead", "Silver", "Tungsten", "Gold", "Platinum",
-            "Meteor", "Shadow", "Necro", "Crimson", "Demonite", "Molten",
-            "Cobalt", "Palladium", "Mythril", "Orichalcum", "Adamantite", "Titanium",
-            "Hallowed", "Chlorophyte", "Turtle", "Beetle", "Spectre", "Shroomite",
-            "Solar", "Vortex", "Nebula", "Stardust",
-        };
-
-        private static readonly HashSet<string> KnownSets = new HashSet<string>(TierOrder);
-
         /// <summary>Sort key for a set name — earlier tiers first, unrecognized/no set sorts last.</summary>
-        public static int TierIndex(string set)
-        {
-            if (set == null) return int.MaxValue;
-            int idx = Array.IndexOf(TierOrder, set);
-            return idx >= 0 ? idx : int.MaxValue - 1;
-        }
-
-        private static string DetectSet(string name)
-        {
-            string first = name.Split(' ')[0];
-            return KnownSets.Contains(first) ? first : null;
-        }
+        public static int TierIndex(string set) => ItemSetOrder.IndexOf(set);
 
         public static List<ItemEntry> Build()
         {
@@ -101,7 +46,7 @@ namespace TerrariaEncyclopedia.Content
                         Damage = item.damage,
                         Defense = item.defense,
                         Category = Classify(item),
-                        Set = DetectSet(name),
+                        Set = ItemSetOrder.Detect(name),
                         SellValue = item.value,
                         IsExpertExclusive = item.expert,
                         ProjectileType = item.shoot,

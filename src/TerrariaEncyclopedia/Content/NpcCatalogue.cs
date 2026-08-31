@@ -7,18 +7,6 @@ using Terraria.Localization;
 
 namespace TerrariaEncyclopedia.Content
 {
-    public class NpcEntry
-    {
-        public int Id;
-        public string Name;
-        public int Life;
-        public int Defense;
-        public int Damage;
-        public bool IsBoss;
-        public bool IsTownNpc;
-        public string Description;
-    }
-
     /// <summary>
     /// Reads Terraria's currently-loaded NPC definitions dynamically — same approach as
     /// ItemCatalogue. Descriptions come from the game's own Bestiary entries, not text we wrote.

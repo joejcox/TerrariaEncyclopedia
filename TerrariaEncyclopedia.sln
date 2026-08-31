@@ -8,6 +8,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TerrariaEncyclopedia.Host",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TerrariaEncyclopedia.Host.Tests", "tests\TerrariaEncyclopedia.Host.Tests\TerrariaEncyclopedia.Host.Tests.csproj", "{E8231204-AE70-4343-964C-D1FF8BAFF5B0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TerrariaEncyclopedia.Host.Mono", "src\TerrariaEncyclopedia.Host.Mono\TerrariaEncyclopedia.Host.Mono.csproj", "{1F4583A9-6893-45C7-A4CB-5B80A86E44CA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TerrariaEncyclopedia.Runtime", "src\TerrariaEncyclopedia.Runtime\TerrariaEncyclopedia.Runtime.csproj", "{B6EC7DA5-C74C-4ED5-9068-0CB6E67EFA70}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TerrariaEncyclopedia.Runtime.Tests", "tests\TerrariaEncyclopedia.Runtime.Tests\TerrariaEncyclopedia.Runtime.Tests.csproj", "{7822C4A1-5825-4F83-955A-8132E62D1265}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TerrariaEncyclopedia.Tests", "tests\TerrariaEncyclopedia.Tests\TerrariaEncyclopedia.Tests.csproj", "{56C8F798-27DE-4687-81F2-86E52E7E40E9}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WikiScraper", "tools\WikiScraper\WikiScraper.csproj", "{6897C36D-4FE6-4D46-BE01-FBD24B72108D}"
 EndProject
 Global
@@ -28,6 +36,22 @@ Global
 		{E8231204-AE70-4343-964C-D1FF8BAFF5B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E8231204-AE70-4343-964C-D1FF8BAFF5B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E8231204-AE70-4343-964C-D1FF8BAFF5B0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1F4583A9-6893-45C7-A4CB-5B80A86E44CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F4583A9-6893-45C7-A4CB-5B80A86E44CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F4583A9-6893-45C7-A4CB-5B80A86E44CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1F4583A9-6893-45C7-A4CB-5B80A86E44CA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B6EC7DA5-C74C-4ED5-9068-0CB6E67EFA70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B6EC7DA5-C74C-4ED5-9068-0CB6E67EFA70}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B6EC7DA5-C74C-4ED5-9068-0CB6E67EFA70}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B6EC7DA5-C74C-4ED5-9068-0CB6E67EFA70}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7822C4A1-5825-4F83-955A-8132E62D1265}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7822C4A1-5825-4F83-955A-8132E62D1265}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7822C4A1-5825-4F83-955A-8132E62D1265}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7822C4A1-5825-4F83-955A-8132E62D1265}.Release|Any CPU.Build.0 = Release|Any CPU
+		{56C8F798-27DE-4687-81F2-86E52E7E40E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{56C8F798-27DE-4687-81F2-86E52E7E40E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{56C8F798-27DE-4687-81F2-86E52E7E40E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{56C8F798-27DE-4687-81F2-86E52E7E40E9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6897C36D-4FE6-4D46-BE01-FBD24B72108D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6897C36D-4FE6-4D46-BE01-FBD24B72108D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6897C36D-4FE6-4D46-BE01-FBD24B72108D}.Release|Any CPU.ActiveCfg = Release|Any CPU

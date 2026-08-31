@@ -3,26 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Web.Script.Serialization;
+using System.Runtime.Serialization.Json;
 
 namespace TerrariaEncyclopedia.Content
 {
-    public class BossWikiInfo
-    {
-        public string Name { get; set; }
-        public string WikiPage { get; set; }
-        public string[] MatchNames { get; set; }
-        public string[] Types { get; set; }
-        public string[] Environments { get; set; }
-        public string AiType { get; set; }
-        public string KbResist { get; set; }
-        public string[] ImmuneTo { get; set; }
-        public string Summoning { get; set; }
-        public string ExpertMode { get; set; }
-        public string Aftermath { get; set; }
-        public string Tips { get; set; }
-    }
-
     /// <summary>
     /// Loads the wiki-scraper's one-time data pull (tools/WikiScraper — run manually, not at
     /// gameplay time). Supplements the live game data with things Terraria's own data has no
@@ -45,19 +29,18 @@ namespace TerrariaEncyclopedia.Content
             _loaded = true;
 
             string dir = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "WikiData");
-            var serializer = new JavaScriptSerializer { MaxJsonLength = int.MaxValue };
-
-            _bosses = ReadJson<List<BossWikiInfo>>(serializer, Path.Combine(dir, "bosses.json")) ?? new List<BossWikiInfo>();
-            _hardmodeItems = new HashSet<string>(ReadJson<List<string>>(serializer, Path.Combine(dir, "hardmode-items.json")) ?? new List<string>());
-            _hardmodeNpcs = new HashSet<string>(ReadJson<List<string>>(serializer, Path.Combine(dir, "hardmode-npcs.json")) ?? new List<string>());
+            _bosses = ReadJson<List<BossWikiInfo>>(Path.Combine(dir, "bosses.json")) ?? new List<BossWikiInfo>();
+            _hardmodeItems = new HashSet<string>(ReadJson<List<string>>(Path.Combine(dir, "hardmode-items.json")) ?? new List<string>());
+            _hardmodeNpcs = new HashSet<string>(ReadJson<List<string>>(Path.Combine(dir, "hardmode-npcs.json")) ?? new List<string>());
         }
 
-        private static T ReadJson<T>(JavaScriptSerializer serializer, string path) where T : class
+        private static T ReadJson<T>(string path) where T : class
         {
             try
             {
                 if (!File.Exists(path)) return null;
-                return serializer.Deserialize<T>(File.ReadAllText(path));
+                using (var stream = File.OpenRead(path))
+                    return new DataContractJsonSerializer(typeof(T)).ReadObject(stream) as T;
             }
             catch
             {

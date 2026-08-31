@@ -1,33 +1,65 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFrameworks>net48;netstandard2.0</TargetFrameworks>
     <AssemblyName>TerrariaEncyclopedia</AssemblyName>
     <RootNamespace>TerrariaEncyclopedia</RootNamespace>
     <OutputType>Library</OutputType>
     <LangVersion>latest</LangVersion>
-    <OutputPath>..\..\build\plugins\</OutputPath>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <GameFramework Condition="'$(GameFramework)' == ''">Portable</GameFramework>
   </PropertyGroup>
 
-  <ItemGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net48' and '$(GameFramework)' == 'FNA'">
+    <DefineConstants>$(DefineConstants);TERRARIA_FNA</DefineConstants>
+    <OutputPath>bin\$(Configuration)\FNA\</OutputPath>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+    <ProjectReference Include="..\TerrariaEncyclopedia.Runtime\TerrariaEncyclopedia.Runtime.csproj"
+                      AdditionalProperties="GameFramework=FNA;FnaReferencePath=$(FnaReferencePath)" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <ProjectReference Include="..\TerrariaEncyclopedia.Runtime\TerrariaEncyclopedia.Runtime.csproj" />
+    <Compile Remove="Compatibility\**\*.cs" />
+    <Compile Remove="EncyclopediaFeature.cs" />
+    <Compile Remove="UI\**\*.cs" />
+    <Compile Remove="Content\DropCatalogue.cs" />
+    <Compile Remove="Content\ItemCatalogue.cs" />
+    <Compile Remove="Content\NpcCatalogue.cs" />
+    <Compile Remove="Content\RecipeCatalogue.cs" />
+    <Compile Remove="Content\TerrariaEncyclopediaDataSource.cs" />
+    <Compile Remove="Content\WikiEnrichment.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net48' and '$(GameFramework)' == 'FNA'">
     <Reference Include="Terraria">
-      <HintPath>..\..\Terraria\Terraria.exe</HintPath>
+      <HintPath>$(TerrariaReferencePath)</HintPath>
       <Private>false</Private>
     </Reference>
-    <Reference Include="TerrariaModder.Core">
-      <HintPath>..\..\Terraria\TerrariaModder\core\TerrariaModder.Core.dll</HintPath>
+    <Reference Include="FNA">
+      <HintPath>$(FnaReferencePath)</HintPath>
       <Private>false</Private>
     </Reference>
-    <!-- Part of the .NET Framework 4.8 BCL (System.Web.Extensions), not a NuGet package —
-         used for JavaScriptSerializer to read the wiki-scraper's JSON without risking a
-         duplicate-assembly-load conflict (see docs/framework-patches.md, patch #2). -->
-    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Runtime.Serialization" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="WikiData\*.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="WikiData\*.json" CopyToOutputDirectory="PreserveNewest"
+          Condition="'$(TargetFramework)' == 'net48' and '$(GameFramework)' == 'FNA'" />
   </ItemGroup>
+
+  <Target Name="ValidateGameReferences" BeforeTargets="PrepareForBuild" Condition="'$(TargetFramework)' == 'net48'">
+    <Error Condition="'$(GameFramework)' != 'FNA'"
+           Text="TerrariaEncyclopedia currently supports only GameFramework=FNA." />
+    <Error Condition="'$(GameFramework)' == 'FNA' and '$(TerrariaReferencePath)' == ''"
+           Text="FNA feature builds require TerrariaReferencePath." />
+    <Error Condition="'$(GameFramework)' == 'FNA' and !Exists('$(TerrariaReferencePath)')"
+           Text="TerrariaReferencePath does not exist: $(TerrariaReferencePath)" />
+    <Error Condition="'$(GameFramework)' == 'FNA' and '$(FnaReferencePath)' == ''"
+           Text="FNA feature builds require FnaReferencePath." />
+    <Error Condition="'$(GameFramework)' == 'FNA' and !Exists('$(FnaReferencePath)')"
+           Text="FnaReferencePath does not exist: $(FnaReferencePath)" />
+  </Target>
 
 </Project>

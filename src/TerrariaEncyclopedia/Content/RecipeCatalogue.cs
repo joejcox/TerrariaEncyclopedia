@@ -4,20 +4,6 @@ using Terraria;
 
 namespace TerrariaEncyclopedia.Content
 {
-    public class RecipeIngredient
-    {
-        public int ItemId;
-        public int Stack;
-    }
-
-    public class RecipeInfo
-    {
-        public int ResultItemId;
-        public int ResultStack;
-        public List<RecipeIngredient> Ingredients = new List<RecipeIngredient>();
-        public List<int> StationTileIds = new List<int>();
-    }
-
     /// <summary>
     /// Reads Terraria's currently-loaded recipe list dynamically from Main.recipe — never
     /// hardcoded. Built once and indexed both ways: what makes an item, and what an item is

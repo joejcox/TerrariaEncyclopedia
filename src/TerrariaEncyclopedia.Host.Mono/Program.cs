@@ -7,6 +7,8 @@ namespace TerrariaEncyclopedia.Host.Mono
 {
     internal static class Program
     {
+        private static string hostDirectory;
+
         private static int Main(string[] args)
         {
             if (args == null || args.Length > 1 || (args.Length == 1 && string.IsNullOrWhiteSpace(args[0])))
@@ -19,12 +21,19 @@ namespace TerrariaEncyclopedia.Host.Mono
                 .Any(assembly => string.Equals(assembly.GetName().Name, "Terraria", StringComparison.Ordinal));
 
             int processId = System.Diagnostics.Process.GetCurrentProcess().Id;
+            hostDirectory = Path.GetDirectoryName(typeof(Program).Assembly.Location);
+            AppDomain.CurrentDomain.AssemblyResolve += ResolveHostAssembly;
             Console.WriteLine(
                 "Terraria Encyclopedia Mono host loaded before game entry point; Terraria loaded: " +
                 terrariaLoaded.ToString().ToLowerInvariant());
 
             if (args.Length == 0)
+            {
+#if ENCYCLOPEDIA_FEATURE
+                GameHost.Configure(null);
+#endif
                 return 0;
+            }
 
             string markerPath = Path.GetFullPath(args[0]);
             string[] marker =
@@ -40,7 +49,17 @@ namespace TerrariaEncyclopedia.Host.Mono
             File.WriteAllLines(temporaryMarkerPath, marker);
             File.Move(temporaryMarkerPath, markerPath);
             Console.WriteLine("Terraria Encyclopedia Mono host marker written: " + markerPath);
+#if ENCYCLOPEDIA_FEATURE
+            GameHost.Configure(markerPath + ".encyclopedia");
+#endif
             return 0;
+        }
+
+        private static System.Reflection.Assembly ResolveHostAssembly(object sender, ResolveEventArgs args)
+        {
+            string name = new System.Reflection.AssemblyName(args.Name).Name + ".dll";
+            string path = Path.Combine(hostDirectory, name);
+            return File.Exists(path) ? System.Reflection.Assembly.LoadFrom(path) : null;
         }
     }
 }

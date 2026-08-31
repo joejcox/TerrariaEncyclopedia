@@ -1,0 +1,86 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace TerrariaEncyclopedia.Content
+{
+    /// <summary>
+    /// Narrow read-only adapter over Terraria's already-loaded content databases.
+    /// The browser depends on this contract rather than mutable game globals.
+    /// </summary>
+    public sealed class TerrariaEncyclopediaDataSource : IEncyclopediaDataSource
+    {
+        private List<ItemEntry> items;
+        private List<NpcEntry> npcs;
+
+        public IReadOnlyList<ItemEntry> LoadItems()
+        {
+            if (items == null)
+            {
+                items = ItemCatalogue.Build();
+                RecipeCatalogue.EnsureBuilt(items);
+            }
+
+            return items;
+        }
+
+        public IReadOnlyList<NpcEntry> LoadNpcs()
+        {
+            if (npcs == null)
+            {
+                npcs = NpcCatalogue.Build();
+                DropCatalogue.EnsureBuilt(npcs);
+            }
+
+            return npcs;
+        }
+
+        public IReadOnlyList<RecipeInfo> RecipesFor(int itemId)
+        {
+            EnsureItemsLoaded();
+            return RecipeCatalogue.RecipesFor(itemId);
+        }
+
+        public IReadOnlyList<RecipeInfo> UsedIn(int itemId)
+        {
+            EnsureItemsLoaded();
+            return RecipeCatalogue.UsedIn(itemId);
+        }
+
+        public IReadOnlyList<DropEntry> DropsFor(int npcId)
+        {
+            EnsureNpcsLoaded();
+            return DropCatalogue.DropsFor(npcId);
+        }
+
+        public IReadOnlyList<DropEntry> SourcesFor(int itemId)
+        {
+            EnsureNpcsLoaded();
+            return DropCatalogue.SourcesFor(itemId);
+        }
+
+        public string StationName(int tileId)
+        {
+            EnsureItemsLoaded();
+            return RecipeCatalogue.StationName(tileId);
+        }
+
+        public bool IsHardmodeItem(string itemName) => WikiEnrichment.IsHardmodeItem(itemName);
+
+        public bool IsHardmodeNpc(string npcName) => WikiEnrichment.IsHardmodeNpc(npcName);
+
+        public BossWikiInfo GetBossInfo(string npcName) => WikiEnrichment.GetBossInfo(npcName);
+
+        private void EnsureItemsLoaded()
+        {
+            if (items == null)
+                LoadItems();
+        }
+
+        private void EnsureNpcsLoaded()
+        {
+            if (npcs == null)
+                LoadNpcs();
+        }
+    }
+}

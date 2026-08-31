@@ -6,16 +6,6 @@ using Terraria.GameContent.ItemDropRules;
 
 namespace TerrariaEncyclopedia.Content
 {
-    public class DropEntry
-    {
-        public int NpcId;
-        public int ItemId;
-        public int StackMin;
-        public int StackMax;
-        public float Chance;
-        public List<string> Conditions = new List<string>();
-    }
-
     /// <summary>
     /// Reads Terraria's real, live drop-rule database (Main.ItemDropsDB) — the same rule tree
     /// the game itself uses to actually drop loot. ReportDroprates() already flattens the tree
