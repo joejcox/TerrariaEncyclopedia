@@ -42,16 +42,22 @@ namespace TerrariaEncyclopedia.Host
             if (!string.IsNullOrWhiteSpace(options.ExplicitInstallationPath))
                 return validator.Validate(options.ExplicitInstallationPath, options.Platform, options.Architecture);
 
-            var diagnostics = new List<TerrariaDiagnostic>();
+            var candidateDiagnostics = new List<TerrariaDiagnostic>();
             var checkedPaths = new List<string>();
-            IReadOnlyList<string> candidates = GetStandardInstallationPaths(options);
+            IReadOnlyList<string> candidates = GetStandardInstallationPaths(options, candidateDiagnostics);
+            var diagnostics = new List<TerrariaDiagnostic>(candidateDiagnostics);
 
             foreach (string candidate in candidates)
             {
                 TerrariaDiscoveryResult result = validator.Validate(candidate, options.Platform, options.Architecture);
                 AddDistinct(checkedPaths, result.CheckedPaths);
                 if (result.Success)
-                    return new TerrariaDiscoveryResult(result.Installation, result.Diagnostics, checkedPaths);
+                {
+                    return new TerrariaDiscoveryResult(
+                        result.Installation,
+                        candidateDiagnostics.Concat(result.Diagnostics),
+                        checkedPaths);
+                }
                 diagnostics.AddRange(result.Diagnostics);
             }
 
@@ -72,7 +78,14 @@ namespace TerrariaEncyclopedia.Host
             if (options == null)
                 throw new ArgumentNullException(nameof(options));
 
-            var steamLibraryPaths = new List<string>();
+            return GetStandardInstallationPaths(options, new List<TerrariaDiagnostic>());
+        }
+
+        private static IReadOnlyList<string> GetStandardInstallationPaths(
+            TerrariaDiscoveryOptions options,
+            ICollection<TerrariaDiagnostic> diagnostics)
+        {
+            var candidates = new List<string>();
             string home = options.HomeDirectory;
             if (string.IsNullOrWhiteSpace(home))
                 home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
@@ -83,30 +96,87 @@ namespace TerrariaEncyclopedia.Host
                 if (string.IsNullOrWhiteSpace(programFilesX86))
                     programFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
                 if (!string.IsNullOrWhiteSpace(programFilesX86))
-                    steamLibraryPaths.Add(Path.Combine(programFilesX86, "Steam"));
+                {
+                    AddStandardRoot(
+                        candidates,
+                        diagnostics,
+                        programFilesX86,
+                        "ProgramFilesX86Directory",
+                        "Supply a valid ProgramFilesX86Directory override or ExplicitInstallationPath.",
+                        "Steam");
+                }
             }
             else if (options.Platform == TerrariaPlatform.Linux && !string.IsNullOrWhiteSpace(home))
             {
-                steamLibraryPaths.Add(Path.Combine(home, ".local", "share", "Steam"));
-                steamLibraryPaths.Add(Path.Combine(home, ".steam", "steam"));
-                steamLibraryPaths.Add(Path.Combine(home, ".steam", "debian-installation"));
+                AddStandardRoot(
+                    candidates,
+                    diagnostics,
+                    home,
+                    "HomeDirectory",
+                    "Supply a valid HomeDirectory override or ExplicitInstallationPath.",
+                    ".local", "share", "Steam");
+                AddStandardRoot(candidates, null, home, null, null, ".steam", "steam");
+                AddStandardRoot(candidates, null, home, null, null, ".steam", "debian-installation");
             }
             else if (options.Platform == TerrariaPlatform.MacOS && !string.IsNullOrWhiteSpace(home))
             {
-                steamLibraryPaths.Add(Path.Combine(home, "Library", "Application Support", "Steam"));
+                AddStandardRoot(
+                    candidates,
+                    diagnostics,
+                    home,
+                    "HomeDirectory",
+                    "Supply a valid HomeDirectory override or ExplicitInstallationPath.",
+                    "Library", "Application Support", "Steam");
             }
 
             if (options.AdditionalSteamLibraryPaths != null)
-                steamLibraryPaths.AddRange(options.AdditionalSteamLibraryPaths.Where(path => !string.IsNullOrWhiteSpace(path)));
+            {
+                foreach (string path in options.AdditionalSteamLibraryPaths.Where(path => !string.IsNullOrWhiteSpace(path)))
+                {
+                    AddStandardRoot(
+                        candidates,
+                        diagnostics,
+                        path,
+                        "AdditionalSteamLibraryPaths",
+                        "Remove or correct this AdditionalSteamLibraryPaths entry, or supply ExplicitInstallationPath.");
+                }
+            }
 
             StringComparer comparer = options.Platform == TerrariaPlatform.Windows
                 ? StringComparer.OrdinalIgnoreCase
                 : StringComparer.Ordinal;
 
-            return steamLibraryPaths
-                .Select(path => Path.GetFullPath(Path.Combine(path, "steamapps", "common", "Terraria")))
-                .Distinct(comparer)
-                .ToArray();
+            return candidates.Distinct(comparer).ToArray();
+        }
+
+        private static void AddStandardRoot(
+            ICollection<string> candidates,
+            ICollection<TerrariaDiagnostic> diagnostics,
+            string rootPath,
+            string optionName,
+            string remedy,
+            params string[] relativeSteamRootSegments)
+        {
+            try
+            {
+                string steamRoot = relativeSteamRootSegments.Length == 0
+                    ? rootPath
+                    : Path.Combine(new[] { rootPath }.Concat(relativeSteamRootSegments).ToArray());
+                candidates.Add(Path.GetFullPath(Path.Combine(steamRoot, "steamapps", "common", "Terraria")));
+            }
+            catch (Exception exception) when (
+                exception is ArgumentException ||
+                exception is NotSupportedException ||
+                exception is PathTooLongException)
+            {
+                if (diagnostics != null)
+                {
+                    diagnostics.Add(new TerrariaDiagnostic(
+                        "invalid-installation-path",
+                        "The " + optionName + " path used for Steam discovery is invalid: " + exception.Message + " " + remedy,
+                        rootPath));
+                }
+            }
         }
 
         private static void AddDistinct(ICollection<string> target, IEnumerable<string> values)

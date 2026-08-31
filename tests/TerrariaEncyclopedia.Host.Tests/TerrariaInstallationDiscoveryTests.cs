@@ -105,6 +105,77 @@ namespace TerrariaEncyclopedia.Host.Tests
         }
 
         [Fact]
+        public void Invalid_additional_library_does_not_prevent_later_valid_library_discovery()
+        {
+            using (var fixture = new TemporaryTerrariaInstallation())
+            {
+                const string invalidLibrary = "invalid\0library";
+                string validLibrary = Path.Combine(fixture.RootPath, "valid-library");
+                string installation = Path.Combine(validLibrary, "steamapps", "common", "Terraria");
+                fixture.CreateLayout(TerrariaPlatform.Linux, TerrariaArchitecture.X64, installation);
+
+                TerrariaDiscoveryResult result = CreateDiscovery("1.4.5.8").Discover(
+                    new TerrariaDiscoveryOptions(TerrariaPlatform.Linux, TerrariaArchitecture.X64)
+                    {
+                        HomeDirectory = Path.Combine(fixture.RootPath, "empty-home"),
+                        AdditionalSteamLibraryPaths = new[] { invalidLibrary, validLibrary }
+                    });
+
+                Assert.True(result.Success);
+                Assert.Equal(Path.GetFullPath(installation), result.Installation.RootPath);
+                TerrariaDiagnostic diagnostic = Assert.Single(result.Diagnostics);
+                Assert.Equal("invalid-installation-path", diagnostic.Code);
+                Assert.Equal(invalidLibrary, diagnostic.Path);
+                Assert.Contains("AdditionalSteamLibraryPaths", diagnostic.Message);
+                Assert.Contains("correct", diagnostic.Message);
+            }
+        }
+
+        [Fact]
+        public void Invalid_home_directory_override_returns_actionable_diagnostic()
+        {
+            const string invalidHome = "invalid\0home";
+
+            TerrariaDiscoveryResult result = CreateDiscovery("1.4.5.8").Discover(
+                new TerrariaDiscoveryOptions(TerrariaPlatform.Linux, TerrariaArchitecture.X64)
+                {
+                    HomeDirectory = invalidHome
+                });
+
+            Assert.False(result.Success);
+            TerrariaDiagnostic diagnostic = Assert.Single(
+                result.Diagnostics,
+                item => item.Code == "invalid-installation-path");
+            Assert.Equal(invalidHome, diagnostic.Path);
+            Assert.Contains("HomeDirectory", diagnostic.Message);
+            Assert.Contains("valid HomeDirectory", diagnostic.Message);
+            Assert.Contains(result.Diagnostics, item => item.Code == "installation-not-found");
+            Assert.Empty(result.CheckedPaths);
+        }
+
+        [Fact]
+        public void Invalid_program_files_override_returns_actionable_diagnostic()
+        {
+            const string invalidProgramFiles = "invalid\0program-files";
+
+            TerrariaDiscoveryResult result = CreateDiscovery("1.4.5.8").Discover(
+                new TerrariaDiscoveryOptions(TerrariaPlatform.Windows, TerrariaArchitecture.X64)
+                {
+                    ProgramFilesX86Directory = invalidProgramFiles
+                });
+
+            Assert.False(result.Success);
+            TerrariaDiagnostic diagnostic = Assert.Single(
+                result.Diagnostics,
+                item => item.Code == "invalid-installation-path");
+            Assert.Equal(invalidProgramFiles, diagnostic.Path);
+            Assert.Contains("ProgramFilesX86Directory", diagnostic.Message);
+            Assert.Contains("valid ProgramFilesX86Directory", diagnostic.Message);
+            Assert.Contains(result.Diagnostics, item => item.Code == "installation-not-found");
+            Assert.Empty(result.CheckedPaths);
+        }
+
+        [Fact]
         public void Missing_required_file_reports_its_checked_path_and_remedy()
         {
             using (var fixture = new TemporaryTerrariaInstallation())
