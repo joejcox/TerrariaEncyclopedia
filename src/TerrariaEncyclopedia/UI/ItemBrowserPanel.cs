@@ -485,15 +485,16 @@ namespace TerrariaEncyclopedia.UI
 
         private const int NavBarHeight = 30;
         private const int RowHeight = 34;
+        private const int DetailPadX = 14;
 
         private void DrawDetailView()
         {
             var entry = _detailItem;
             if (entry == null) { GoHome(); return; }
 
-            int x = _panel.ContentX;
+            int x = _panel.ContentX + DetailPadX;
             int y = _panel.ContentY + SectionToggleHeight;
-            int width = _panel.ContentWidth;
+            int width = _panel.ContentWidth - DetailPadX * 2;
 
             DrawNavBar(x, y, width, GoBack, GoHome, _history.Count > 0);
             string badge = entry.IsExpertExclusive ? "EXPERT" : null;
@@ -525,8 +526,10 @@ namespace TerrariaEncyclopedia.UI
 
             if (entry.SellValue > 0)
             {
-                UIRenderer.DrawText("Sell: " + FormatCoins(entry.SellValue), x, y, UIColors.Text);
-                y += UIRenderer.TextLineHeight;
+                UIRenderer.DrawText("Sell: ", x, y, UIColors.Text);
+                int labelW = TextUtil.MeasureWidth("Sell: ");
+                DrawCoinValue(x + labelW, y, entry.SellValue);
+                y += Math.Max(UIRenderer.TextLineHeight, CoinIconSize);
             }
 
             if (entry.ResearchCount > 0)
@@ -537,14 +540,12 @@ namespace TerrariaEncyclopedia.UI
 
             if (entry.BuffType > 0)
             {
-                // ponytail: no buff icon here — buff textures are a separate array from item
-                // icons (Main.buffTexture, not TextureAssets.Item) and Core has no DrawBuff
-                // equivalent yet. Text-only for now; add a Core DrawBuff (mirroring DrawItem/
-                // DrawNPC) if the icon turns out to matter.
-                UIRenderer.DrawText("Grants Buff: ", x, y, LabelBlue);
+                int iconSize = Math.Max(UIRenderer.TextLineHeight, 20);
+                UIRenderer.DrawBuff(entry.BuffType, x, y, iconSize, iconSize);
+                UIRenderer.DrawText("Grants Buff: ", x + iconSize + 6, y + 2, LabelBlue);
                 int labelW = TextUtil.MeasureWidth("Grants Buff: ");
-                UIRenderer.DrawText(entry.BuffName ?? "", x + labelW, y, UIColors.Text);
-                y += UIRenderer.TextLineHeight;
+                UIRenderer.DrawText(entry.BuffName ?? "", x + iconSize + 6 + labelW, y + 2, UIColors.Text);
+                y += iconSize + 2;
 
                 if (!string.IsNullOrEmpty(entry.BuffTooltip))
                 {
@@ -569,19 +570,42 @@ namespace TerrariaEncyclopedia.UI
             return y - startY;
         }
 
-        private static string FormatCoins(int copper)
-        {
-            int platinum = copper / 1000000;
-            int gold = copper / 10000 % 100;
-            int silver = copper / 100 % 100;
-            int c = copper % 100;
+        private const int CoinIconSize = 18;
+        private static readonly int[] CoinIconIds = { ItemID.PlatinumCoin, ItemID.GoldCoin, ItemID.SilverCoin, ItemID.CopperCoin };
 
-            var parts = new List<string>();
-            if (platinum > 0) parts.Add($"{platinum}p");
-            if (gold > 0) parts.Add($"{gold}g");
-            if (silver > 0) parts.Add($"{silver}s");
-            if (c > 0 || parts.Count == 0) parts.Add($"{c}c");
-            return string.Join(" ", parts);
+        /// <summary>Draws "&lt;n&gt;[coin icon]" per nonzero denomination, highest first — matches the game's own coin display instead of a "15g" letter suffix. Returns width used.</summary>
+        private static int DrawCoinValue(int x, int y, int copper)
+        {
+            int[] amounts =
+            {
+                copper / 1000000,       // platinum
+                copper / 10000 % 100,   // gold
+                copper / 100 % 100,     // silver
+                copper % 100,           // copper
+            };
+
+            int curX = x;
+            bool any = false;
+            for (int i = 0; i < amounts.Length; i++)
+            {
+                if (amounts[i] == 0) continue;
+                any = true;
+                string label = amounts[i].ToString();
+                UIRenderer.DrawText(label, curX, y + (CoinIconSize - UIRenderer.TextLineHeight) / 2, UIColors.Text);
+                curX += TextUtil.MeasureWidth(label) + 2;
+                UIRenderer.DrawItem(CoinIconIds[i], curX, y, CoinIconSize, CoinIconSize);
+                curX += CoinIconSize + 6;
+            }
+
+            if (!any)
+            {
+                UIRenderer.DrawText("0", curX, y + (CoinIconSize - UIRenderer.TextLineHeight) / 2, UIColors.Text);
+                curX += TextUtil.MeasureWidth("0") + 2;
+                UIRenderer.DrawItem(ItemID.CopperCoin, curX, y, CoinIconSize, CoinIconSize);
+                curX += CoinIconSize;
+            }
+
+            return curX - x;
         }
 
         private void DrawNavBar(int x, int y, int width, Action onBack, Action onHome, bool canGoBack)
@@ -604,49 +628,53 @@ namespace TerrariaEncyclopedia.UI
             }
         }
 
+        private const int MaxCraftingTreeDepth = 4;
+
         private void DrawRecipeSection(int x, int y, int width, int height, ItemEntry entry)
         {
             var recipes = RecipeCatalogue.RecipesFor(entry.Id);
             var usedIn = RecipeCatalogue.UsedIn(entry.Id);
 
             // Build a flat list of rows to render inside one scroll area: section headers + item rows.
-            var rows = new List<(string Header, ItemEntry Item, string Suffix)>();
+            var rows = new List<(string Header, ItemEntry Item, string Suffix, int IndentX)>();
 
             if (recipes.Count == 0)
             {
-                rows.Add(("Crafting", null, null));
-                rows.Add((null, null, "Not craftable — found some other way (drop, purchase, world gen)."));
+                rows.Add(("Crafting", null, null, 0));
+                rows.Add((null, null, "Not craftable — found some other way (drop, purchase, world gen).", 0));
             }
             else
             {
                 foreach (var recipe in recipes)
                 {
-                    string station = recipe.StationTileIds.Count == 0
-                        ? "By Hand"
-                        : string.Join(", ", recipe.StationTileIds.Select(RecipeCatalogue.StationName));
-                    rows.Add(("Crafting", null, $"At: {station}"));
+                    rows.Add(("Crafting", null, null, 0));
+                    if (recipe.StationTileIds.Count > 0)
+                    {
+                        string station = string.Join(", ", recipe.StationTileIds.Select(RecipeCatalogue.StationName));
+                        rows.Add((null, null, $"At: {station}", 0));
+                    }
                     foreach (var ing in recipe.Ingredients)
                     {
                         if (_byId.TryGetValue(ing.ItemId, out var ingEntry))
-                            rows.Add((null, ingEntry, $"x{ing.Stack}"));
+                            AddIngredientTreeRows(rows, ingEntry, ing.Stack, 0, new HashSet<int> { entry.Id });
                     }
                 }
             }
 
-            rows.Add(("Used to make", null, null));
+            rows.Add(("Used to make", null, null, 0));
             if (usedIn.Count == 0)
             {
-                rows.Add((null, null, "Not used in any known recipe."));
+                rows.Add((null, null, "Not used in any known recipe.", 0));
             }
             else
             {
                 foreach (var recipe in usedIn.Take(30))
                 {
                     if (_byId.TryGetValue(recipe.ResultItemId, out var resultEntry))
-                        rows.Add((null, resultEntry, null));
+                        rows.Add((null, resultEntry, null, 0));
                 }
                 if (usedIn.Count > 30)
-                    rows.Add((null, null, $"+{usedIn.Count - 30} more"));
+                    rows.Add((null, null, $"+{usedIn.Count - 30} more", 0));
             }
 
             int contentHeight = rows.Count * RowHeight;
@@ -658,7 +686,7 @@ namespace TerrariaEncyclopedia.UI
                 if (_detailScroll.IsVisible(rowY, RowHeight))
                 {
                     int drawY = _detailScroll.ContentY + rowY;
-                    DrawDetailRow(x, drawY, width, row.Header, row.Item, row.Suffix);
+                    DrawDetailRow(x, drawY, width, row.Header, row.Item, row.Suffix, row.IndentX);
                 }
                 rowY += RowHeight;
             }
@@ -666,7 +694,34 @@ namespace TerrariaEncyclopedia.UI
             _detailScroll.End();
         }
 
-        private void DrawDetailRow(int x, int y, int width, string header, ItemEntry item, string suffix)
+        /// <summary>
+        /// Recursively lists what each ingredient is itself crafted from — a flattened, indented
+        /// "crafting tree" rather than the wiki's boxed diagram. Only the first recipe per item is
+        /// followed (many items have several) to keep it readable, depth-capped, and cycle-guarded
+        /// via a path-scoped visited set (add before recursing, remove after) so the same
+        /// intermediate can still appear under two different branches without looping forever.
+        /// </summary>
+        private void AddIngredientTreeRows(List<(string Header, ItemEntry Item, string Suffix, int IndentX)> rows,
+            ItemEntry ingEntry, int stack, int depth, HashSet<int> visited)
+        {
+            rows.Add((null, ingEntry, $"x{stack}", depth));
+
+            if (depth >= MaxCraftingTreeDepth || !visited.Add(ingEntry.Id)) return;
+
+            var subRecipes = RecipeCatalogue.RecipesFor(ingEntry.Id);
+            if (subRecipes.Count > 0)
+            {
+                foreach (var subIng in subRecipes[0].Ingredients)
+                {
+                    if (_byId.TryGetValue(subIng.ItemId, out var subEntry))
+                        AddIngredientTreeRows(rows, subEntry, subIng.Stack, depth + 1, visited);
+                }
+            }
+
+            visited.Remove(ingEntry.Id);
+        }
+
+        private void DrawDetailRow(int x, int y, int width, string header, ItemEntry item, string suffix, int indentX = 0)
         {
             if (header != null)
             {
@@ -680,14 +735,19 @@ namespace TerrariaEncyclopedia.UI
                 return;
             }
 
-            bool isHover = WidgetInput.IsMouseOver(x, y, width, RowHeight - 4);
+            int itemX = x + indentX * 20;
+            int rowWidth = width - indentX * 20;
+            bool isHover = WidgetInput.IsMouseOver(itemX, y, rowWidth, RowHeight - 4);
             if (isHover)
-                UIRenderer.DrawRect(x, y, width, RowHeight - 4, UIColors.InputFocusBg);
+                UIRenderer.DrawRect(itemX, y, rowWidth, RowHeight - 4, UIColors.InputFocusBg);
 
-            UIRenderer.DrawItem(item.Id, x, y, 28, 28);
-            UIRenderer.DrawText(item.Name, x + 34, y + 5, isHover ? UIColors.AccentText : UIColors.Text);
+            UIRenderer.DrawItem(item.Id, itemX, y, 28, 28);
+            UIRenderer.DrawText(item.Name, itemX + 34, y + 5, isHover ? UIColors.AccentText : UIColors.Text);
             if (suffix != null)
-                UIRenderer.DrawText(suffix, x + width - 60, y + 5, UIColors.TextDim);
+            {
+                int nameWidth = TextUtil.MeasureWidth(item.Name);
+                UIRenderer.DrawText(suffix, itemX + 34 + nameWidth + 10, y + 5, UIColors.TextDim);
+            }
 
             if (isHover)
             {
@@ -933,9 +993,9 @@ namespace TerrariaEncyclopedia.UI
             var entry = _npcDetailItem;
             if (entry == null) { GoHome(); return; }
 
-            int x = _panel.ContentX;
+            int x = _panel.ContentX + DetailPadX;
             int y = _panel.ContentY + SectionToggleHeight;
-            int width = _panel.ContentWidth;
+            int width = _panel.ContentWidth - DetailPadX * 2;
 
             DrawNavBar(x, y, width, GoHome, GoHome, false); // no cross-NPC nav chain — Back == Home here
             if (WikiEnrichment.IsHardmodeNpc(entry.Name)) DrawHardmodeMarker(x, y, width);
@@ -962,25 +1022,40 @@ namespace TerrariaEncyclopedia.UI
         }
 
         /// <summary>
-        /// Boss Type/Environment/KB Resist/Immune-to as one compact, color-coded line below the
-        /// stats row — not a collapsible section, always visible. AI Type is omitted: it's just
-        /// "<Boss Name> AI" for almost every boss and conveys nothing.
+        /// Boss Type/Environment/KB Resist/Immune-to below the stats row — not a collapsible
+        /// section, always visible. Split into two related groups (Type+Environment, then
+        /// KB Resist+Immune to) instead of one crammed line: each group only wraps onto extra
+        /// lines if its own content overflows, so most bosses still render in exactly two lines.
+        /// AI Type is omitted: it's just "&lt;Boss Name&gt; AI" for almost every boss and conveys nothing.
         /// </summary>
         private int DrawBossInfoLine(int x, int y, int maxWidth, BossWikiInfo wiki)
         {
-            var segments = new List<(string Text, Color4 Color)>();
-            void AddFact(string label, Color4 labelColor, string[] values)
+            int h1 = DrawFactGroup(x, y, maxWidth, new List<(string, Color4, string[])>
             {
-                if (values == null || values.Length == 0) return;
-                if (segments.Count > 0) segments.Add((" - ", UIColors.TextDim));
-                segments.Add((label + ": ", labelColor));
-                segments.Add((string.Join(" | ", values), UIColors.Text));
-            }
+                ("Type", LabelPurple, wiki.Types),
+                ("Environment", LabelGreen, wiki.Environments),
+            });
 
-            AddFact("Type", LabelPurple, wiki.Types);
-            AddFact("Environment", LabelGreen, wiki.Environments);
-            if (!string.IsNullOrEmpty(wiki.KbResist)) AddFact("KB Resist", LabelTeal, new[] { wiki.KbResist });
-            AddFact("Immune to", LabelRed, wiki.ImmuneTo);
+            int h2 = DrawFactGroup(x, y + h1, maxWidth, new List<(string, Color4, string[])>
+            {
+                ("KB Resist", LabelTeal, string.IsNullOrEmpty(wiki.KbResist) ? null : new[] { wiki.KbResist }),
+                ("Immune to", LabelRed, wiki.ImmuneTo),
+            });
+
+            return h1 + h2;
+        }
+
+        /// <summary>Draws one wrapping, color-coded line (or more, if it overflows maxWidth) from label:value facts, skipping empty ones. Returns height used.</summary>
+        private int DrawFactGroup(int x, int y, int maxWidth, List<(string Label, Color4 LabelColor, string[] Values)> facts)
+        {
+            var segments = new List<(string Text, Color4 Color)>();
+            foreach (var fact in facts)
+            {
+                if (fact.Values == null || fact.Values.Length == 0) continue;
+                if (segments.Count > 0) segments.Add((" - ", UIColors.TextDim));
+                segments.Add((fact.Label + ": ", fact.LabelColor));
+                segments.Add((string.Join(" | ", fact.Values), UIColors.Text));
+            }
 
             if (segments.Count == 0) return 0;
 

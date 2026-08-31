@@ -8,6 +8,10 @@ to that staged source. If the framework is ever rebuilt from a fresh clone of
 `Inidar1/terraria-modder` (tag `v0.4.0`) or `ConfuzzedCat/TerrariaInjector`
 (tag `v1.3.0`), these need to be reapplied.
 
+Two of the fixes below (#4's `lineHeight` fix, and #5) are cosmetic/feature
+additions rather than compile/runtime bugs, but live in the same staged
+source and need the same reapply treatment.
+
 ## 1. `src/Core/Server/DedServProxy.cs` — broken `Item.NewItem` overload
 
 Core's `TerrariaModder.Core.csproj` fails to compile against installed
@@ -82,10 +86,38 @@ position, returning the height consumed so callers can lay out content below
 it. Zero changes to the existing hover-tooltip behavior (`Set()`/
 `DrawDeferred()`/`RenderLines()` untouched apart from the extraction).
 
+Also fixed in the same file: both `RenderLines()` and `DrawAt()` had a
+hardcoded `int lineHeight = 16;` — smaller than this font's real measured
+height, so embedded tooltip text rendered visibly cramped. Both now read
+`UIRenderer.TextLineHeight` (see #6) instead.
+
+## 5. `src/Core/UI/UIRenderer.cs` — no `DrawBuff` (buff icons couldn't be drawn at all)
+
+Buff icons live in a separate texture array from item/NPC icons (`Main.buffTexture`,
+not `TextureAssets.Item`/`TextureAssets.Npc`), and Core had no equivalent
+drawing method — needed to show the buff an item grants inline on its detail
+page.
+
+**Fix**: added `DrawBuff(buffType, x, y, width, height, alpha)`, mirroring
+`DrawItem`/`DrawNPC` exactly (same point-filter sampler fix, same
+`_assetValueProp`/`_assetIsLoadedProp` reflection helpers). One difference
+from those two: no lazy-load call before drawing — reflection found no
+`Main.Load*Buff*` method (the much smaller, always-used buff icon set has
+nothing to lazily stream), so `DrawBuff` just reads the already-loaded asset.
+
+## 6. `src/Core/UI/UIRenderer.cs` — `TextLineHeight` (added earlier, referenced by #4 and #5's context)
+
+`MeasureText` only ever exposed the string's pixel *width* (`Vector2.X`),
+discarding the font's measured *height* (`Vector2.Y`). Every line-height
+calculation in the mod was a guessed 18-20px constant, which was smaller than
+the real font and caused wrapped text to overlap. Added a `TextLineHeight`
+property that reads the same font measurement's `Vector2.Y`, so callers get
+the real value instead of guessing.
+
 ## Deploy checklist after rebuilding the framework from source
 
 1. `dotnet build src/Core/TerrariaModder.Core.csproj -c Release` (with patches
-   #1 and #3 applied) → `TerrariaModder.Core.dll`
+   #1, #3, #4, #5, #6 applied) → `TerrariaModder.Core.dll`
 2. `dotnet build TerrariaInjector.csproj -c Release` (SDK-style conversion —
    see `project-plan.md` Phase 0 — Harmony 2.4.2, Mono.Cecil 0.11.6)
 3. Copy `TerrariaModder.Core.dll` → `Terraria/TerrariaModder/core/`
