@@ -82,7 +82,10 @@ namespace TerrariaEncyclopedia.Runtime.UI.Tooltips
                 contentHeight,
                 Padding);
             DrawBox(renderer, palette, layout.Bounds);
-            DrawLines(renderer, wrapped, layout.Bounds.X + Padding, layout.Bounds.Y + Padding);
+            using (renderer.PushClip(layout.Bounds))
+            {
+                DrawLines(renderer, wrapped, layout.Bounds.X + Padding, layout.Bounds.Y + Padding);
+            }
         }
 
         public int DrawItemAt(

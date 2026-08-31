@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TerrariaEncyclopedia.Runtime.UI.Input;
 using TerrariaEncyclopedia.Runtime.UI.Rendering;
 using TerrariaEncyclopedia.Runtime.UI.Tooltips;
 using Xunit;
@@ -30,6 +31,29 @@ namespace TerrariaEncyclopedia.Runtime.Tests.UI
                 third => Assert.Equal("Dam", third),
                 fourth => Assert.Equal("age", fourth));
             Assert.Equal(88, backend.FilledRectangles[0].Height);
+        }
+
+        [Fact]
+        public void DeferredTooltipClipsOverflowToItsCappedBounds()
+        {
+            var backend = new RecordingRenderBackend();
+            var renderer = new UiRenderer(backend);
+            var featureInput = new StubFeatureInput { MousePosition = new InputPoint(10, 10) };
+            var service = new TooltipService();
+            var viewport = new RenderRectangle(0, 0, 100, 40);
+            service.Set("one\ntwo\nthree\nfour");
+
+            service.DrawDeferred(
+                renderer,
+                new WidgetInput(featureInput),
+                viewport,
+                UiPalette.Default);
+
+            RenderRectangle bounds = backend.FilledRectangles[0];
+            Assert.Equal(viewport.Height, bounds.Height);
+            Assert.True(backend.DrawnTexts.Count * renderer.TextLineHeight + 16 > bounds.Height);
+            Assert.Collection(backend.Clips, clip => Assert.Equal(bounds, clip));
+            Assert.Equal(new[] { 1 }, backend.RestoredStates);
         }
 
         private sealed class ItemSource : IItemTooltipSource

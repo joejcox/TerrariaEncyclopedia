@@ -89,7 +89,6 @@ namespace TerrariaEncyclopedia.Runtime.UI.Fna
         private readonly FnaDrawText drawText;
         private readonly FnaResolveTerrariaIcon resolveIcon;
         private readonly FnaCaptureSpriteBatchState captureAmbientState;
-        private readonly RasterizerState clippingRasterizer;
         private RenderState currentState;
         private int clipDepth;
 
@@ -111,7 +110,6 @@ namespace TerrariaEncyclopedia.Runtime.UI.Fna
                 ?? throw new ArgumentNullException(nameof(captureAmbientState));
             graphicsDevice = spriteBatch.GraphicsDevice;
             TextLineHeight = Math.Max(1, textLineHeight);
-            clippingRasterizer = new RasterizerState { ScissorTestEnable = true };
         }
 
         public int TextLineHeight { get; }
@@ -140,8 +138,31 @@ namespace TerrariaEncyclopedia.Runtime.UI.Fna
                 scissor = Intersect(scissor, state.ScissorRectangle);
             }
 
-            RenderState clipped = state.WithClip(clippingRasterizer, scissor);
-            TransitionTo(clipped);
+            RasterizerState rasterizerState = state.RasterizerState;
+            bool createdRasterizer = rasterizerState == null || !rasterizerState.ScissorTestEnable;
+            if (createdRasterizer)
+            {
+                rasterizerState = CreateClippingRasterizer(state.RasterizerState);
+            }
+
+            RenderState clipped = state.WithClip(
+                rasterizerState,
+                scissor,
+                state.OwnsRasterizerState || createdRasterizer);
+            try
+            {
+                TransitionTo(clipped);
+            }
+            catch
+            {
+                if (createdRasterizer)
+                {
+                    rasterizerState.Dispose();
+                }
+
+                throw;
+            }
+
             currentState = clipped;
             clipDepth++;
         }
@@ -149,12 +170,15 @@ namespace TerrariaEncyclopedia.Runtime.UI.Fna
         public void RestoreState(IUiRenderState state)
         {
             RenderState captured = RequireState(state);
+            RenderState previous = currentState;
             TransitionTo(captured);
             currentState = captured;
             if (clipDepth > 0)
             {
                 clipDepth--;
             }
+
+            previous?.DisposeOwnedRasterizerUnlessSharedWith(captured);
         }
 
         public void FillRectangle(RenderRectangle bounds, RenderColour colour)
@@ -225,7 +249,27 @@ namespace TerrariaEncyclopedia.Runtime.UI.Fna
 
         public void Dispose()
         {
-            clippingRasterizer.Dispose();
+            currentState?.DisposeOwnedRasterizerUnlessSharedWith(null);
+            currentState = null;
+            clipDepth = 0;
+        }
+
+        internal static RasterizerState CreateClippingRasterizer(RasterizerState ambient)
+        {
+            if (ambient == null)
+            {
+                return new RasterizerState { ScissorTestEnable = true };
+            }
+
+            return new RasterizerState
+            {
+                CullMode = ambient.CullMode,
+                FillMode = ambient.FillMode,
+                MultiSampleAntiAlias = ambient.MultiSampleAntiAlias,
+                ScissorTestEnable = true,
+                DepthBias = ambient.DepthBias,
+                SlopeScaleDepthBias = ambient.SlopeScaleDepthBias
+            };
         }
 
         private void TransitionTo(RenderState state)
@@ -335,6 +379,7 @@ namespace TerrariaEncyclopedia.Runtime.UI.Fna
                 Effect = state.Effect;
                 TransformMatrix = state.TransformMatrix;
                 ScissorRectangle = state.ScissorRectangle;
+                OwnsRasterizerState = false;
             }
 
             private RenderState(
@@ -345,7 +390,8 @@ namespace TerrariaEncyclopedia.Runtime.UI.Fna
                 RasterizerState rasterizerState,
                 Effect effect,
                 Matrix transformMatrix,
-                Rectangle scissorRectangle)
+                Rectangle scissorRectangle,
+                bool ownsRasterizerState)
             {
                 SortMode = sortMode;
                 BlendState = blendState;
@@ -355,6 +401,7 @@ namespace TerrariaEncyclopedia.Runtime.UI.Fna
                 Effect = effect;
                 TransformMatrix = transformMatrix;
                 ScissorRectangle = scissorRectangle;
+                OwnsRasterizerState = ownsRasterizerState;
             }
 
             public SpriteSortMode SortMode { get; }
@@ -373,6 +420,8 @@ namespace TerrariaEncyclopedia.Runtime.UI.Fna
 
             public Rectangle ScissorRectangle { get; }
 
+            public bool OwnsRasterizerState { get; }
+
             public RenderState Copy()
             {
                 return new RenderState(
@@ -383,10 +432,14 @@ namespace TerrariaEncyclopedia.Runtime.UI.Fna
                     RasterizerState,
                     Effect,
                     TransformMatrix,
-                    ScissorRectangle);
+                    ScissorRectangle,
+                    OwnsRasterizerState);
             }
 
-            public RenderState WithClip(RasterizerState rasterizerState, Rectangle scissorRectangle)
+            public RenderState WithClip(
+                RasterizerState rasterizerState,
+                Rectangle scissorRectangle,
+                bool ownsRasterizerState)
             {
                 return new RenderState(
                     SortMode,
@@ -396,7 +449,8 @@ namespace TerrariaEncyclopedia.Runtime.UI.Fna
                     rasterizerState,
                     Effect,
                     TransformMatrix,
-                    scissorRectangle);
+                    scissorRectangle,
+                    ownsRasterizerState);
             }
 
             public RenderState WithSampler(SamplerState samplerState)
@@ -409,7 +463,18 @@ namespace TerrariaEncyclopedia.Runtime.UI.Fna
                     RasterizerState,
                     Effect,
                     TransformMatrix,
-                    ScissorRectangle);
+                    ScissorRectangle,
+                    OwnsRasterizerState);
+            }
+
+            public void DisposeOwnedRasterizerUnlessSharedWith(RenderState replacement)
+            {
+                if (OwnsRasterizerState
+                    && RasterizerState != null
+                    && !ReferenceEquals(RasterizerState, replacement?.RasterizerState))
+                {
+                    RasterizerState.Dispose();
+                }
             }
         }
     }
