@@ -134,6 +134,7 @@ namespace TerrariaEncyclopedia.UI
             {
                 _allNpcs = NpcCatalogue.Build();
                 DropCatalogue.EnsureBuilt(_allNpcs);
+                NpcPersonalityCatalogue.EnsureBuilt(_allNpcs);
                 FilterNpcs();
             }
 
@@ -573,6 +574,22 @@ namespace TerrariaEncyclopedia.UI
         private const int CoinIconSize = 18;
         private static readonly int[] CoinIconIds = { ItemID.PlatinumCoin, ItemID.GoldCoin, ItemID.SilverCoin, ItemID.CopperCoin };
 
+        /// <summary>Plain-text "15g 3s" style coin formatting, for plain-text row contexts that can't draw inline icons (unlike DrawCoinValue).</summary>
+        private static string FormatCoinsText(int copper)
+        {
+            int platinum = copper / 1000000;
+            int gold = copper / 10000 % 100;
+            int silver = copper / 100 % 100;
+            int c = copper % 100;
+
+            var parts = new List<string>();
+            if (platinum > 0) parts.Add($"{platinum}p");
+            if (gold > 0) parts.Add($"{gold}g");
+            if (silver > 0) parts.Add($"{silver}s");
+            if (c > 0 || parts.Count == 0) parts.Add($"{c}c");
+            return string.Join(" ", parts);
+        }
+
         /// <summary>Draws "&lt;n&gt;[coin icon]" per nonzero denomination, highest first — matches the game's own coin display instead of a "15g" letter suffix. Returns width used.</summary>
         private static int DrawCoinValue(int x, int y, int copper)
         {
@@ -641,7 +658,31 @@ namespace TerrariaEncyclopedia.UI
             if (recipes.Count == 0)
             {
                 rows.Add(("Crafting", null, null, 0));
-                rows.Add((null, null, "Not craftable — found some other way (drop, purchase, world gen).", 0));
+
+                // Reuses the same live NPC drop-rule data (Main.ItemDropsDB) the NPC pages
+                // already show — condition text here is exact (e.g. "In Master Mode", not
+                // "Hardmode") since it comes from the real drop rule, not a guess.
+                var sources = DropCatalogue.SourcesFor(entry.Id).OrderByDescending(d => d.Chance).ToList();
+                foreach (var drop in sources)
+                {
+                    var dropNpc = _allNpcs.FirstOrDefault(n => n.Id == drop.NpcId);
+                    if (dropNpc == null) continue;
+
+                    string chance = $"{drop.Chance * 100:0.##}%";
+                    string conditions = drop.Conditions.Count == 0 ? "" : $" ({string.Join(", ", drop.Conditions)})";
+                    rows.Add((null, null, $"Dropped by {dropNpc.Name} — {chance}{conditions}", 0));
+                }
+
+                var sellers = NpcShopCatalogue.SellersOf(entry.Id);
+                foreach (var seller in sellers)
+                {
+                    var sellerNpc = _allNpcs.FirstOrDefault(n => n.Id == seller.NpcId);
+                    if (sellerNpc == null) continue;
+                    rows.Add((null, null, $"Sold by {sellerNpc.Name} — {FormatCoinsText(seller.Cost)}", 0));
+                }
+
+                if (sources.Count == 0 && sellers.Count == 0)
+                    rows.Add((null, null, "Not craftable — found some other way (drop, purchase, world gen).", 0));
             }
             else
             {
@@ -798,7 +839,7 @@ namespace TerrariaEncyclopedia.UI
         }
 
         private static readonly string[] DefaultCollapsedSections =
-            { "Drops", "Summoning & Spawning", "Expert Mode", "Aftermath", "Tips" };
+            { "Drops", "Items Sold", "Living Preferences", "Summoning & Spawning", "Expert Mode", "Aftermath", "Tips" };
 
         private void OpenNpcDetail(NpcEntry entry)
         {
@@ -1161,6 +1202,8 @@ namespace TerrariaEncyclopedia.UI
             public string Suffix;
             public int IndentX;
             public int Height;
+            public int? ShopCost; // non-null (with Item also set) => draw as an icon+name+coin-cost shop row
+            public NpcPersonalityEntry PersonalityTable; // non-null => draw the Living Preferences table
         }
 
         private readonly HashSet<string> _collapsedSections = new HashSet<string>();
@@ -1190,28 +1233,70 @@ namespace TerrariaEncyclopedia.UI
                 rows.Add(new BodyRow { Suffix = "", Height = 8 }); // spacer
             }
 
-            var drops = DropCatalogue.DropsFor(entry.Id).OrderByDescending(d => d.Chance).ToList();
-            AddSection(rows, "Drops", () =>
+            // Town NPCs can't normally be killed, so a drop table isn't meaningful for them —
+            // a handful can still drop something if killed by an enemy while defenseless, but
+            // the odds are negligible enough not to show.
+            if (!entry.IsTownNpc)
             {
-                if (drops.Count == 0)
+                var drops = DropCatalogue.DropsFor(entry.Id).OrderByDescending(d => d.Chance).ToList();
+                AddSection(rows, "Drops", () =>
                 {
-                    rows.Add(new BodyRow { Suffix = "No known item drops (may drop coins only, or nothing).", Height = RowHeight });
-                    return;
-                }
+                    if (drops.Count == 0)
+                    {
+                        rows.Add(new BodyRow { Suffix = "No known item drops (may drop coins only, or nothing).", Height = RowHeight });
+                        return;
+                    }
 
-                foreach (var drop in drops)
+                    foreach (var drop in drops)
+                    {
+                        if (!_byId.TryGetValue(drop.ItemId, out var itemEntry)) continue;
+
+                        string chance = $"{drop.Chance * 100:0.##}%";
+                        string stack = drop.StackMax > drop.StackMin ? $"x{drop.StackMin}-{drop.StackMax}" : $"x{drop.StackMin}";
+                        string suffix = drop.Conditions.Count == 0
+                            ? $"{chance}  {stack}"
+                            : $"{chance}  {stack}  ({string.Join(", ", drop.Conditions)})";
+
+                        rows.Add(new BodyRow { Item = itemEntry, Suffix = suffix, Height = DropRowHeight });
+                    }
+                });
+            }
+
+            var shop = NpcShopCatalogue.ShopFor(entry.Id);
+            if (shop.Count > 0)
+            {
+                AddSection(rows, "Items Sold", () =>
                 {
-                    if (!_byId.TryGetValue(drop.ItemId, out var itemEntry)) continue;
+                    foreach (var shopItem in shop)
+                    {
+                        if (_byId.TryGetValue(shopItem.ItemId, out var itemEntry))
+                            rows.Add(new BodyRow { Item = itemEntry, ShopCost = shopItem.Cost, Height = RowHeight });
+                    }
+                });
+            }
 
-                    string chance = $"{drop.Chance * 100:0.##}%";
-                    string stack = drop.StackMax > drop.StackMin ? $"x{drop.StackMin}-{drop.StackMax}" : $"x{drop.StackMin}";
-                    string suffix = drop.Conditions.Count == 0
-                        ? $"{chance}  {stack}"
-                        : $"{chance}  {stack}  ({string.Join(", ", drop.Conditions)})";
+            // Neighbor preferences turn out not to be reflectable from live game data at all (see
+            // NpcPersonalityCatalogue) — wiki data is preferred whenever it exists (covers both
+            // biome and neighbor columns consistently); live data is only a fallback for an NPC
+            // the wiki scrape didn't have an entry for. HasUniqueBehavior is still read live
+            // either way, since it's a reliable signal wiki text alone doesn't capture.
+            var livePersonality = NpcPersonalityCatalogue.Get(entry.Id);
+            var displayPersonality = BuildWikiPreferenceDisplay(entry.Name) ?? livePersonality;
+            bool hasUniqueBehavior = livePersonality?.HasUniqueBehavior ?? false;
 
-                    rows.Add(new BodyRow { Item = itemEntry, Suffix = suffix, Height = DropRowHeight });
-                }
-            });
+            if (displayPersonality != null || hasUniqueBehavior)
+            {
+                AddSection(rows, "Living Preferences", () =>
+                {
+                    if (displayPersonality != null)
+                        rows.Add(new BodyRow { PersonalityTable = displayPersonality, Height = PrefTableHeight });
+                    if (hasUniqueBehavior)
+                    {
+                        AddWrappedRows(rows, "Also has unique living-preference behavior beyond simple "
+                            + "biome/neighbor rules (e.g. Princess-style NPCs) — not fully captured here.", width);
+                    }
+                });
+            }
 
             if (entry.IsBoss)
             {
@@ -1263,8 +1348,143 @@ namespace TerrariaEncyclopedia.UI
             _npcDetailScroll.End();
         }
 
+        private const int PrefTableHeaderHeight = 20;
+        private const int PrefTableRowPadding = 8; // top+bottom padding around each row's text
+
+        // Computed properties, not static fields — both depend on UIRenderer.TextLineHeight,
+        // which reads real font measurement, so they need to stay live rather than get baked in
+        // once at class-load time (also sidesteps the static-init ordering class of bug entirely).
+        private static int PrefTableRowHeight => UIRenderer.TextLineHeight + PrefTableRowPadding * 2;
+        private static int PrefTableHeight => PrefTableHeaderHeight + PrefTableRows.Length * PrefTableRowHeight;
+
+        private static readonly (string Label, Affection Level, Color4 Bg)[] PrefTableRows =
+        {
+            (Affection.Love.ToString() + "s", Affection.Love, new Color4(45, 80, 45)),
+            (Affection.Like.ToString() + "s", Affection.Like, new Color4(80, 80, 45)),
+            (Affection.Dislike.ToString() + "s", Affection.Dislike, new Color4(90, 65, 35)),
+            (Affection.Hate.ToString() + "s", Affection.Hate, new Color4(90, 45, 45)),
+        };
+
+        /// <summary>
+        /// Converts wiki-sourced Living Preferences (see WikiEnrichment.GetNpcPreferences) into
+        /// the same shape the preference table renders, so the table doesn't need to care which
+        /// source it came from. Returns null if the wiki has no entry for this NPC.
+        /// </summary>
+        private static NpcPersonalityEntry BuildWikiPreferenceDisplay(string npcName)
+        {
+            var wiki = WikiEnrichment.GetNpcPreferences(npcName);
+            if (wiki == null) return null;
+
+            var result = new NpcPersonalityEntry();
+            void AddAll(string[] biomes, string[] neighbors, Affection level)
+            {
+                foreach (var n in biomes ?? Array.Empty<string>())
+                    result.Biomes.Add(new PersonalityPreference { Level = level, Label = n });
+                foreach (var n in neighbors ?? Array.Empty<string>())
+                    result.Neighbors.Add(new PersonalityPreference { Level = level, Label = n });
+            }
+
+            AddAll(wiki.LoveBiomes, wiki.LoveNeighbors, Affection.Love);
+            AddAll(wiki.LikeBiomes, wiki.LikeNeighbors, Affection.Like);
+            AddAll(wiki.DislikeBiomes, wiki.DislikeNeighbors, Affection.Dislike);
+            AddAll(wiki.HateBiomes, wiki.HateNeighbors, Affection.Hate);
+            return result;
+        }
+
+        /// <summary>Loves/Likes/Dislikes/Hates x Biome/Neighbor, matching the wiki's own Living Preferences table layout. Neighbor names are clickable, navigating to that NPC's own page.</summary>
+        private void DrawPreferenceTable(int x, int y, int width, NpcPersonalityEntry personality)
+        {
+            int col2 = x + width / 2;
+
+            UIRenderer.DrawText("Biome", x + 4, y, UIColors.TextDim);
+            UIRenderer.DrawText("Neighbor", col2 + 4, y, UIColors.TextDim);
+
+            int rowY = y + PrefTableHeaderHeight;
+            foreach (var row in PrefTableRows)
+            {
+                UIRenderer.DrawRect(x, rowY, width, PrefTableRowHeight - 2, row.Bg);
+                int textY = rowY + PrefTableRowPadding;
+                UIRenderer.DrawText(row.Label, x + 4, textY, UIColors.TextTitle);
+
+                string biomeText = string.Join(", ", personality.Biomes.Where(p => p.Level == row.Level).Select(p => p.Label));
+                UIRenderer.DrawText(string.IsNullOrEmpty(biomeText) ? "n/a" : biomeText, x + 70, textY, UIColors.Text);
+
+                var neighborNames = personality.Neighbors.Where(p => p.Level == row.Level).Select(p => p.Label).ToList();
+                if (neighborNames.Count == 0)
+                    UIRenderer.DrawText("n/a", col2 + 4, textY, UIColors.Text);
+                else
+                    DrawClickableNameList(neighborNames, col2 + 4, textY);
+
+                rowY += PrefTableRowHeight;
+            }
+        }
+
+        /// <summary>Draws a comma-separated list of NPC names, each individually clickable to jump to that NPC's own page (plain text if the name doesn't match a known NPC).</summary>
+        private void DrawClickableNameList(List<string> names, int x, int y)
+        {
+            int curX = x;
+            for (int i = 0; i < names.Count; i++)
+            {
+                string suffix = i < names.Count - 1 ? ", " : "";
+                int nameWidth = TextUtil.MeasureWidth(names[i]);
+
+                var target = _allNpcs.FirstOrDefault(n => n.Name == names[i]);
+                bool isHover = target != null && WidgetInput.IsMouseOver(curX, y - 2, nameWidth, PrefTableRowHeight - 4);
+
+                UIRenderer.DrawText(names[i], curX, y, isHover ? UIColors.AccentText : UIColors.Text);
+                curX += nameWidth;
+
+                if (isHover)
+                {
+                    Tooltip.Set("View " + names[i]);
+                    if (WidgetInput.MouseLeftClick)
+                    {
+                        OpenNpcDetail(target);
+                        WidgetInput.ConsumeClick();
+                    }
+                }
+
+                if (suffix.Length > 0)
+                {
+                    UIRenderer.DrawText(suffix, curX, y, UIColors.Text);
+                    curX += TextUtil.MeasureWidth(suffix);
+                }
+            }
+        }
+
         private void DrawNpcBodyRow(int x, int y, int width, BodyRow row)
         {
+            if (row.PersonalityTable != null)
+            {
+                DrawPreferenceTable(x, y, width, row.PersonalityTable);
+                return;
+            }
+
+            if (row.Item != null && row.ShopCost.HasValue)
+            {
+                bool isShopRowHover = WidgetInput.IsMouseOver(x, y, width, RowHeight - 4);
+                if (isShopRowHover)
+                    UIRenderer.DrawRect(x, y, width, RowHeight - 4, UIColors.InputFocusBg);
+
+                UIRenderer.DrawItem(row.Item.Id, x, y, 28, 28);
+                UIRenderer.DrawText(row.Item.Name, x + 34, y + 8, isShopRowHover ? UIColors.AccentText : UIColors.Text);
+                int shopNameWidth = TextUtil.MeasureWidth(row.Item.Name);
+                DrawCoinValue(x + 34 + shopNameWidth + 16, y + 5, row.ShopCost.Value);
+
+                if (isShopRowHover)
+                {
+                    ItemTooltip.Set(row.Item.Id);
+                    if (WidgetInput.MouseLeftClick)
+                    {
+                        _section = Section.Items;
+                        _history.Clear();
+                        OpenDetail(row.Item);
+                        WidgetInput.ConsumeClick();
+                    }
+                }
+                return;
+            }
+
             if (row.SectionKey != null)
             {
                 bool collapsed = _collapsedSections.Contains(row.SectionKey);

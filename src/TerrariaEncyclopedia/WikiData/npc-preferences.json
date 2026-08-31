@@ -1,0 +1,629 @@
+[
+  {
+    "Name": "Merchant",
+    "WikiPage": "Merchant",
+    "LoveBiomes": [],
+    "LoveNeighbors": [],
+    "LikeBiomes": [
+      "Forest"
+    ],
+    "LikeNeighbors": [
+      "Princess",
+      "Golfer",
+      "Nurse"
+    ],
+    "DislikeBiomes": [
+      "Desert"
+    ],
+    "DislikeNeighbors": [
+      "Tax Collector"
+    ],
+    "HateBiomes": [],
+    "HateNeighbors": [
+      "Angler"
+    ]
+  },
+  {
+    "Name": "Nurse",
+    "WikiPage": "Nurse",
+    "LoveBiomes": [],
+    "LoveNeighbors": [
+      "Arms Dealer"
+    ],
+    "LikeBiomes": [
+      "The Hallow"
+    ],
+    "LikeNeighbors": [
+      "Princess",
+      "Wizard"
+    ],
+    "DislikeBiomes": [
+      "Snow biome"
+    ],
+    "DislikeNeighbors": [
+      "Party Girl",
+      "Dryad"
+    ],
+    "HateBiomes": [],
+    "HateNeighbors": [
+      "Zoologist"
+    ]
+  },
+  {
+    "Name": "Arms Dealer",
+    "WikiPage": "Arms_Dealer",
+    "LoveBiomes": [],
+    "LoveNeighbors": [
+      "Nurse"
+    ],
+    "LikeBiomes": [
+      "Desert"
+    ],
+    "LikeNeighbors": [
+      "Princess",
+      "Steampunker"
+    ],
+    "DislikeBiomes": [
+      "Snow biome"
+    ],
+    "DislikeNeighbors": [
+      "Golfer"
+    ],
+    "HateBiomes": [],
+    "HateNeighbors": [
+      "Demolitionist"
+    ]
+  },
+  {
+    "Name": "Dryad",
+    "WikiPage": "Dryad",
+    "LoveBiomes": [],
+    "LoveNeighbors": [],
+    "LikeBiomes": [
+      "Jungle"
+    ],
+    "LikeNeighbors": [
+      "Princess",
+      "Witch Doctor",
+      "Truffle"
+    ],
+    "DislikeBiomes": [
+      "Desert"
+    ],
+    "DislikeNeighbors": [
+      "Angler"
+    ],
+    "HateBiomes": [],
+    "HateNeighbors": [
+      "Golfer"
+    ]
+  },
+  {
+    "Name": "Guide",
+    "WikiPage": "Guide",
+    "LoveBiomes": [],
+    "LoveNeighbors": [],
+    "LikeBiomes": [
+      "Forest"
+    ],
+    "LikeNeighbors": [
+      "Princess",
+      "Clothier",
+      "Zoologist"
+    ],
+    "DislikeBiomes": [
+      "Ocean"
+    ],
+    "DislikeNeighbors": [
+      "Steampunker"
+    ],
+    "HateBiomes": [],
+    "HateNeighbors": [
+      "Painter"
+    ]
+  },
+  {
+    "Name": "Demolitionist",
+    "WikiPage": "Demolitionist",
+    "LoveBiomes": [],
+    "LoveNeighbors": [
+      "Tavernkeep"
+    ],
+    "LikeBiomes": [
+      "Underground",
+      "Cavern",
+      "The Underworld"
+    ],
+    "LikeNeighbors": [
+      "Princess",
+      "Mechanic"
+    ],
+    "DislikeBiomes": [
+      "Ocean"
+    ],
+    "DislikeNeighbors": [
+      "Goblin Tinkerer",
+      "Arms Dealer"
+    ],
+    "HateBiomes": [],
+    "HateNeighbors": []
+  },
+  {
+    "Name": "Clothier",
+    "WikiPage": "Clothier",
+    "LoveBiomes": [],
+    "LoveNeighbors": [
+      "Truffle"
+    ],
+    "LikeBiomes": [
+      "Underground",
+      "Cavern",
+      "The Underworld"
+    ],
+    "LikeNeighbors": [
+      "Princess",
+      "Tax Collector"
+    ],
+    "DislikeBiomes": [
+      "The Hallow"
+    ],
+    "DislikeNeighbors": [
+      "Nurse"
+    ],
+    "HateBiomes": [],
+    "HateNeighbors": [
+      "Mechanic"
+    ]
+  },
+  {
+    "Name": "Goblin Tinkerer",
+    "WikiPage": "Goblin_Tinkerer",
+    "LoveBiomes": [],
+    "LoveNeighbors": [
+      "Mechanic"
+    ],
+    "LikeBiomes": [
+      "Underground",
+      "Cavern",
+      "The Underworld"
+    ],
+    "LikeNeighbors": [
+      "Princess",
+      "Dye Trader"
+    ],
+    "DislikeBiomes": [
+      "Jungle"
+    ],
+    "DislikeNeighbors": [
+      "Clothier"
+    ],
+    "HateBiomes": [],
+    "HateNeighbors": [
+      "Stylist"
+    ]
+  },
+  {
+    "Name": "Wizard",
+    "WikiPage": "Wizard",
+    "LoveBiomes": [],
+    "LoveNeighbors": [
+      "Golfer"
+    ],
+    "LikeBiomes": [
+      "The Hallow"
+    ],
+    "LikeNeighbors": [
+      "Princess",
+      "Merchant"
+    ],
+    "DislikeBiomes": [
+      "Ocean"
+    ],
+    "DislikeNeighbors": [
+      "Witch Doctor"
+    ],
+    "HateBiomes": [],
+    "HateNeighbors": [
+      "Cyborg"
+    ]
+  },
+  {
+    "Name": "Mechanic",
+    "WikiPage": "Mechanic",
+    "LoveBiomes": [],
+    "LoveNeighbors": [
+      "Goblin Tinkerer"
+    ],
+    "LikeBiomes": [
+      "Snow biome"
+    ],
+    "LikeNeighbors": [
+      "Princess",
+      "Cyborg"
+    ],
+    "DislikeBiomes": [
+      "Underground",
+      "Cavern",
+      "The Underworld"
+    ],
+    "DislikeNeighbors": [
+      "Arms Dealer"
+    ],
+    "HateBiomes": [],
+    "HateNeighbors": [
+      "Clothier"
+    ]
+  },
+  {
+    "Name": "Santa Claus",
+    "WikiPage": "Santa_Claus",
+    "LoveBiomes": [
+      "Snow biome"
+    ],
+    "LoveNeighbors": [],
+    "LikeBiomes": [],
+    "LikeNeighbors": [
+      "Princess"
+    ],
+    "DislikeBiomes": [],
+    "DislikeNeighbors": [],
+    "HateBiomes": [
+      "Desert"
+    ],
+    "HateNeighbors": [
+      "Tax Collector"
+    ]
+  },
+  {
+    "Name": "Truffle",
+    "WikiPage": "Truffle",
+    "LoveBiomes": [],
+    "LoveNeighbors": [
+      "Guide"
+    ],
+    "LikeBiomes": [
+      "Glowing Mushroom biome"
+    ],
+    "LikeNeighbors": [
+      "Princess",
+      "Dryad"
+    ],
+    "DislikeBiomes": [],
+    "DislikeNeighbors": [
+      "Clothier"
+    ],
+    "HateBiomes": [],
+    "HateNeighbors": [
+      "Witch Doctor"
+    ]
+  },
+  {
+    "Name": "Steampunker",
+    "WikiPage": "Steampunker",
+    "LoveBiomes": [],
+    "LoveNeighbors": [
+      "Cyborg"
+    ],
+    "LikeBiomes": [
+      "Desert"
+    ],
+    "LikeNeighbors": [
+      "Princess",
+      "Painter"
+    ],
+    "DislikeBiomes": [
+      "Jungle"
+    ],
+    "DislikeNeighbors": [
+      "Party Girl",
+      "Wizard",
+      "Dryad"
+    ],
+    "HateBiomes": [],
+    "HateNeighbors": []
+  },
+  {
+    "Name": "Dye Trader",
+    "WikiPage": "Dye_Trader",
+    "LoveBiomes": [],
+    "LoveNeighbors": [],
+    "LikeBiomes": [
+      "Desert"
+    ],
+    "LikeNeighbors": [
+      "Princess",
+      "Arms Dealer",
+      "Painter"
+    ],
+    "DislikeBiomes": [
+      "Forest"
+    ],
+    "DislikeNeighbors": [
+      "Steampunker"
+    ],
+    "HateBiomes": [],
+    "HateNeighbors": [
+      "Pirate"
+    ]
+  },
+  {
+    "Name": "Party Girl",
+    "WikiPage": "Party_Girl",
+    "LoveBiomes": [],
+    "LoveNeighbors": [
+      "Wizard",
+      "Zoologist"
+    ],
+    "LikeBiomes": [
+      "The Hallow"
+    ],
+    "LikeNeighbors": [
+      "Princess",
+      "Stylist"
+    ],
+    "DislikeBiomes": [
+      "Underground",
+      "Cavern",
+      "The Underworld"
+    ],
+    "DislikeNeighbors": [
+      "Merchant"
+    ],
+    "HateBiomes": [],
+    "HateNeighbors": [
+      "Tax Collector"
+    ]
+  },
+  {
+    "Name": "Cyborg",
+    "WikiPage": "Cyborg",
+    "LoveBiomes": [],
+    "LoveNeighbors": [],
+    "LikeBiomes": [
+      "Snow biome"
+    ],
+    "LikeNeighbors": [
+      "Princess",
+      "Stylist",
+      "Pirate",
+      "Steampunker"
+    ],
+    "DislikeBiomes": [
+      "Jungle"
+    ],
+    "DislikeNeighbors": [
+      "Zoologist"
+    ],
+    "HateBiomes": [],
+    "HateNeighbors": [
+      "Wizard"
+    ]
+  },
+  {
+    "Name": "Painter",
+    "WikiPage": "Painter",
+    "LoveBiomes": [],
+    "LoveNeighbors": [
+      "Dryad"
+    ],
+    "LikeBiomes": [
+      "Jungle"
+    ],
+    "LikeNeighbors": [
+      "Princess",
+      "Party Girl"
+    ],
+    "DislikeBiomes": [
+      "Forest"
+    ],
+    "DislikeNeighbors": [
+      "Cyborg",
+      "Truffle"
+    ],
+    "HateBiomes": [],
+    "HateNeighbors": []
+  },
+  {
+    "Name": "Witch Doctor",
+    "WikiPage": "Witch_Doctor",
+    "LoveBiomes": [],
+    "LoveNeighbors": [],
+    "LikeBiomes": [
+      "Jungle"
+    ],
+    "LikeNeighbors": [
+      "Princess",
+      "Dryad",
+      "Guide"
+    ],
+    "DislikeBiomes": [
+      "The Hallow"
+    ],
+    "DislikeNeighbors": [
+      "Nurse"
+    ],
+    "HateBiomes": [],
+    "HateNeighbors": [
+      "Truffle"
+    ]
+  },
+  {
+    "Name": "Pirate",
+    "WikiPage": "Pirate",
+    "LoveBiomes": [],
+    "LoveNeighbors": [
+      "Angler"
+    ],
+    "LikeBiomes": [
+      "Ocean"
+    ],
+    "LikeNeighbors": [
+      "Princess",
+      "Tavernkeep"
+    ],
+    "DislikeBiomes": [
+      "Underground",
+      "Cavern",
+      "The Underworld"
+    ],
+    "DislikeNeighbors": [
+      "Stylist"
+    ],
+    "HateBiomes": [],
+    "HateNeighbors": [
+      "Guide"
+    ]
+  },
+  {
+    "Name": "Stylist",
+    "WikiPage": "Stylist",
+    "LoveBiomes": [],
+    "LoveNeighbors": [
+      "Dye Trader"
+    ],
+    "LikeBiomes": [
+      "Ocean"
+    ],
+    "LikeNeighbors": [
+      "Princess",
+      "Pirate"
+    ],
+    "DislikeBiomes": [
+      "Snow biome"
+    ],
+    "DislikeNeighbors": [
+      "Tavernkeep"
+    ],
+    "HateBiomes": [],
+    "HateNeighbors": [
+      "Goblin Tinkerer"
+    ]
+  },
+  {
+    "Name": "Angler",
+    "WikiPage": "Angler",
+    "LoveBiomes": [],
+    "LoveNeighbors": [],
+    "LikeBiomes": [
+      "Ocean"
+    ],
+    "LikeNeighbors": [
+      "Princess",
+      "Party Girl",
+      "Demolitionist",
+      "Tax Collector"
+    ],
+    "DislikeBiomes": [
+      "Desert"
+    ],
+    "DislikeNeighbors": [],
+    "HateBiomes": [],
+    "HateNeighbors": [
+      "Tavernkeep"
+    ]
+  },
+  {
+    "Name": "Tax Collector",
+    "WikiPage": "Tax_Collector",
+    "LoveBiomes": [],
+    "LoveNeighbors": [
+      "Merchant"
+    ],
+    "LikeBiomes": [
+      "Snow biome"
+    ],
+    "LikeNeighbors": [
+      "Princess",
+      "Party Girl"
+    ],
+    "DislikeBiomes": [
+      "The Hallow"
+    ],
+    "DislikeNeighbors": [
+      "Demolitionist",
+      "Mechanic"
+    ],
+    "HateBiomes": [],
+    "HateNeighbors": [
+      "Santa Claus"
+    ]
+  },
+  {
+    "Name": "Tavernkeep",
+    "WikiPage": "Tavernkeep",
+    "LoveBiomes": [],
+    "LoveNeighbors": [
+      "Demolitionist"
+    ],
+    "LikeBiomes": [
+      "The Hallow"
+    ],
+    "LikeNeighbors": [
+      "Princess",
+      "Goblin Tinkerer"
+    ],
+    "DislikeBiomes": [
+      "Snow biome"
+    ],
+    "DislikeNeighbors": [
+      "Guide"
+    ],
+    "HateBiomes": [],
+    "HateNeighbors": [
+      "Dye Trader"
+    ]
+  },
+  {
+    "Name": "Golfer",
+    "WikiPage": "Golfer",
+    "LoveBiomes": [],
+    "LoveNeighbors": [
+      "Angler"
+    ],
+    "LikeBiomes": [
+      "Forest"
+    ],
+    "LikeNeighbors": [
+      "Princess",
+      "Painter",
+      "Zoologist"
+    ],
+    "DislikeBiomes": [
+      "Underground",
+      "Cavern",
+      "The Underworld"
+    ],
+    "DislikeNeighbors": [
+      "Pirate"
+    ],
+    "HateBiomes": [],
+    "HateNeighbors": [
+      "Merchant"
+    ]
+  },
+  {
+    "Name": "Zoologist",
+    "WikiPage": "Zoologist",
+    "LoveBiomes": [],
+    "LoveNeighbors": [
+      "Witch Doctor"
+    ],
+    "LikeBiomes": [
+      "Forest"
+    ],
+    "LikeNeighbors": [
+      "Princess",
+      "Golfer"
+    ],
+    "DislikeBiomes": [
+      "Desert"
+    ],
+    "DislikeNeighbors": [
+      "Angler"
+    ],
+    "HateBiomes": [],
+    "HateNeighbors": [
+      "Arms Dealer"
+    ]
+  }
+]

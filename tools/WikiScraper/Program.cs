@@ -64,6 +64,21 @@ public static class Program
         ("Flying Dutchman", "Flying_Dutchman", new[] { "Flying Dutchman" }),
     };
 
+    // The full live town-NPC list (from NPC.townNPC), confirmed via a one-time in-game dump —
+    // not guessed. A few of these (the town pets, the slime variants, Old Man, Traveling
+    // Merchant) likely have no "Living preferences" table on their wiki page at all; that's
+    // handled by ScrapeNpcPreferences simply omitting them from the output rather than by
+    // curating this list down first.
+    private static readonly string[] TownNpcs =
+    {
+        "Merchant", "Nurse", "Arms Dealer", "Dryad", "Guide", "Old Man", "Demolitionist", "Clothier",
+        "Goblin Tinkerer", "Wizard", "Mechanic", "Santa Claus", "Truffle", "Steampunker", "Dye Trader",
+        "Party Girl", "Cyborg", "Painter", "Witch Doctor", "Pirate", "Stylist", "Traveling Merchant",
+        "Angler", "Tax Collector", "Tavernkeep", "Golfer", "Zoologist", "Cat", "Dog", "Bunny", "Princess",
+        "Nerdy Slime", "Cool Slime", "Elder Slime", "Clumsy Slime", "Diva Slime", "Surly Slime",
+        "Mystic Slime", "Squire Slime",
+    };
+
     public static async Task Main()
     {
         Http.DefaultRequestHeaders.UserAgent.ParseAdd(
@@ -78,8 +93,77 @@ public static class Program
         await ScrapeBosses(outDir);
         await ScrapeHardmodeCategory("Hardmode-only items", Path.Combine(outDir, "hardmode-items.json"));
         await ScrapeHardmodeCategory("Hardmode-only NPCs", Path.Combine(outDir, "hardmode-npcs.json"));
+        await ScrapeNpcPreferences(outDir);
 
         Console.WriteLine("Done.");
+    }
+
+    /// <summary>
+    /// Town NPCs' Loves/Likes/Dislikes/Hates x Biome/Neighbor table. Not reflectable from the
+    /// live game: biome preferences are (mostly) live-data-driven, but neighbor preferences turn
+    /// out to be a single ~900-instruction hardcoded method (confirmed via IL disassembly of
+    /// AllPersonalitiesModifier.ModifyShopPrice_Relationships) with no queryable data behind it,
+    /// so the whole table is sourced from the wiki instead for consistency between both columns.
+    /// </summary>
+    private static async Task ScrapeNpcPreferences(string outDir)
+    {
+        var results = new List<NpcPreferencesInfo>();
+
+        foreach (var name in TownNpcs)
+        {
+            string wikiPage = name.Replace(' ', '_');
+            Console.WriteLine($"Fetching preferences for {name} ({wikiPage})...");
+            try
+            {
+                string html = await FetchPageHtml(wikiPage);
+                var doc = new HtmlDocument();
+                doc.LoadHtml(html);
+
+                var info = new NpcPreferencesInfo { Name = name, WikiPage = wikiPage };
+                var table = doc.DocumentNode.SelectSingleNode("//table[contains(@class,'living-preferences')]");
+                if (table != null)
+                {
+                    (info.LoveBiomes, info.LoveNeighbors) = ParsePreferenceRow(table, "love");
+                    (info.LikeBiomes, info.LikeNeighbors) = ParsePreferenceRow(table, "like");
+                    (info.DislikeBiomes, info.DislikeNeighbors) = ParsePreferenceRow(table, "dislike");
+                    (info.HateBiomes, info.HateNeighbors) = ParsePreferenceRow(table, "hate");
+                }
+
+                int total = info.LoveBiomes.Length + info.LoveNeighbors.Length + info.LikeBiomes.Length
+                    + info.LikeNeighbors.Length + info.DislikeBiomes.Length + info.DislikeNeighbors.Length
+                    + info.HateBiomes.Length + info.HateNeighbors.Length;
+                if (total > 0) results.Add(info);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"  FAILED: {ex.Message}");
+            }
+
+            await Task.Delay(500);
+        }
+
+        string json = JsonSerializer.Serialize(results, new JsonSerializerOptions { WriteIndented = true });
+        File.WriteAllText(Path.Combine(outDir, "npc-preferences.json"), json);
+        Console.WriteLine($"Wrote {results.Count} NPC preference entries.");
+    }
+
+    private static (string[] Biomes, string[] Neighbors) ParsePreferenceRow(HtmlNode table, string rowClass)
+    {
+        var row = table.SelectSingleNode($".//tr[contains(@class,'{rowClass}')]");
+        var cells = row?.SelectNodes("./td");
+        if (cells == null || cells.Count < 2) return (Array.Empty<string>(), Array.Empty<string>());
+        return (ExtractPreferenceNames(cells[0]), ExtractPreferenceNames(cells[1]));
+    }
+
+    // Each entry is an <li> containing two <a title="X">-wrapped links to the same page — one
+    // wrapping the icon <img>, one wrapping the visible text (nested a variable number of
+    // <span>s deep depending on the entry type). Filtering to the <a> that has no <img>
+    // descendant reliably picks just the text link regardless of nesting depth.
+    private static string[] ExtractPreferenceNames(HtmlNode cell)
+    {
+        var links = cell.SelectNodes(".//li//a[not(.//img)]");
+        if (links == null) return Array.Empty<string>();
+        return links.Select(a => HtmlEntity.DeEntitize(a.InnerText).Trim()).Where(s => s.Length > 0).ToArray();
     }
 
     private static async Task ScrapeBosses(string outDir)
@@ -287,4 +371,18 @@ public class BossInfo
     public string? ExpertMode { get; set; }
     public string? Aftermath { get; set; }
     public string? Tips { get; set; }
+}
+
+public class NpcPreferencesInfo
+{
+    public string Name { get; set; } = "";
+    public string WikiPage { get; set; } = "";
+    public string[] LoveBiomes { get; set; } = Array.Empty<string>();
+    public string[] LoveNeighbors { get; set; } = Array.Empty<string>();
+    public string[] LikeBiomes { get; set; } = Array.Empty<string>();
+    public string[] LikeNeighbors { get; set; } = Array.Empty<string>();
+    public string[] DislikeBiomes { get; set; } = Array.Empty<string>();
+    public string[] DislikeNeighbors { get; set; } = Array.Empty<string>();
+    public string[] HateBiomes { get; set; } = Array.Empty<string>();
+    public string[] HateNeighbors { get; set; } = Array.Empty<string>();
 }
