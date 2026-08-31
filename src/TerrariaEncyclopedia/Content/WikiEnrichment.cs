@@ -37,6 +37,7 @@ namespace TerrariaEncyclopedia.Content
     {
         public string Name { get; set; }
         public string WikiPage { get; set; }
+        public string HowToGet { get; set; }
         public string[] LoveBiomes { get; set; }
         public string[] LoveNeighbors { get; set; }
         public string[] LikeBiomes { get; set; }

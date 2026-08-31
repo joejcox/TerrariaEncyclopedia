@@ -195,9 +195,15 @@ public static class Program
                     (info.HateBiomes, info.HateNeighbors) = ParsePreferenceRow(table, "hate");
                 }
 
+                // "How do I get this NPC" (available house + move-in condition, e.g. Tavernkeep's
+                // rescue-as-Unconscious-Man-after-EoW/BoC) lives only in the unstructured intro
+                // text before any heading — there's no dedicated section for it at all.
+                info.HowToGet = ExtractLeadParagraph(doc);
+
                 int total = info.LoveBiomes.Length + info.LoveNeighbors.Length + info.LikeBiomes.Length
                     + info.LikeNeighbors.Length + info.DislikeBiomes.Length + info.DislikeNeighbors.Length
-                    + info.HateBiomes.Length + info.HateNeighbors.Length;
+                    + info.HateBiomes.Length + info.HateNeighbors.Length
+                    + (info.HowToGet?.Length ?? 0);
                 if (total > 0) results.Add(info);
             }
             catch (Exception ex)
@@ -374,11 +380,48 @@ public static class Program
         }
 
         if (parts.Count == 0) return null;
+        return JoinAndCleanFootnotes(parts);
+    }
 
-        // Strip "[edit]" section-edit links and "[3]"-style footnote reference markers that
-        // bleed into InnerText from nested <span>/<sup> markup — noise, not content. Joined with
-        // newlines (not spaces) so bullet points and paragraphs each land on their own line
-        // instead of running together as one continuous paragraph.
+    /// <summary>
+    /// The unstructured intro text before the first heading — where "how do I get this NPC"
+    /// info actually lives for town NPCs (e.g. Tavernkeep's house/rescue requirements), not
+    /// under any named section at all. Stops at the first heading or the table-of-contents div,
+    /// skipping the infobox/version-notice/quote blocks that precede it.
+    /// </summary>
+    private static string? ExtractLeadParagraph(HtmlDocument doc)
+    {
+        var root = doc.DocumentNode.SelectSingleNode("//div[contains(@class,'mw-parser-output')]");
+        if (root == null) return null;
+
+        var parts = new List<string>();
+        foreach (var node in root.ChildNodes)
+        {
+            if (node.Name == "h2") break;
+            if (node.Name == "div" && node.GetAttributeValue("id", "") == "toc") break;
+
+            if (node.Name == "p")
+            {
+                string text = HtmlEntity.DeEntitize(node.InnerText).Trim();
+                if (text.Length > 0) parts.Add(text);
+            }
+            else if (node.Name == "ul")
+            {
+                CollectListItems(node, "", parts);
+            }
+            // Anything else (message-box version notice, infobox, quote blockquote) is skipped.
+        }
+
+        if (parts.Count == 0) return null;
+        return JoinAndCleanFootnotes(parts);
+    }
+
+    // Strip "[edit]" section-edit links and "[3]"-style footnote reference markers that bleed
+    // into InnerText from nested <span>/<sup> markup — noise, not content. Joined with newlines
+    // (not spaces) so bullet points and paragraphs each land on their own line instead of
+    // running together as one continuous paragraph.
+    private static string JoinAndCleanFootnotes(List<string> parts)
+    {
         string joined = string.Join("\n", parts);
         joined = System.Text.RegularExpressions.Regex.Replace(joined, @"\[edit\]", "");
         joined = System.Text.RegularExpressions.Regex.Replace(joined, @"\[\d+\]", "");
@@ -443,6 +486,7 @@ public class NpcPreferencesInfo
 {
     public string Name { get; set; } = "";
     public string WikiPage { get; set; } = "";
+    public string? HowToGet { get; set; }
     public string[] LoveBiomes { get; set; } = Array.Empty<string>();
     public string[] LoveNeighbors { get; set; } = Array.Empty<string>();
     public string[] LikeBiomes { get; set; } = Array.Empty<string>();

@@ -1251,6 +1251,7 @@ namespace TerrariaEncyclopedia.UI
         private void DrawNpcBody(int x, int y, int width, int height, NpcEntry entry)
         {
             var rows = new List<BodyRow>();
+            var wikiPrefs = WikiEnrichment.GetNpcPreferences(entry.Name);
 
             // Description is a plain heading + text, not collapsible — always visible.
             if (!string.IsNullOrEmpty(entry.Description))
@@ -1258,6 +1259,17 @@ namespace TerrariaEncyclopedia.UI
                 rows.Add(new BodyRow { Header = "Description", Height = RowHeight });
                 AddWrappedRows(rows, entry.Description, width);
                 rows.Add(new BodyRow { Suffix = "", Height = 8 }); // spacer
+            }
+
+            // Terraria's own Bestiary description is flavor text, not "how do I get this NPC" —
+            // that lives only in the wiki's unstructured intro paragraph (e.g. Tavernkeep's
+            // house/rescue-after-EoW-or-BoC requirements), with no dedicated section of its own.
+            // Also plain, non-collapsible, like Description — it's equally load-bearing.
+            if (!string.IsNullOrEmpty(wikiPrefs?.HowToGet))
+            {
+                rows.Add(new BodyRow { Header = "How to Get", Height = RowHeight });
+                AddWrappedRows(rows, wikiPrefs.HowToGet, width);
+                rows.Add(new BodyRow { Suffix = "", Height = 8 });
             }
 
             // Town NPCs can't normally be killed, so a drop table isn't meaningful for them —
@@ -1308,7 +1320,7 @@ namespace TerrariaEncyclopedia.UI
             // the wiki scrape didn't have an entry for. HasUniqueBehavior is still read live
             // either way, since it's a reliable signal wiki text alone doesn't capture.
             var livePersonality = NpcPersonalityCatalogue.Get(entry.Id);
-            var displayPersonality = BuildWikiPreferenceDisplay(entry.Name) ?? livePersonality;
+            var displayPersonality = BuildWikiPreferenceDisplay(wikiPrefs) ?? livePersonality;
             bool hasUniqueBehavior = livePersonality?.HasUniqueBehavior ?? false;
 
             if (displayPersonality != null || hasUniqueBehavior)
@@ -1395,11 +1407,10 @@ namespace TerrariaEncyclopedia.UI
         /// <summary>
         /// Converts wiki-sourced Living Preferences (see WikiEnrichment.GetNpcPreferences) into
         /// the same shape the preference table renders, so the table doesn't need to care which
-        /// source it came from. Returns null if the wiki has no entry for this NPC.
+        /// source it came from. Returns null if there's no wiki entry.
         /// </summary>
-        private static NpcPersonalityEntry BuildWikiPreferenceDisplay(string npcName)
+        private static NpcPersonalityEntry BuildWikiPreferenceDisplay(NpcPreferencesWikiInfo wiki)
         {
-            var wiki = WikiEnrichment.GetNpcPreferences(npcName);
             if (wiki == null) return null;
 
             var result = new NpcPersonalityEntry();
