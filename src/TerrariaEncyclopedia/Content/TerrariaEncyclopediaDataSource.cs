@@ -35,6 +35,8 @@ namespace TerrariaEncyclopedia.Content
             return npcs;
         }
 
+        public IReadOnlyList<EventWikiInfo> LoadEvents() => WikiEnrichment.GetAllEvents();
+
         public IReadOnlyList<RecipeInfo> RecipesFor(int itemId)
         {
             EnsureItemsLoaded();
@@ -57,6 +59,19 @@ namespace TerrariaEncyclopedia.Content
         {
             EnsureNpcsLoaded();
             return DropCatalogue.SourcesFor(itemId);
+        }
+
+        public IReadOnlyList<ShopItemEntry> ShopFor(int npcId) => NpcShopCatalogue.ShopFor(npcId);
+
+        public IReadOnlyList<ShopSellerEntry> SellersOf(int itemId) => NpcShopCatalogue.SellersOf(itemId);
+
+        public NpcPersonalityEntry GetNpcPersonality(int npcId, string npcName)
+        {
+            EnsureNpcsLoaded();
+            NpcPersonalityCatalogue.EnsureBuilt(npcs);
+            return NpcPreferenceResolver.Resolve(
+                WikiEnrichment.GetNpcPreferences(npcName),
+                NpcPersonalityCatalogue.Get(npcId));
         }
 
         public string StationName(int tileId)

@@ -85,4 +85,64 @@ namespace TerrariaEncyclopedia.Content
         public string Aftermath { get; set; }
         public string Tips { get; set; }
     }
+
+    public sealed class EventWikiInfo
+    {
+        public string Name { get; set; }
+        public string WikiPage { get; set; }
+        public string Summoning { get; set; }
+        public string Completing { get; set; }
+        public string Notes { get; set; }
+        public string Tips { get; set; }
+    }
+
+    public sealed class NpcPreferencesWikiInfo
+    {
+        public string Name { get; set; }
+        public string WikiPage { get; set; }
+        public string[] LoveBiomes { get; set; }
+        public string[] LoveNeighbors { get; set; }
+        public string[] LikeBiomes { get; set; }
+        public string[] LikeNeighbors { get; set; }
+        public string[] DislikeBiomes { get; set; }
+        public string[] DislikeNeighbors { get; set; }
+        public string[] HateBiomes { get; set; }
+        public string[] HateNeighbors { get; set; }
+    }
+
+    public enum Affection
+    {
+        Love,
+        Like,
+        Dislike,
+        Hate
+    }
+
+    public sealed class PersonalityPreference
+    {
+        public Affection Level;
+        public string Label;
+    }
+
+    public sealed class NpcPersonalityEntry
+    {
+        public List<PersonalityPreference> Biomes = new List<PersonalityPreference>();
+        public List<PersonalityPreference> Neighbors = new List<PersonalityPreference>();
+
+        // Marker for NPCs such as the Princess whose full behaviour cannot be expressed as
+        // simple biome and neighbour rows.
+        public bool HasUniqueBehavior;
+    }
+
+    public sealed class ShopItemEntry
+    {
+        public int ItemId;
+        public int Cost;
+    }
+
+    public sealed class ShopSellerEntry
+    {
+        public int NpcId;
+        public int Cost;
+    }
 }

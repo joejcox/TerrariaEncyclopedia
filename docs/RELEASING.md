@@ -6,9 +6,16 @@ project's own **patched** TerrariaModder Core, not just the mod DLL — see
 of the whole modded install, meant to be extracted straight into someone's
 Terraria folder.
 
+## Versioning
+
+Releases from here on are **alpha** — this is still early, actively-changing
+software with a small, known set of users who understand that. Tag and
+title releases accordingly (e.g. `v0.9.0-alpha`), and say so plainly in the
+release notes, until told otherwise.
+
 ## 1. Bump the version
 
-- `src/TerrariaEncyclopedia/Mod.cs` → `Version => "X.Y.Z"`
+- `src/TerrariaEncyclopedia/EncyclopediaFeature.cs` → `FeatureVersion = "X.Y.Z"`
 - `src/TerrariaEncyclopedia/manifest.json` → `"version": "X.Y.Z"`
 
 ## 2. Build

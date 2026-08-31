@@ -1,6 +1,6 @@
 # Terraria Encyclopedia
 
-A read-only, in-game item / NPC / boss browser for Terraria **1.4.5.8**
+A read-only, in-game item / NPC / boss / event browser for Terraria **1.4.5.8**
 (Steam). Press a key, search or browse, click through to a full detail page —
 recipes, a recursive crafting tree, real drop-rate data, sell prices, buffs,
 and wiki-sourced boss info (type, environment, summoning, aftermath, tips).
@@ -28,7 +28,7 @@ completely unaffected either way.
    launching Terraria through Steam. Play normally — worlds, characters,
    and Steam Cloud all work exactly as before.
 5. In-game, press **P** to open or close the Encyclopedia. Use the
-   Items/NPCs toggle at the top, search, sort, and category tabs to browse;
+   Items/NPCs/Events tabs at the top, search, sort, and category tabs to browse;
    click anything to open its detail page.
 
 Launching Terraria through Steam as usual still works and is unmodified —
@@ -47,12 +47,16 @@ build in that case.
   price (with real coin icons), buff granted (icon + tooltip + duration),
   projectile created, Journey Mode research count, crafting station, direct
   recipe, a recursive crafting tree of what each ingredient is itself made
-  from, and what other items use this one.
+  from, drop and seller sources for non-craftable items, and what other items
+  use this one.
 - **NPCs & Bosses** — search/filter/sort, town/enemy/boss tabs, stats, real
   drop-rate percentages (sorted highest-chance first) including conditions
-  like "Downed Plantera," and — for the 20 vanilla bosses — wiki-sourced
+  like "Downed Plantera," town-NPC shops and living preferences, and — for
+  all 33 wiki-recognised bosses — wiki-sourced
   type, environment, knockback resistance, immunities, summoning method,
   Expert Mode changes, aftermath, and tips.
+- **Events** — search 13 invasions, moons and world events, with wiki-sourced
+  summoning, completion, notes and tips.
 - **Hardmode marking** for items/NPCs that are Hardmode-exclusive.
 
 ## For developers
@@ -69,3 +73,4 @@ quick-start:
   patches this project's fork of TerrariaModder's Core carries, and why.
 - [`CLAUDE.md`](CLAUDE.md) — ground rules and known state for anyone (or any
   AI assistant) picking up work here, e.g. macOS support.
+- [`CHANGELOG.md`](CHANGELOG.md) — what changed in each version.

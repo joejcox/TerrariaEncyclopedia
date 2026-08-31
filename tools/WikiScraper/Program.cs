@@ -41,6 +41,65 @@ public static class Program
         ("Moon Lord", "Moon_Lord", new[] { "Moon Lord", "Moon Lord's Hand", "Moon Lord's Core" }),
         ("Martian Saucer", "Martian_Saucer", new[] { "Martian Saucer" }),
         ("Empress of Light", "Empress_of_Light", new[] { "Empress of Light" }),
+        // Confirmed via a live boss-list dump (NPCID.Sets.ShouldBeCountedAsBossForBestiary) that
+        // these four were the only real bosses missing from this curated list — everything else
+        // already matched.
+        ("Vortex Pillar", "Vortex_Pillar", new[] { "Vortex Pillar" }),
+        ("Nebula Pillar", "Nebula_Pillar", new[] { "Nebula Pillar" }),
+        ("Solar Pillar", "Solar_Pillar", new[] { "Solar Pillar" }),
+        ("Stardust Pillar", "Stardust_Pillar", new[] { "Stardust Pillar" }),
+        // Event/invasion bosses: the wiki's "Boss NPCs" category lists these (confirmed via its
+        // API), but neither npc.boss nor NPCID.Sets.ShouldBeCountedAsBossForBestiary flag them in
+        // the actual game data (verified live) — see NpcCatalogue.ExtraWikiBosses. Both tiers of
+        // Dark Mage/Ogre share one display name each, so one MatchNames entry covers both NPCIDs.
+        // Brings the total to 33, matching the wiki's own count.
+        ("Betsy", "Betsy", new[] { "Betsy" }),
+        ("Ogre", "Ogre", new[] { "Ogre" }),
+        ("Dark Mage", "Dark_Mage", new[] { "Dark Mage" }),
+        ("Mourning Wood", "Mourning_Wood", new[] { "Mourning Wood" }),
+        ("Pumpking", "Pumpking", new[] { "Pumpking" }),
+        ("Everscream", "Everscream", new[] { "Everscream" }),
+        ("Santa-NK1", "Santa-NK1", new[] { "Santa-NK1" }),
+        ("Ice Queen", "Ice_Queen", new[] { "Ice Queen" }),
+        ("Flying Dutchman", "Flying_Dutchman", new[] { "Flying Dutchman" }),
+    };
+
+    // Cross-checked against the wiki's own "Random events"/"Summoned events" categories
+    // (confirmed via its API) rather than hand-guessed. Deliberately excludes the purely
+    // cosmetic/ambient weather entries also in those categories (Rain, Windy Day, Thunderstorm,
+    // Boulder/Coin/Meteor rain, Starfall) — those aren't the "how do I fight/survive this"
+    // content this feature is for. Old One's Army isn't in either wiki category (it's tagged
+    // differently there) but is unambiguously a real event, so it's added directly.
+    private static readonly (string Name, string WikiPage)[] Events =
+    {
+        ("Blood Moon", "Blood_Moon"),
+        ("Solar Eclipse", "Solar_Eclipse"),
+        ("Goblin Army", "Goblin_Army"),
+        ("Pirate Invasion", "Pirate_Invasion"),
+        ("Frost Legion", "Frost_Legion"),
+        ("Pumpkin Moon", "Pumpkin_Moon"),
+        ("Frost Moon", "Frost_Moon"),
+        ("Martian Madness", "Martian_Madness"),
+        ("Lunar Events", "Lunar_Events"),
+        ("Old One's Army", "Old_One's_Army"),
+        ("Slime Rain", "Slime_Rain"),
+        ("Sandstorm", "Sandstorm"),
+        ("Party", "Party"),
+    };
+
+    // The full live town-NPC list (from NPC.townNPC), confirmed via a one-time in-game dump —
+    // not guessed. A few of these (the town pets, the slime variants, Old Man, Traveling
+    // Merchant) likely have no "Living preferences" table on their wiki page at all; that's
+    // handled by ScrapeNpcPreferences simply omitting them from the output rather than by
+    // curating this list down first.
+    private static readonly string[] TownNpcs =
+    {
+        "Merchant", "Nurse", "Arms Dealer", "Dryad", "Guide", "Old Man", "Demolitionist", "Clothier",
+        "Goblin Tinkerer", "Wizard", "Mechanic", "Santa Claus", "Truffle", "Steampunker", "Dye Trader",
+        "Party Girl", "Cyborg", "Painter", "Witch Doctor", "Pirate", "Stylist", "Traveling Merchant",
+        "Angler", "Tax Collector", "Tavernkeep", "Golfer", "Zoologist", "Cat", "Dog", "Bunny", "Princess",
+        "Nerdy Slime", "Cool Slime", "Elder Slime", "Clumsy Slime", "Diva Slime", "Surly Slime",
+        "Mystic Slime", "Squire Slime",
     };
 
     public static async Task Main()
@@ -57,8 +116,120 @@ public static class Program
         await ScrapeBosses(outDir);
         await ScrapeHardmodeCategory("Hardmode-only items", Path.Combine(outDir, "hardmode-items.json"));
         await ScrapeHardmodeCategory("Hardmode-only NPCs", Path.Combine(outDir, "hardmode-npcs.json"));
+        await ScrapeNpcPreferences(outDir);
+        await ScrapeEvents(outDir);
 
         Console.WriteLine("Done.");
+    }
+
+    /// <summary>
+    /// Events have no live data source at all — confirmed via reflection: only Old One's Army
+    /// has a dedicated NPCID.Sets array (BelongsToInvasionOldOnesArmy); every other event's enemy
+    /// roster is imperative spawn logic, not queryable data (same pattern as shop contents and
+    /// neighbor preferences). Wiki page structure varies more per event than per boss (e.g. "How
+    /// it starts" is titled "Summoning" on some pages, "Criteria" on others), so multiple heading
+    /// candidates are tried per field, same approach as the boss scraper's Summoning section.
+    /// </summary>
+    private static async Task ScrapeEvents(string outDir)
+    {
+        var results = new List<EventInfo>();
+
+        foreach (var (name, wikiPage) in Events)
+        {
+            Console.WriteLine($"Fetching {name} ({wikiPage})...");
+            try
+            {
+                string html = await FetchPageHtml(wikiPage);
+                var doc = new HtmlDocument();
+                doc.LoadHtml(html);
+
+                var info = new EventInfo { Name = name, WikiPage = wikiPage };
+                info.Summoning = ExtractSection(doc, "Summoning", "Summoning_and_spawning", "Criteria", "Trigger");
+                info.Completing = ExtractSection(doc, "Completing", "Aftermath");
+                info.Notes = ExtractSection(doc, "Notes");
+                info.Tips = ExtractSection(doc, "Tips");
+
+                results.Add(info);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"  FAILED: {ex.Message}");
+            }
+
+            await Task.Delay(500);
+        }
+
+        string json = JsonSerializer.Serialize(results, new JsonSerializerOptions { WriteIndented = true });
+        File.WriteAllText(Path.Combine(outDir, "events.json"), json);
+        Console.WriteLine($"Wrote {results.Count} event entries.");
+    }
+
+    /// <summary>
+    /// Town NPCs' Loves/Likes/Dislikes/Hates x Biome/Neighbor table. Not reflectable from the
+    /// live game: biome preferences are (mostly) live-data-driven, but neighbor preferences turn
+    /// out to be a single ~900-instruction hardcoded method (confirmed via IL disassembly of
+    /// AllPersonalitiesModifier.ModifyShopPrice_Relationships) with no queryable data behind it,
+    /// so the whole table is sourced from the wiki instead for consistency between both columns.
+    /// </summary>
+    private static async Task ScrapeNpcPreferences(string outDir)
+    {
+        var results = new List<NpcPreferencesInfo>();
+
+        foreach (var name in TownNpcs)
+        {
+            string wikiPage = name.Replace(' ', '_');
+            Console.WriteLine($"Fetching preferences for {name} ({wikiPage})...");
+            try
+            {
+                string html = await FetchPageHtml(wikiPage);
+                var doc = new HtmlDocument();
+                doc.LoadHtml(html);
+
+                var info = new NpcPreferencesInfo { Name = name, WikiPage = wikiPage };
+                var table = doc.DocumentNode.SelectSingleNode("//table[contains(@class,'living-preferences')]");
+                if (table != null)
+                {
+                    (info.LoveBiomes, info.LoveNeighbors) = ParsePreferenceRow(table, "love");
+                    (info.LikeBiomes, info.LikeNeighbors) = ParsePreferenceRow(table, "like");
+                    (info.DislikeBiomes, info.DislikeNeighbors) = ParsePreferenceRow(table, "dislike");
+                    (info.HateBiomes, info.HateNeighbors) = ParsePreferenceRow(table, "hate");
+                }
+
+                int total = info.LoveBiomes.Length + info.LoveNeighbors.Length + info.LikeBiomes.Length
+                    + info.LikeNeighbors.Length + info.DislikeBiomes.Length + info.DislikeNeighbors.Length
+                    + info.HateBiomes.Length + info.HateNeighbors.Length;
+                if (total > 0) results.Add(info);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"  FAILED: {ex.Message}");
+            }
+
+            await Task.Delay(500);
+        }
+
+        string json = JsonSerializer.Serialize(results, new JsonSerializerOptions { WriteIndented = true });
+        File.WriteAllText(Path.Combine(outDir, "npc-preferences.json"), json);
+        Console.WriteLine($"Wrote {results.Count} NPC preference entries.");
+    }
+
+    private static (string[] Biomes, string[] Neighbors) ParsePreferenceRow(HtmlNode table, string rowClass)
+    {
+        var row = table.SelectSingleNode($".//tr[contains(@class,'{rowClass}')]");
+        var cells = row?.SelectNodes("./td");
+        if (cells == null || cells.Count < 2) return (Array.Empty<string>(), Array.Empty<string>());
+        return (ExtractPreferenceNames(cells[0]), ExtractPreferenceNames(cells[1]));
+    }
+
+    // Each entry is an <li> containing two <a title="X">-wrapped links to the same page — one
+    // wrapping the icon <img>, one wrapping the visible text (nested a variable number of
+    // <span>s deep depending on the entry type). Filtering to the <a> that has no <img>
+    // descendant reliably picks just the text link regardless of nesting depth.
+    private static string[] ExtractPreferenceNames(HtmlNode cell)
+    {
+        var links = cell.SelectNodes(".//li//a[not(.//img)]");
+        if (links == null) return Array.Empty<string>();
+        return links.Select(a => HtmlEntity.DeEntitize(a.InnerText).Trim()).Where(s => s.Length > 0).ToArray();
     }
 
     private static async Task ScrapeBosses(string outDir)
@@ -265,5 +436,29 @@ public class BossInfo
     public string? Summoning { get; set; }
     public string? ExpertMode { get; set; }
     public string? Aftermath { get; set; }
+    public string? Tips { get; set; }
+}
+
+public class NpcPreferencesInfo
+{
+    public string Name { get; set; } = "";
+    public string WikiPage { get; set; } = "";
+    public string[] LoveBiomes { get; set; } = Array.Empty<string>();
+    public string[] LoveNeighbors { get; set; } = Array.Empty<string>();
+    public string[] LikeBiomes { get; set; } = Array.Empty<string>();
+    public string[] LikeNeighbors { get; set; } = Array.Empty<string>();
+    public string[] DislikeBiomes { get; set; } = Array.Empty<string>();
+    public string[] DislikeNeighbors { get; set; } = Array.Empty<string>();
+    public string[] HateBiomes { get; set; } = Array.Empty<string>();
+    public string[] HateNeighbors { get; set; } = Array.Empty<string>();
+}
+
+public class EventInfo
+{
+    public string Name { get; set; } = "";
+    public string WikiPage { get; set; } = "";
+    public string? Summoning { get; set; }
+    public string? Completing { get; set; }
+    public string? Notes { get; set; }
     public string? Tips { get; set; }
 }

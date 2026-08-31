@@ -484,5 +484,294 @@
     "ExpertMode": null,
     "Aftermath": null,
     "Tips": "- The Guide to Critter Companionship can be used to avoid accidentally summoning the boss, as it prevents the player from damaging critters, including the Prismatic Lacewing.\n- Capturing Prismatic Lacewings with a Bug Net rather than killing them immediately allows the player to fight the Empress of Light at a proper time and place once prepared.\n- Although the Prismatic Lacewing can only spawn at night, the Empress of Light can be spawned at any time of day using captured Prismatic Lacewings.\n- If the Prismatic Lacewing is released outside of the Hallow, it will disappear very quickly. To ensure that it gets killed, the player can place the critter directly into a stationary area-of-effect projectile, such as a Clinger Staff\u0027s flame pillar or a Rainbow Gun\u0027s rainbow.\n- A Rod of Discord will help the player evade some of the Empress of Light\u0027s attacks.\n- If attempting to fight the Empress of Light during the day to obtain the Terraprisma, defense and damage resistance should be completely disregarded in favor of damage and mobility, as any damage taken will be beyond lethal regardless.\n  - The dash ability from the Shield of Cthulhu, Master Ninja Gear, or Solar Flare armor can increase mobility.\n  - Wings with hover or fast acceleration capabilities, such as Fishron or Betsy\u0027s Wings or the Jetpack, can be quite effective for dodging.\n  - Dodges from Holy Protection, the Black Belt and its upgrades, and the Brain of Confusion will not protect the player from death, so it is recommended to replace them with armor and accessories that increase damage output.\n  - If using the Rod of Discord during her daytime fight, the Chaos State debuff can be disregarded entirely unless the damage from it would also kill the player. Losing a fraction of health to Chaos State is far better than losing all of it to one of the Empress of Light\u0027s attacks.\n  - A riskier strategy would see the use of flying mounts instead of wings or boots, which would free up accessory slots for increased damage output.\n  - Arenas do not require structures that boost defense or health regeneration, like Campfires, Heart Lanterns, or Bast Statues, as taking any damage instantly kills the player.\n- Use weapons that are capable of dealing damage reliably from long range or have homing, such as the Blizzard Staff, Possessed Hatchet, Scourge of the Corruptor, Tsunami, Aerial Bane, Snowman Cannon, Chain Gun, or Tactical Shotgun with Chlorophyte Bullets.\n- A large arena constructed of Asphalt Blocks and layers of platforms is highly recommended, especially with the demand for mobility while fighting the Empress of Light during the day.\n- She is not immune to any practical debuffs. This can be a good extra source of damage, especially with the use of Ichor, Betsy\u0027s Curse, or Daybroken.\n- It is best to stay at an average level or below the Empress of Light as she zips above the player\u0027s position after every attack she does, making it more likely for the player to be killed by contact damage during the day or take unnecessary hits during the night."
+  },
+  {
+    "Name": "Vortex Pillar",
+    "WikiPage": "Vortex_Pillar",
+    "MatchNames": [
+      "Vortex Pillar"
+    ],
+    "Types": [],
+    "Environments": [],
+    "AiType": null,
+    "KbResist": null,
+    "ImmuneTo": [],
+    "Summoning": null,
+    "ExpertMode": null,
+    "Aftermath": null,
+    "Tips": null
+  },
+  {
+    "Name": "Nebula Pillar",
+    "WikiPage": "Nebula_Pillar",
+    "MatchNames": [
+      "Nebula Pillar"
+    ],
+    "Types": [],
+    "Environments": [],
+    "AiType": null,
+    "KbResist": null,
+    "ImmuneTo": [],
+    "Summoning": null,
+    "ExpertMode": null,
+    "Aftermath": null,
+    "Tips": null
+  },
+  {
+    "Name": "Solar Pillar",
+    "WikiPage": "Solar_Pillar",
+    "MatchNames": [
+      "Solar Pillar"
+    ],
+    "Types": [],
+    "Environments": [],
+    "AiType": null,
+    "KbResist": null,
+    "ImmuneTo": [],
+    "Summoning": null,
+    "ExpertMode": null,
+    "Aftermath": null,
+    "Tips": null
+  },
+  {
+    "Name": "Stardust Pillar",
+    "WikiPage": "Stardust_Pillar",
+    "MatchNames": [
+      "Stardust Pillar"
+    ],
+    "Types": [],
+    "Environments": [],
+    "AiType": null,
+    "KbResist": null,
+    "ImmuneTo": [],
+    "Summoning": null,
+    "ExpertMode": null,
+    "Aftermath": null,
+    "Tips": null
+  },
+  {
+    "Name": "Betsy",
+    "WikiPage": "Betsy",
+    "MatchNames": [
+      "Betsy"
+    ],
+    "Types": [
+      "Boss"
+    ],
+    "Environments": [
+      "Old One\u0027s Army"
+    ],
+    "AiType": "Betsy AI",
+    "KbResist": "100%",
+    "ImmuneTo": [
+      "On Fire!",
+      "Confused",
+      "Hellfire",
+      "Shimmering"
+    ],
+    "Summoning": null,
+    "ExpertMode": null,
+    "Aftermath": null,
+    "Tips": "- The On Fire! debuff is a major source of damage. Note that it negates life regen from Nebula armor\u0027s set bonus \u2013 hence, if the player is unable to avoid Betsy\u0027s flame breath attack, it might make the armor ineffective.\n  - The Obsidian Skin Potion can prevent the debuff.\n  - A floating pool of water (utilizing Bubbles) can be used to cancel the On Fire! debuff. Honey will also cancel the debuff and also give extra life regeneration, but slows down the player\u0027s movement while submerged in it unless they are using Flipper Potions.\n  - This does not apply to life-stealing effects such as the Spectre armor Hood set bonus or the Vampire Knives. It does not affect the Life Drain\u0027s health regen boost either."
+  },
+  {
+    "Name": "Ogre",
+    "WikiPage": "Ogre",
+    "MatchNames": [
+      "Ogre"
+    ],
+    "Types": [
+      "Boss"
+    ],
+    "Environments": [
+      "Old One\u0027s Army"
+    ],
+    "AiType": "Attacker AI",
+    "KbResist": "100%",
+    "ImmuneTo": [
+      "Confused",
+      "Shimmering"
+    ],
+    "Summoning": null,
+    "ExpertMode": null,
+    "Aftermath": null,
+    "Tips": "- Although the Ogre has a powerful close-ranged club swing attack, he can be easily maneuvered around due to his generally slow speed, making it easy for the player to keep their distance and dodge his snot ball and melee attacks.\n- Using yoyos with the Yoyo Bag equipped can be an extremely effective method of killing the Ogre.\n- In Tier 3, the club swing attack deals 472 damage in Master Mode, which can kill players in one hit. This is easily the most damage that can be dealt by a single attack from any of the enemies in the Old One\u0027s Army event, even surpassing all of Betsy\u0027s attacks.\n- An easy method to dodge the Ogre\u0027s stomp is to either jump before he lands or to constantly stay in the air by using wings, accessories that provide extra jumps, or by using flying mounts, such as those from The Black Spot, Witch\u0027s Broom, Shrimpy Truffle, or Cosmic Car Key.\n  - Another easy way to dodge his jump attack is to fight the Old One\u0027s Army in space, where the very low gravity prolongs his jump to extreme lengths. This makes it easy to walk away before he lands.\n  - It is not very wise to use a platform above the ground when fighting the Ogre for he may leap onto said platform when performing his leap. Despite the particles of the slam coming from the ground, the Ogre\u0027s slam hitbox is still carried with him to greater heights.\n- The Oozed debuff does not affect the speed of flying mounts that are not in contact with the ground, making them quite useful while fighting Ogres.\n- It is recommended to kill the Ogre before he is halfway between the Mysterious Portal and the Eternia Crystal because he will then begin to target the Crystal. His snot balls can also hit the player at this stage."
+  },
+  {
+    "Name": "Dark Mage",
+    "WikiPage": "Dark_Mage",
+    "MatchNames": [
+      "Dark Mage"
+    ],
+    "Types": [
+      "Boss"
+    ],
+    "Environments": [
+      "Old One\u0027s Army"
+    ],
+    "AiType": "Dark Mage AI",
+    "KbResist": "100%",
+    "ImmuneTo": [
+      "Confused",
+      "Shimmering"
+    ],
+    "Summoning": null,
+    "ExpertMode": null,
+    "Aftermath": null,
+    "Tips": null
+  },
+  {
+    "Name": "Mourning Wood",
+    "WikiPage": "Mourning_Wood",
+    "MatchNames": [
+      "Mourning Wood"
+    ],
+    "Types": [
+      "Boss"
+    ],
+    "Environments": [
+      "Pumpkin Moon"
+    ],
+    "AiType": "Mourning Wood AI",
+    "KbResist": "100%",
+    "ImmuneTo": [
+      "Poisoned",
+      "Hemorrhage",
+      "Confused",
+      "Bleeding",
+      "Shimmering"
+    ],
+    "Summoning": null,
+    "ExpertMode": null,
+    "Aftermath": null,
+    "Tips": "- Pay attention to when a Mourning Wood stops walking, as it is about to perform one of its two ranged attacks.\n- It is advisable not to enter a small room while fighting a Mourning Wood because its \u0022Flaming Wood\u0022 attack can go through walls.\n- The Mourning Wood\u0027s \u0022Greek Fire\u0022 attacks cannot pass through water, therefore submerging the mini-boss at least halfway up is an easier way to defeat it. Note the \u0022Flaming Wood\u0022 attacks do pass through water.\n- The Mourning Wood can be defeated with relative ease by aiming the North Pole above it so it gets hit by several of its snowflake projectiles."
+  },
+  {
+    "Name": "Pumpking",
+    "WikiPage": "Pumpking",
+    "MatchNames": [
+      "Pumpking"
+    ],
+    "Types": [],
+    "Environments": [
+      "Pumpkin Moon"
+    ],
+    "AiType": "Pumpking Scythe AI",
+    "KbResist": "100%",
+    "ImmuneTo": [
+      "Poisoned",
+      "Hemorrhage",
+      "On Fire!",
+      "Hellfire",
+      "Bleeding",
+      "Confused"
+    ],
+    "Summoning": null,
+    "ExpertMode": null,
+    "Aftermath": null,
+    "Tips": "- The Flairon can be very effective against the Pumpking, who tends to float right above players (well within the range of the Flairon and its homing bubbles), causing very high damage per hit.\n- The Pumpking\u0027s contact damage is relatively lower than the damage inflicted by his projectiles, especially his Flaming Scythes. Using wings and other flight-based accessories like the Soaring Insignia to fly closer towards his head while tanking his contact damage with high defense may help the player avoid taking excessive amounts of damage, especially in cases when they are being attacked by multiple Pumpkings at once.\n- High-mobility items, such as the Anti-Gravity Hook, the Tabi and its upgrades, or the Shield of Cthulhu, allow for easier handling of the Pumpking."
+  },
+  {
+    "Name": "Everscream",
+    "WikiPage": "Everscream",
+    "MatchNames": [
+      "Everscream"
+    ],
+    "Types": [
+      "Boss"
+    ],
+    "Environments": [
+      "Frost Moon"
+    ],
+    "AiType": "Mourning Wood AI",
+    "KbResist": "100%",
+    "ImmuneTo": [
+      "Poisoned",
+      "Frostburn",
+      "Confused",
+      "Frostbite",
+      "Shimmering",
+      "Bleeding",
+      "Hemorrhage"
+    ],
+    "Summoning": null,
+    "ExpertMode": null,
+    "Aftermath": null,
+    "Tips": "- Most of the Everscream\u0027s attacks can easily be avoided by staying on platforms high enough above the ground, as the attacks have limited range. Attacking with any ranged or long-range melee weapon from there trivializes the fight.\n- The Everscream is one of the few mini-bosses whose attacks can be shielded, as its Ornament and Pine Needle attacks do not go through blocks.\n- Unlike Mourning Wood, the Everscream\u0027s attacks do not deal increased damage after its health drops past 25%."
+  },
+  {
+    "Name": "Santa-NK1",
+    "WikiPage": "Santa-NK1",
+    "MatchNames": [
+      "Santa-NK1"
+    ],
+    "Types": [
+      "Boss"
+    ],
+    "Environments": [
+      "Frost Moon"
+    ],
+    "AiType": "Santa-NK1 AI",
+    "KbResist": "100%",
+    "ImmuneTo": [
+      "Poisoned",
+      "Frostburn",
+      "Confused",
+      "Frostbite",
+      "Bleeding",
+      "Hemorrhage"
+    ],
+    "Summoning": null,
+    "ExpertMode": null,
+    "Aftermath": null,
+    "Tips": "- Players should note that its Present launcher and Missile barrage attacks are highly inaccurate.\n- Using wings to fly over it back and forth will make its chain gun and the Missile barrage harder to hit the player.\n- The Razorpine and Golden Shower/Betsy\u0027s Wrath are very effective against it. Hitting it first with the Golden Shower/Betsy\u0027s Wrath lowers its defense, increasing the DPS of the Razorpine. This is highly effective with Spectre armor with the Spectre Hood as it fully heals the player no matter how low the player\u0027s health is."
+  },
+  {
+    "Name": "Ice Queen",
+    "WikiPage": "Ice_Queen",
+    "MatchNames": [
+      "Ice Queen"
+    ],
+    "Types": [
+      "Boss"
+    ],
+    "Environments": [
+      "Frost Moon"
+    ],
+    "AiType": "Ice Queen AI",
+    "KbResist": "100%",
+    "ImmuneTo": [
+      "Poisoned",
+      "Frostburn",
+      "Confused",
+      "Frostbite",
+      "Bleeding",
+      "Hemorrhage"
+    ],
+    "Summoning": null,
+    "ExpertMode": null,
+    "Aftermath": null,
+    "Tips": "- Both of the Ice Queen\u0027s attacks will inflict the Chilled debuff, which slows the player\u0027s movement speed, and Frost Waves will sometimes inflict the Frozen debuff which completely immobilizes the player. Equipping a Hand Warmer or Ankh Shield will negate these effects and potentially make the fight much less frustrating.\n- Drinking a Warmth Potion is recommended as it will significantly lower the damage the Ice Queen can inflict on the player, and it will last for the entire duration of the event.\n- The Frozen debuff causes players to exit their mounts. This may kill a player without immunity to fall damage if inflicted at a high enough point in the sky.\n- The Ice Queen is most vulnerable while executing her twirl attack, when she spins in place rapidly and shoots Frost Shards in all directions. This is the only time she stays in one spot.\n- The distribution of the Ice Queen\u0027s Frost Shards during her twirl attack is weighted such that the projectiles have a significantly higher chance of shooting near-diagonally than near-vertically or near-horizontally. Thus, players standing roughly along one cardinal direction from the Ice Queen (up, down, left, or right from her) have a lesser chance of being hit than players standing diagonally from her.\n- To mitigate her damage, using wings and possibly movement-enhancing accessories for chasing and dodging, in addition to equipping a Cross Necklace/Star Veil combined with lifesteal (Spectre armor or Vampire Knives), proves very effective.\n- When attacking with frost waves, she will not fire any towards the player if they are above her. This can be easily be achieved with mounts that have infinite flight time such as the Witch\u0027s Broom, and wings using the Soaring Insignia."
+  },
+  {
+    "Name": "Flying Dutchman",
+    "WikiPage": "Flying_Dutchman",
+    "MatchNames": [
+      "Flying Dutchman"
+    ],
+    "Types": [],
+    "Environments": [
+      "Pirate Invasion"
+    ],
+    "AiType": "Rider AI",
+    "KbResist": "100%",
+    "ImmuneTo": [
+      "Debuffs",
+      "Whip debuffs"
+    ],
+    "Summoning": null,
+    "ExpertMode": null,
+    "Aftermath": null,
+    "Tips": "- Any weapons that can hit multiple targets at once are good for taking out the cannons.\n- Due to the way it moves and the way the cannonballs fire, it is very easy to find positions where it cannot hit the player, yet they can hit it.\n  - Weapons that can be used in these situations include any kind of summoning weapon, the Daedalus Stormbow, the Meteor Staff, the Nimbus Rod, and the Flying Knife.\n- Due to the fact that they stop upon hitting a wall, and continuously spawn pirates, the Flying Dutchmen can be stopped above a half-block deep pit of lava (or other trap) and used to farm the various items pertaining to the Pirate Invasion.\n- Farming for the Lucky Coin, Discount Card, or Gold Ring is most efficient from killing the Flying Dutchman, rather than from common pirates. After getting event progress to 50%, one can ensure 10 Flying Dutchmen per event by getting high enough above the ground (using a small platform or flying mount), but not too high, so that spawned enemies will be in the \u0022Active Rectangle\u0022 and will despawn after 12.5 seconds, and then spawn again. Using this method, only Flying Dutchmen and Parrots can reach the player. Parrots can be killed safely as they do not count towards event progress.\n- A Minecart with a sufficiently long track is useful for dodging the Flying Dutchman\u0027s attacks, and can then be attacked with ranged or magic weapons from the Minecart."
   }
 ]

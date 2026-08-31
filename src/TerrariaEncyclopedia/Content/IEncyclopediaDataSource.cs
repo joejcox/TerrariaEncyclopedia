@@ -8,6 +8,8 @@ namespace TerrariaEncyclopedia.Content
 
         IReadOnlyList<NpcEntry> LoadNpcs();
 
+        IReadOnlyList<EventWikiInfo> LoadEvents();
+
         IReadOnlyList<RecipeInfo> RecipesFor(int itemId);
 
         IReadOnlyList<RecipeInfo> UsedIn(int itemId);
@@ -15,6 +17,12 @@ namespace TerrariaEncyclopedia.Content
         IReadOnlyList<DropEntry> DropsFor(int npcId);
 
         IReadOnlyList<DropEntry> SourcesFor(int itemId);
+
+        IReadOnlyList<ShopItemEntry> ShopFor(int npcId);
+
+        IReadOnlyList<ShopSellerEntry> SellersOf(int itemId);
+
+        NpcPersonalityEntry GetNpcPersonality(int npcId, string npcName);
 
         string StationName(int tileId);
 

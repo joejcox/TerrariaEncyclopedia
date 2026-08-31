@@ -23,6 +23,13 @@ namespace TerrariaEncyclopedia.Tests
             Npc(125, "Retinazer", 20000, boss: true)
         };
 
+        private static readonly EventWikiInfo[] Events =
+        {
+            new EventWikiInfo { Name = "Goblin Army", Summoning = "Use a Goblin Battle Standard." },
+            new EventWikiInfo { Name = "Blood Moon", Summoning = "May begin at night." },
+            new EventWikiInfo { Name = "Frost Moon", Summoning = "Use a Naughty Present." }
+        };
+
         [Fact]
         public void ItemSearchSupportsExactIdsAndCaseInsensitiveNames()
         {
@@ -83,6 +90,17 @@ namespace TerrariaEncyclopedia.Tests
         }
 
         [Fact]
+        public void EventSearchIsCaseInsensitiveAndAlwaysAlphabetical()
+        {
+            Assert.Equal(
+                new[] { "Blood Moon", "Frost Moon" },
+                EncyclopediaQueries.FilterEvents(Events, "mOoN").Select(item => item.Name));
+            Assert.Equal(
+                new[] { "Blood Moon", "Frost Moon", "Goblin Army" },
+                EncyclopediaQueries.FilterEvents(Events, null).Select(item => item.Name));
+        }
+
+        [Fact]
         public void NavigationSupportsLinkedEntriesBackAndHome()
         {
             var navigation = new EntryNavigation();
@@ -107,8 +125,55 @@ namespace TerrariaEncyclopedia.Tests
             Assert.Equal(30, source.LoadItems().Single(item => item.Id == 99).ResearchCount);
             Assert.Equal(42, source.RecipesFor(99).Single().Ingredients.Single().ItemId);
             Assert.Equal(99, source.DropsFor(13).Single().ItemId);
+            Assert.Equal("Blood Moon", source.LoadEvents().Single().Name);
+            Assert.Equal(99, source.ShopFor(1).Single().ItemId);
+            Assert.Equal(1, source.SellersOf(99).Single().NpcId);
+            Assert.True(source.GetNpcPersonality(1, "Guide").HasUniqueBehavior);
             Assert.Equal("Demon Altar", source.StationName(26));
             Assert.Equal("Expert tactics", source.GetBossInfo("Eye of Cthulhu").ExpertMode);
+        }
+
+        [Fact]
+        public void WikiPreferencesTakePrecedenceAndRetainLiveUniqueBehaviour()
+        {
+            var live = new NpcPersonalityEntry { HasUniqueBehavior = true };
+            live.Biomes.Add(new PersonalityPreference { Level = Affection.Hate, Label = "Live biome" });
+            var wiki = new NpcPreferencesWikiInfo
+            {
+                LikeBiomes = new[] { "Forest" },
+                LoveNeighbors = new[] { "Wizard" }
+            };
+
+            NpcPersonalityEntry resolved = NpcPreferenceResolver.Resolve(wiki, live);
+
+            Assert.True(resolved.HasUniqueBehavior);
+            Assert.Equal("Forest", resolved.Biomes.Single().Label);
+            Assert.Equal(Affection.Love, resolved.Neighbors.Single().Level);
+            Assert.DoesNotContain(resolved.Biomes, item => item.Label == "Live biome");
+            Assert.Same(live, NpcPreferenceResolver.Resolve(null, live));
+        }
+
+        [Theory]
+        [InlineData(0, true, false, false, false, 4)]
+        [InlineData(2, false, true, false, false, 6)]
+        [InlineData(2, false, false, true, false, 6)]
+        [InlineData(2, false, false, false, true, 2)]
+        public void DisplayedCritAddsPlayerBaseOnlyToStandardCritClasses(
+            int itemCriticalChance,
+            bool melee,
+            bool ranged,
+            bool magic,
+            bool summon,
+            int expected)
+        {
+            Assert.Equal(
+                expected,
+                EncyclopediaQueries.DisplayedCriticalChance(
+                    itemCriticalChance,
+                    melee,
+                    ranged,
+                    magic,
+                    summon));
         }
 
         private static int FirstItem(ItemSortMode mode)
@@ -151,6 +216,10 @@ namespace TerrariaEncyclopedia.Tests
         {
             public IReadOnlyList<ItemEntry> LoadItems() => Items;
             public IReadOnlyList<NpcEntry> LoadNpcs() => Npcs;
+            public IReadOnlyList<EventWikiInfo> LoadEvents() => new[]
+            {
+                new EventWikiInfo { Name = "Blood Moon" }
+            };
             public IReadOnlyList<RecipeInfo> RecipesFor(int itemId) => itemId == 99
                 ? new[]
                 {
@@ -166,6 +235,14 @@ namespace TerrariaEncyclopedia.Tests
                 ? new[] { new DropEntry { NpcId = 13, ItemId = 99, Chance = 0.25f, StackMin = 1, StackMax = 2 } }
                 : new DropEntry[0];
             public IReadOnlyList<DropEntry> SourcesFor(int itemId) => new DropEntry[0];
+            public IReadOnlyList<ShopItemEntry> ShopFor(int npcId) => npcId == 1
+                ? new[] { new ShopItemEntry { ItemId = 99, Cost = 100 } }
+                : new ShopItemEntry[0];
+            public IReadOnlyList<ShopSellerEntry> SellersOf(int itemId) => itemId == 99
+                ? new[] { new ShopSellerEntry { NpcId = 1, Cost = 100 } }
+                : new ShopSellerEntry[0];
+            public NpcPersonalityEntry GetNpcPersonality(int npcId, string npcName) =>
+                new NpcPersonalityEntry { HasUniqueBehavior = npcId == 1 };
             public string StationName(int tileId) => tileId == 26 ? "Demon Altar" : "Unknown";
             public bool IsHardmodeItem(string itemName) => itemName == "Nebula Blaze";
             public bool IsHardmodeNpc(string npcName) => npcName == "Retinazer";

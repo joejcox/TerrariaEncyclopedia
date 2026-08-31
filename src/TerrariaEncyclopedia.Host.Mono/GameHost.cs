@@ -12,6 +12,7 @@ using Microsoft.Xna.Framework.Input;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.GameInput;
+using TerrariaEncyclopedia.Content;
 using TerrariaEncyclopedia.Hosting;
 using TerrariaEncyclopedia.Runtime;
 using TerrariaEncyclopedia.Runtime.UI.Fna;
@@ -756,8 +757,14 @@ namespace TerrariaEncyclopedia.Host.Mono
                         : item.summon ? "summon"
                         : string.Empty;
                     lines.Add(Line(item.damage + (damageType.Length == 0 ? "" : " " + damageType) + " damage"));
-                    if (item.crit > 0)
-                        lines.Add(Line(item.crit + "% critical strike chance"));
+                    int criticalChance = EncyclopediaQueries.DisplayedCriticalChance(
+                        item.crit,
+                        item.melee,
+                        item.ranged,
+                        item.magic,
+                        item.summon);
+                    if (criticalChance > 0)
+                        lines.Add(Line(criticalChance + "% critical strike chance"));
                     if (item.useTime > 0)
                         lines.Add(Line(UseSpeed(item.useTime)));
                     if (item.knockBack > 0f)
