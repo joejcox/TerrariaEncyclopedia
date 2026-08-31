@@ -19,11 +19,11 @@ namespace TerrariaEncyclopedia.UI
         public EncyclopediaSectionSelection(
             Action unfocusItems,
             Action unfocusNpcs,
-            Action unfocusEvents)
+            Action unfocusEvents = null)
         {
             this.unfocusItems = unfocusItems ?? throw new ArgumentNullException(nameof(unfocusItems));
             this.unfocusNpcs = unfocusNpcs ?? throw new ArgumentNullException(nameof(unfocusNpcs));
-            this.unfocusEvents = unfocusEvents ?? throw new ArgumentNullException(nameof(unfocusEvents));
+            this.unfocusEvents = unfocusEvents ?? (() => { });
         }
 
         public EncyclopediaSection Current { get; private set; } = EncyclopediaSection.Items;
