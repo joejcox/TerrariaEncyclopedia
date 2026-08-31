@@ -27,6 +27,16 @@ namespace TerrariaEncyclopedia.Content
         public int Defense;
         public ItemCategory Category;
         public string Set; // material tier, e.g. "Gold" — null if not part of a recognized set
+
+        public int SellValue; // copper; 0 = not sellable
+        public bool IsExpertExclusive;
+        public int BuffType; // 0 = grants no buff
+        public string BuffName;
+        public string BuffTooltip;
+        public int BuffDurationSeconds;
+        public int ProjectileType; // 0 = doesn't shoot/create a projectile
+        public string ProjectileName;
+        public int ResearchCount; // Journey Mode sacrifice-to-unlock count; 0 = not researchable
     }
 
     /// <summary>
@@ -69,6 +79,8 @@ namespace TerrariaEncyclopedia.Content
         public static List<ItemEntry> Build()
         {
             var list = new List<ItemEntry>();
+            var researchCounts = Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance
+                ?.SacrificeCountNeededByItemId;
 
             for (int i = 1; i < ItemID.Count; i++)
             {
@@ -80,7 +92,7 @@ namespace TerrariaEncyclopedia.Content
                     string name = item.Name;
                     if (string.IsNullOrWhiteSpace(name)) continue;
 
-                    list.Add(new ItemEntry
+                    var entry = new ItemEntry
                     {
                         Id = i,
                         Name = name,
@@ -89,8 +101,27 @@ namespace TerrariaEncyclopedia.Content
                         Damage = item.damage,
                         Defense = item.defense,
                         Category = Classify(item),
-                        Set = DetectSet(name)
-                    });
+                        Set = DetectSet(name),
+                        SellValue = item.value,
+                        IsExpertExclusive = item.expert,
+                        ProjectileType = item.shoot,
+                    };
+
+                    if (item.shoot > 0)
+                        entry.ProjectileName = Lang.GetProjectileName(item.shoot)?.Value;
+
+                    if (item.buffType > 0)
+                    {
+                        entry.BuffType = item.buffType;
+                        entry.BuffName = Lang.GetBuffName(item.buffType);
+                        entry.BuffTooltip = Lang.GetBuffDescription(item.buffType);
+                        entry.BuffDurationSeconds = item.buffTime / 60;
+                    }
+
+                    if (researchCounts != null && researchCounts.TryGetValue(i, out int count))
+                        entry.ResearchCount = count;
+
+                    list.Add(entry);
                 }
                 catch
                 {

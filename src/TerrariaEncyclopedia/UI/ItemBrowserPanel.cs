@@ -496,7 +496,9 @@ namespace TerrariaEncyclopedia.UI
             int width = _panel.ContentWidth;
 
             DrawNavBar(x, y, width, GoBack, GoHome, _history.Count > 0);
-            if (WikiEnrichment.IsHardmodeItem(entry.Name)) DrawHardmodeMarker(x, y, width);
+            string badge = entry.IsExpertExclusive ? "EXPERT" : null;
+            if (WikiEnrichment.IsHardmodeItem(entry.Name)) badge = badge == null ? "HARDMODE" : badge + "  HARDMODE";
+            if (badge != null) DrawHardmodeMarker(x, y, width, badge);
             y += NavBarHeight + 6;
 
             // Header: icon, name, category
@@ -510,8 +512,76 @@ namespace TerrariaEncyclopedia.UI
             int tooltipHeight = ItemTooltip.DrawAt(entry.Id, x, y, width);
             y += tooltipHeight + 10;
 
+            y += DrawItemFacts(x, y, width, entry) + 6;
+
             int bodyHeight = _panel.ContentHeight - (y - _panel.ContentY);
             DrawRecipeSection(x, y, width, bodyHeight, entry);
+        }
+
+        /// <summary>Sell price, research count, granted buff (+tooltip/duration), and created projectile — all read live from the game, not the wiki.</summary>
+        private int DrawItemFacts(int x, int y, int width, ItemEntry entry)
+        {
+            int startY = y;
+
+            if (entry.SellValue > 0)
+            {
+                UIRenderer.DrawText("Sell: " + FormatCoins(entry.SellValue), x, y, UIColors.Text);
+                y += UIRenderer.TextLineHeight;
+            }
+
+            if (entry.ResearchCount > 0)
+            {
+                UIRenderer.DrawText($"Research: {entry.ResearchCount} required", x, y, UIColors.Text);
+                y += UIRenderer.TextLineHeight;
+            }
+
+            if (entry.BuffType > 0)
+            {
+                // ponytail: no buff icon here — buff textures are a separate array from item
+                // icons (Main.buffTexture, not TextureAssets.Item) and Core has no DrawBuff
+                // equivalent yet. Text-only for now; add a Core DrawBuff (mirroring DrawItem/
+                // DrawNPC) if the icon turns out to matter.
+                UIRenderer.DrawText("Grants Buff: ", x, y, LabelBlue);
+                int labelW = TextUtil.MeasureWidth("Grants Buff: ");
+                UIRenderer.DrawText(entry.BuffName ?? "", x + labelW, y, UIColors.Text);
+                y += UIRenderer.TextLineHeight;
+
+                if (!string.IsNullOrEmpty(entry.BuffTooltip))
+                {
+                    y += DrawWrappedText(entry.BuffTooltip, x, y, width, UIColors.TextDim);
+                }
+
+                if (entry.BuffDurationSeconds > 0)
+                {
+                    UIRenderer.DrawText($"Duration: {entry.BuffDurationSeconds}s", x, y, UIColors.TextDim);
+                    y += UIRenderer.TextLineHeight;
+                }
+            }
+
+            if (entry.ProjectileType > 0 && !string.IsNullOrEmpty(entry.ProjectileName))
+            {
+                UIRenderer.DrawText("Creates Projectile: ", x, y, LabelGreen);
+                int labelW = TextUtil.MeasureWidth("Creates Projectile: ");
+                UIRenderer.DrawText(entry.ProjectileName, x + labelW, y, UIColors.Text);
+                y += UIRenderer.TextLineHeight;
+            }
+
+            return y - startY;
+        }
+
+        private static string FormatCoins(int copper)
+        {
+            int platinum = copper / 1000000;
+            int gold = copper / 10000 % 100;
+            int silver = copper / 100 % 100;
+            int c = copper % 100;
+
+            var parts = new List<string>();
+            if (platinum > 0) parts.Add($"{platinum}p");
+            if (gold > 0) parts.Add($"{gold}g");
+            if (silver > 0) parts.Add($"{silver}s");
+            if (c > 0 || parts.Count == 0) parts.Add($"{c}c");
+            return string.Join(" ", parts);
         }
 
         private void DrawNavBar(int x, int y, int width, Action onBack, Action onHome, bool canGoBack)
@@ -667,11 +737,17 @@ namespace TerrariaEncyclopedia.UI
             _panel.Title = $"Terraria Encyclopedia ({_filteredNpcs.Count}/{_allNpcs.Count})";
         }
 
+        private static readonly string[] DefaultCollapsedSections =
+            { "Drops", "Summoning & Spawning", "Expert Mode", "Aftermath", "Tips" };
+
         private void OpenNpcDetail(NpcEntry entry)
         {
             _npcDetailItem = entry;
             _npcView = ViewMode.Detail;
             _npcDetailScroll.ResetScroll();
+
+            _collapsedSections.Clear();
+            foreach (var key in DefaultCollapsedSections) _collapsedSections.Add(key);
         }
 
         private void DrawNpcGridView()
@@ -873,15 +949,64 @@ namespace TerrariaEncyclopedia.UI
 
             var stats = new List<string> { $"Life: {entry.Life}", $"Defense: {entry.Defense}", $"Damage: {entry.Damage}" };
             UIRenderer.DrawText(string.Join("    ", stats), x, y, UIColors.Text);
-            y += 30;
+            y += 26;
+
+            if (entry.IsBoss)
+            {
+                var wiki = WikiEnrichment.GetBossInfo(entry.Name);
+                if (wiki != null) y += DrawBossInfoLine(x, y, width, wiki) + 6;
+            }
 
             int bodyHeight = _panel.ContentHeight - (y - _panel.ContentY);
             DrawNpcBody(x, y, width, bodyHeight, entry);
         }
 
-        private void DrawHardmodeMarker(int x, int y, int width)
+        /// <summary>
+        /// Boss Type/Environment/KB Resist/Immune-to as one compact, color-coded line below the
+        /// stats row — not a collapsible section, always visible. AI Type is omitted: it's just
+        /// "<Boss Name> AI" for almost every boss and conveys nothing.
+        /// </summary>
+        private int DrawBossInfoLine(int x, int y, int maxWidth, BossWikiInfo wiki)
         {
-            const string label = "HARDMODE";
+            var segments = new List<(string Text, Color4 Color)>();
+            void AddFact(string label, Color4 labelColor, string[] values)
+            {
+                if (values == null || values.Length == 0) return;
+                if (segments.Count > 0) segments.Add((" - ", UIColors.TextDim));
+                segments.Add((label + ": ", labelColor));
+                segments.Add((string.Join(" | ", values), UIColors.Text));
+            }
+
+            AddFact("Type", LabelPurple, wiki.Types);
+            AddFact("Environment", LabelGreen, wiki.Environments);
+            if (!string.IsNullOrEmpty(wiki.KbResist)) AddFact("KB Resist", LabelTeal, new[] { wiki.KbResist });
+            AddFact("Immune to", LabelRed, wiki.ImmuneTo);
+
+            if (segments.Count == 0) return 0;
+
+            int lineHeight = UIRenderer.TextLineHeight;
+            int curX = x, curY = y, lineCount = 1;
+            foreach (var seg in segments)
+            {
+                int segWidth = TextUtil.MeasureWidth(seg.Text);
+                if (curX + segWidth > x + maxWidth && curX > x)
+                {
+                    curX = x;
+                    curY += lineHeight;
+                    lineCount++;
+                }
+                UIRenderer.DrawText(seg.Text, curX, curY, seg.Color);
+
+                if (seg.Text.StartsWith("KB Resist") && WidgetInput.IsMouseOver(curX, curY, segWidth, lineHeight))
+                    Tooltip.Set("Knockback Resistance");
+
+                curX += segWidth;
+            }
+            return lineCount * lineHeight;
+        }
+
+        private void DrawHardmodeMarker(int x, int y, int width, string label = "HARDMODE")
+        {
             int textWidth = TextUtil.MeasureWidth(label);
             UIRenderer.DrawText(label, x + width - textWidth, y + 7, UIColors.Error);
         }
@@ -892,27 +1017,39 @@ namespace TerrariaEncyclopedia.UI
             var lines = WrapTextLines(text, maxWidth);
             int lineHeight = UIRenderer.TextLineHeight;
             for (int i = 0; i < lines.Count; i++)
-                UIRenderer.DrawText(lines[i], x, y + i * lineHeight, color);
+                UIRenderer.DrawText(lines[i].Text, x + lines[i].IndentX, y + i * lineHeight, color);
             return lines.Count * lineHeight;
         }
 
-        private List<string> WrapTextLines(string text, int maxWidth)
+        /// <summary>
+        /// Word-wraps text, splitting on "\n" for forced breaks (bullet points/paragraphs from
+        /// the wiki scraper). A leading "- " or "  - " bullet marker gets a hanging indent —
+        /// continuation lines line up under the first word after the dash, not under the dash
+        /// itself, matching how the request wants "clearer separation" between bullets.
+        /// </summary>
+        private List<(string Text, int IndentX)> WrapTextLines(string text, int maxWidth)
         {
-            var result = new List<string>();
+            var result = new List<(string, int)>();
 
-            // Wiki-scraped text uses "\n" as a forced break between bullet points/paragraphs —
-            // word-wrap each of those independently rather than treating the whole block as one
-            // continuous run-on paragraph.
             foreach (var paragraph in text.Replace("\r\n", "\n").Split('\n'))
             {
+                int dashIdx = 0;
+                while (dashIdx < paragraph.Length && paragraph[dashIdx] == ' ') dashIdx++;
+                bool hasBullet = dashIdx < paragraph.Length - 1 && paragraph[dashIdx] == '-' && paragraph[dashIdx + 1] == ' ';
+                string bulletPrefix = hasBullet ? paragraph.Substring(0, dashIdx + 2) : "";
+                int indentPx = hasBullet ? TextUtil.MeasureWidth(bulletPrefix) : 0;
+
                 var words = paragraph.Split(' ');
                 string line = "";
+                bool firstLine = true;
                 foreach (var word in words)
                 {
+                    int availableWidth = firstLine ? maxWidth : maxWidth - indentPx;
                     string candidate = line.Length == 0 ? word : line + " " + word;
-                    if (TextUtil.MeasureWidth(candidate) > maxWidth && line.Length > 0)
+                    if (TextUtil.MeasureWidth(candidate) > availableWidth && line.Length > 0)
                     {
-                        result.Add(line);
+                        result.Add((line, firstLine ? 0 : indentPx));
+                        firstLine = false;
                         line = word;
                     }
                     else
@@ -920,7 +1057,7 @@ namespace TerrariaEncyclopedia.UI
                         line = candidate;
                     }
                 }
-                result.Add(line); // even an empty paragraph preserves the blank line
+                result.Add((line, firstLine ? 0 : indentPx)); // even an empty paragraph preserves the blank line
             }
             return result;
         }
@@ -947,9 +1084,7 @@ namespace TerrariaEncyclopedia.UI
             public string SectionKey; // non-null on a header row that should be collapsible
             public ItemEntry Item;
             public string Suffix;
-            public string Label;
-            public Color4? LabelColor;
-            public string LabelTooltip;
+            public int IndentX;
             public int Height;
         }
 
@@ -958,7 +1093,7 @@ namespace TerrariaEncyclopedia.UI
         private void AddWrappedRows(List<BodyRow> rows, string text, int width)
         {
             foreach (var line in WrapTextLines(text, width))
-                rows.Add(new BodyRow { Suffix = line, Height = TextRowHeight });
+                rows.Add(new BodyRow { Suffix = line.Text, IndentX = line.IndentX, Height = TextRowHeight });
         }
 
         /// <summary>Adds a clickable, collapsible section header, then the body rows (via addBody) unless collapsed.</summary>
@@ -972,30 +1107,42 @@ namespace TerrariaEncyclopedia.UI
         {
             var rows = new List<BodyRow>();
 
+            // Description is a plain heading + text, not collapsible — always visible.
             if (!string.IsNullOrEmpty(entry.Description))
             {
-                AddSection(rows, "Description", () => AddWrappedRows(rows, entry.Description, width));
+                rows.Add(new BodyRow { Header = "Description", Height = RowHeight });
+                AddWrappedRows(rows, entry.Description, width);
                 rows.Add(new BodyRow { Suffix = "", Height = 8 }); // spacer
             }
+
+            var drops = DropCatalogue.DropsFor(entry.Id).OrderByDescending(d => d.Chance).ToList();
+            AddSection(rows, "Drops", () =>
+            {
+                if (drops.Count == 0)
+                {
+                    rows.Add(new BodyRow { Suffix = "No known item drops (may drop coins only, or nothing).", Height = RowHeight });
+                    return;
+                }
+
+                foreach (var drop in drops)
+                {
+                    if (!_byId.TryGetValue(drop.ItemId, out var itemEntry)) continue;
+
+                    string chance = $"{drop.Chance * 100:0.##}%";
+                    string stack = drop.StackMax > drop.StackMin ? $"x{drop.StackMin}-{drop.StackMax}" : $"x{drop.StackMin}";
+                    string suffix = drop.Conditions.Count == 0
+                        ? $"{chance}  {stack}"
+                        : $"{chance}  {stack}  ({string.Join(", ", drop.Conditions)})";
+
+                    rows.Add(new BodyRow { Item = itemEntry, Suffix = suffix, Height = DropRowHeight });
+                }
+            });
 
             if (entry.IsBoss)
             {
                 var wiki = WikiEnrichment.GetBossInfo(entry.Name);
                 if (wiki != null)
                 {
-                    AddSection(rows, "Boss Info", () =>
-                    {
-                        if (wiki.Types?.Length > 0)
-                            rows.Add(new BodyRow { Label = "Type", LabelColor = LabelPurple, Suffix = string.Join(", ", wiki.Types), Height = TextRowHeight });
-                        if (wiki.Environments?.Length > 0)
-                            rows.Add(new BodyRow { Label = "Environment", LabelColor = LabelGreen, Suffix = string.Join(", ", wiki.Environments), Height = TextRowHeight });
-                        if (!string.IsNullOrEmpty(wiki.AiType))
-                            rows.Add(new BodyRow { Label = "AI", LabelColor = LabelBlue, Suffix = wiki.AiType, Height = TextRowHeight });
-                        if (!string.IsNullOrEmpty(wiki.KbResist))
-                            rows.Add(new BodyRow { Label = "KB Resist", LabelColor = LabelTeal, LabelTooltip = "Knockback Resistance", Suffix = wiki.KbResist, Height = TextRowHeight });
-                        if (wiki.ImmuneTo?.Length > 0)
-                            rows.Add(new BodyRow { Label = "Immune to", LabelColor = LabelRed, Suffix = string.Join(", ", wiki.ImmuneTo), Height = TextRowHeight });
-                    });
                     rows.Add(new BodyRow { Suffix = "", Height = 8 });
 
                     if (!string.IsNullOrEmpty(wiki.Summoning))
@@ -1023,30 +1170,6 @@ namespace TerrariaEncyclopedia.UI
                     }
                 }
             }
-
-            var drops = DropCatalogue.DropsFor(entry.Id).OrderByDescending(d => d.Chance).ToList();
-
-            AddSection(rows, "Drops", () =>
-            {
-                if (drops.Count == 0)
-                {
-                    rows.Add(new BodyRow { Suffix = "No known item drops (may drop coins only, or nothing).", Height = RowHeight });
-                    return;
-                }
-
-                foreach (var drop in drops)
-                {
-                    if (!_byId.TryGetValue(drop.ItemId, out var itemEntry)) continue;
-
-                    string chance = $"{drop.Chance * 100:0.##}%";
-                    string stack = drop.StackMax > drop.StackMin ? $"x{drop.StackMin}-{drop.StackMax}" : $"x{drop.StackMin}";
-                    string suffix = drop.Conditions.Count == 0
-                        ? $"{chance}  {stack}"
-                        : $"{chance}  {stack}  ({string.Join(", ", drop.Conditions)})";
-
-                    rows.Add(new BodyRow { Item = itemEntry, Suffix = suffix, Height = DropRowHeight });
-                }
-            });
 
             int contentHeight = rows.Sum(r => r.Height);
             _npcDetailScroll.Begin(x, y, width, height, contentHeight);
@@ -1085,20 +1208,16 @@ namespace TerrariaEncyclopedia.UI
                 return;
             }
 
-            if (row.Label != null)
+            if (row.Header != null)
             {
-                UIRenderer.DrawText(row.Label + ":", x + 4, y + 4, row.LabelColor ?? UIColors.TextDim);
-                int labelWidth = TextUtil.MeasureWidth(row.Label + ": ");
-                UIRenderer.DrawText(row.Suffix, x + 4 + labelWidth, y + 4, UIColors.Text);
-
-                if (row.LabelTooltip != null && WidgetInput.IsMouseOver(x, y, width, TextRowHeight))
-                    Tooltip.Set(row.LabelTooltip);
+                // Non-collapsible plain heading (currently just "Description").
+                UIRenderer.DrawText(row.Header, x, y + 8, UIColors.TextTitle);
                 return;
             }
 
             if (row.Item == null)
             {
-                UIRenderer.DrawText(row.Suffix, x + 4, y + 4, UIColors.TextDim);
+                UIRenderer.DrawText(row.Suffix, x + 4 + row.IndentX, y + 4, UIColors.TextDim);
                 return;
             }
 
