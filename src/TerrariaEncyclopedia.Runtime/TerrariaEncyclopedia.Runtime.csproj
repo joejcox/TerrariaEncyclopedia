@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net48;netstandard2.0</TargetFrameworks>
+    <AssemblyName>TerrariaEncyclopedia.Runtime</AssemblyName>
+    <RootNamespace>TerrariaEncyclopedia.Runtime</RootNamespace>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+</Project>
