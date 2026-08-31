@@ -178,6 +178,37 @@ namespace TerrariaEncyclopedia.Tests
         }
 
         [Fact]
+        public void ShopSnapshotInvalidationRefreshesOneShopAndSellerIndex()
+        {
+            var snapshot = new ShopCatalogueSnapshot();
+            snapshot.StoreShop(1, new List<ShopItemEntry>
+            {
+                new ShopItemEntry { ItemId = 99, Cost = 100 }
+            });
+            snapshot.StoreShop(2, new List<ShopItemEntry>
+            {
+                new ShopItemEntry { ItemId = 7, Cost = 200 }
+            });
+            snapshot.BuildSellerIndex(new[] { 1, 2 });
+
+            snapshot.InvalidateShop(1);
+
+            Assert.False(snapshot.TryGetShop(1, out _));
+            Assert.True(snapshot.TryGetShop(2, out _));
+            Assert.False(snapshot.HasSellerIndex);
+
+            snapshot.StoreShop(1, new List<ShopItemEntry>
+            {
+                new ShopItemEntry { ItemId = 42, Cost = 250 }
+            });
+            snapshot.BuildSellerIndex(new[] { 1, 2 });
+
+            Assert.Empty(snapshot.SellersOf(99));
+            Assert.Equal(1, snapshot.SellersOf(42).Single().NpcId);
+            Assert.Equal(2, snapshot.SellersOf(7).Single().NpcId);
+        }
+
+        [Fact]
         public void WikiPreferencesTakePrecedenceAndRetainLiveUniqueBehaviour()
         {
             var live = new NpcPersonalityEntry { HasUniqueBehavior = true };
@@ -259,6 +290,7 @@ namespace TerrariaEncyclopedia.Tests
         private sealed class FakeDataSource : IEncyclopediaDataSource
         {
             public void BeginBrowseSession() { }
+            public void RefreshShopFor(int npcId) { }
             public IReadOnlyList<ItemEntry> LoadItems() => Items;
             public IReadOnlyList<NpcEntry> LoadNpcs() => Npcs;
             public IReadOnlyList<EventWikiInfo> LoadEvents() => new[]

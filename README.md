@@ -59,10 +59,10 @@ build in that case.
   summoning, completion, notes and tips.
 - **Hardmode marking** for items/NPCs that are Hardmode-exclusive.
 
-Town-NPC shop conditions are snapshotted per browsing session: reopening the
-Encyclopedia clears the previous snapshot, and each shop is captured when it is
-first viewed in that session. This keeps conditional inventories current without
-rebuilding every shop on each rendered frame.
+Town-NPC shop conditions are cached per browsing session: reopening the
+Encyclopedia clears the cache, the first item seller lookup captures all known
+shops, and entering an NPC detail page refreshes that NPC's inventory. This
+keeps detail pages current without rebuilding a shop on each rendered frame.
 
 ## For developers
 

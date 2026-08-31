@@ -15,6 +15,8 @@ namespace TerrariaEncyclopedia.Content
 
         public void BeginBrowseSession() => NpcShopCatalogue.BeginBrowseSession();
 
+        public void RefreshShopFor(int npcId) => NpcShopCatalogue.RefreshShopFor(npcId);
+
         public IReadOnlyList<ItemEntry> LoadItems()
         {
             if (items == null)

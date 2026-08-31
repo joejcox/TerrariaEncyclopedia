@@ -54,6 +54,17 @@ namespace TerrariaEncyclopedia.Content
         /// </summary>
         public static void BeginBrowseSession() => Snapshot.Reset();
 
+        /// <summary>
+        /// Recaptures one NPC's conditional inventory when its detail page is entered. The fresh
+        /// result remains cached while that page renders, and invalidating it also invalidates the
+        /// derived item-to-seller index.
+        /// </summary>
+        public static void RefreshShopFor(int npcId)
+        {
+            Snapshot.InvalidateShop(npcId);
+            ShopFor(npcId);
+        }
+
         public static List<ShopItemEntry> ShopFor(int npcId)
         {
             if (!ShopIndexByNpcId.TryGetValue(npcId, out int shopIndex)) return Empty;

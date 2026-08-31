@@ -6,6 +6,8 @@ namespace TerrariaEncyclopedia.Content
     {
         void BeginBrowseSession();
 
+        void RefreshShopFor(int npcId);
+
         IReadOnlyList<ItemEntry> LoadItems();
 
         IReadOnlyList<NpcEntry> LoadNpcs();

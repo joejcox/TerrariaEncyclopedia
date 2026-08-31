@@ -841,6 +841,7 @@ namespace TerrariaEncyclopedia.UI
 
         private void OpenNpcDetail(NpcEntry entry)
         {
+            _data.RefreshShopFor(entry.Id);
             _npcDetailItem = entry;
             _npcView = ViewMode.Detail;
             _npcDetailScroll.ResetScroll();
@@ -1245,34 +1246,30 @@ namespace TerrariaEncyclopedia.UI
                 rows.Add(new BodyRow { Suffix = "", Height = 8 }); // spacer
             }
 
-            // Town NPCs can't normally be killed, so a drop table isn't meaningful for them —
-            // a handful can still drop something if killed by an enemy while defenseless, but
-            // the odds are negligible enough not to show.
-            if (!entry.IsTownNpc)
+            // Terraria's live rules include legitimate drops for some town NPCs, so query every
+            // NPC rather than discarding those rules based on the catalogue's town flag.
+            var drops = _data.DropsFor(entry.Id).OrderByDescending(d => d.Chance).ToList();
+            AddSection(rows, _npcCollapsedSections, "Drops", () =>
             {
-                var drops = _data.DropsFor(entry.Id).OrderByDescending(d => d.Chance).ToList();
-                AddSection(rows, _npcCollapsedSections, "Drops", () =>
+                if (drops.Count == 0)
                 {
-                    if (drops.Count == 0)
-                    {
-                        rows.Add(new BodyRow { Suffix = "No known item drops (may drop coins only, or nothing).", Height = RowHeight });
-                        return;
-                    }
+                    rows.Add(new BodyRow { Suffix = "No known item drops (may drop coins only, or nothing).", Height = RowHeight });
+                    return;
+                }
 
-                    foreach (var drop in drops)
-                    {
-                        if (!_byId.TryGetValue(drop.ItemId, out var itemEntry)) continue;
+                foreach (var drop in drops)
+                {
+                    if (!_byId.TryGetValue(drop.ItemId, out var itemEntry)) continue;
 
-                        string chance = $"{drop.Chance * 100:0.##}%";
-                        string stack = drop.StackMax > drop.StackMin ? $"x{drop.StackMin}-{drop.StackMax}" : $"x{drop.StackMin}";
-                        string suffix = drop.Conditions.Count == 0
-                            ? $"{chance}  {stack}"
-                            : $"{chance}  {stack}  ({string.Join(", ", drop.Conditions)})";
+                    string chance = $"{drop.Chance * 100:0.##}%";
+                    string stack = drop.StackMax > drop.StackMin ? $"x{drop.StackMin}-{drop.StackMax}" : $"x{drop.StackMin}";
+                    string suffix = drop.Conditions.Count == 0
+                        ? $"{chance}  {stack}"
+                        : $"{chance}  {stack}  ({string.Join(", ", drop.Conditions)})";
 
-                        rows.Add(new BodyRow { Item = itemEntry, Suffix = suffix, Height = DropRowHeight });
-                    }
-                });
-            }
+                    rows.Add(new BodyRow { Item = itemEntry, Suffix = suffix, Height = DropRowHeight });
+                }
+            });
 
             var shop = _data.ShopFor(entry.Id);
             if (shop.Count > 0)

@@ -25,6 +25,12 @@ namespace TerrariaEncyclopedia.Content
             sellerIndex = null;
         }
 
+        public void InvalidateShop(int npcId)
+        {
+            if (shops.Remove(npcId))
+                sellerIndex = null;
+        }
+
         public void BuildSellerIndex(IEnumerable<int> npcIds)
         {
             var index = new Dictionary<int, List<ShopSellerEntry>>();
