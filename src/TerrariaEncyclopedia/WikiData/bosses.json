@@ -1,0 +1,448 @@
+[
+  {
+    "Name": "King Slime",
+    "WikiPage": "King Slime",
+    "MatchNames": [
+      "King Slime"
+    ],
+    "Types": [
+      "Boss",
+      "Slime"
+    ],
+    "Environments": [
+      "Forest",
+      "Slime Rain"
+    ],
+    "AiType": "King Slime AI",
+    "KbResist": "100%",
+    "ImmuneTo": [
+      "Poisoned",
+      "Hemorrhage",
+      "Confused",
+      "Bleeding",
+      "Shimmering"
+    ],
+    "Summoning": "Manual: King Slime can be summoned by using the Slime Crown, in any biome at any time. Random: King Slime has a 1/300 (0.33%) chance of naturally spawning while the following conditions are met: - The potential spawn point is located in one of the outer lateral sixths of the map (the far left or far right). - The depth at its potential spawn point is above zero. - It is daytime. - King Slime is not currently alive in the world. - The player is not in a Graveyard biome. - There is no water or less than 1 tile of water above its potential spawn point. - There must be standard, green grass at its potential spawn point (off-screen; see NPC spawning)\nIf the spawn succeeds, King Slime will spawn in a random place around the player and not necessarily on this grass block. - If the spawn succeeds, King Slime will spawn in a random place around the player and not necessarily on this grass block. Slime Rain: If 150 slimes are killed by players, NPCs, traps, lava, and/or summoned minions during the Slime Rain event, King Slime spawns. The following slimes will count toward this total as long as they are killed during the event: Baby Slime, Black Slime, Blue Slime, Green Slime, Jungle Slime, Pinky, Purple Slime, Red Slime, and Yellow Slime. Statue-spawned slimes are eligible as well. Defeating King Slime ends the event shortly after. If all players die, King Slime despawns, and the event continues for some time before ending on its own (between 9 and 15 in-game hours). If King Slime has already been defeated in a world, it only takes 75 slime kills to spawn him. If King Slime is summoned manually with the Slime Crown and then subsequently killed, while the Slime Rain is active, the event ends in the same way as if the player killed the King Slime that naturally spawns at the end of the event. This can be quite helpful for players in later stages of the game who want to get the Slime Rain event over with as quickly as possible. Remix: In Remix worlds, killing a slime has a 1/200 (0.5%) chance of spawning King Slime, provided the boss has not yet been defeated, is not already alive, and at least one player has more than 140 maximum health and more than 8 defense. Only the death of certain types of slime can trigger this: Baby Slime, Black Slime, Blue Slime, Green Slime, Jungle Slime, Pinky, Purple Slime, Red Slime, and Yellow Slime. Statue-spawned slimes are eligible as well. Slimes killed without the player dealing damage to them will not spawn King Slime.",
+    "ExpertMode": null
+  },
+  {
+    "Name": "Eye of Cthulhu",
+    "WikiPage": "Eye_of_Cthulhu",
+    "MatchNames": [
+      "Eye of Cthulhu"
+    ],
+    "Types": [
+      "Boss"
+    ],
+    "Environments": [
+      "Surface",
+      "Night",
+      "Space",
+      "Night"
+    ],
+    "AiType": "Eye of Cthulhu AI",
+    "KbResist": "100%",
+    "ImmuneTo": [
+      "Confused"
+    ],
+    "Summoning": "Manual: The Eye of Cthulhu can be summoned manually using a Suspicious Looking Eye at night (from 7:30\u00A0PM to 4:30\u00A0AM). Only one Eye of Cthulhu can be summoned manually at a time. Random: The Eye of Cthulhu can also spawn naturally at the start of the night. Its arrival when spawning naturally is announced by the status message \u201CYou feel an evil presence watching you...\u201D. In order for the boss to spawn naturally, the following conditions must be fulfilled at dusk (7:30\u00A0PM): - The Eye of Cthulhu has not yet been defeated in the current world or no placed Demon/Crimson Altars exist in the current world. - At least one player in the world has at least 200 maximum health and at least 11 defense. - At least four town NPCs are present in the world. While the Old Man, Traveling Merchant, and town pets count towards this total, the Skeleton Merchant does not. - No boss is already alive. - None of the following events are active: Lantern Night, Old One\u0027s Army, Pumpkin Moon, or Frost Moon. - Time is not being accelerated by the Enchanted Sundial or Enchanted Moondial. If the conditions are met, there is a 1/3 (33.33%) chance for the Eye of Cthulhu to spawn.[a] Provided the roll succeeds, the status message appears and a hidden countdown of 1\u00A0minute 21\u00A0seconds begins. The Eye of Cthulhu spawns at the end of the countdown, at 8:51\u00A0PM. Another check is performed at that time, with all of the following conditions needing to be fulfilled in order for the boss to spawn: - At least one player is in the surface or Space layer.\nConsequently, the natural spawning of the Eye of Cthulhu can easily be prevented by remaining in a layer lower than the surface for the night. Returning to the surface before dawn will cause it to spawn as normal.\nThis restriction is lifted in worlds where the world spawn point is below the surface, such as worlds with the special world seed Remix active or the secret world seed Mole people. The Eye of Cthulhu can spawn naturally in those worlds regardless of the player\u0027s position, whether they are above or below the surface. - Consequently, the natural spawning of the Eye of Cthulhu can easily be prevented by remaining in a layer lower than the surface for the night. Returning to the surface before dawn will cause it to spawn as normal. - This restriction is lifted in worlds where the world spawn point is below the surface, such as worlds with the special world seed Remix active or the secret world seed Mole people. The Eye of Cthulhu can spawn naturally in those worlds regardless of the player\u0027s position, whether they are above or below the surface. - No boss is already alive. - The Lunar Events are not active and the countdown for the spawning of the Moon Lord has not begun, either due to manual summoning or defeating the fourth Celestial Pillar. - Time is not being accelerated by the Enchanted Sundial or Enchanted Moondial. In singleplayer, exiting the world during the countdown also prevents the Eye of Cthulhu from spawning naturally. In worlds where the special seeds For the Worthy and The Constant are present but Celebration Mk 10 is not, The Eye of Cthulhu will still be able to randomly spawn, even if it has been defeated before.",
+    "ExpertMode": "In Expert Mode, the Eye of Cthulhu has the following extra properties: - The Eye of Cthulhu spawns more Servants of Cthulhu than normal, as well as 4\u20135 extra Servants of Cthulhu upon transforming. - In the second phase, the Eye of Cthulhu will gain an additional powerful rapid chain dash attack, during which it lets out a higher-pitched roar every time it dashes. At first, the Eye of Cthulhu\u0027s chain dashes are performed after its regular ones but they will eventually replace the standard dashes and become faster and trigger more often as the Eye of Cthulhu\u0027s life decreases, dashing nearly continuously when close to death. - The Eye of Cthulhu will have negative defense when it reaches very low health (which increases damage dealt to it):\n\u221215 defense when below 12% health (436 / 556), which means it takes 7 more damage per hit (15 more damage from critical hits).\n\u221230 defense when below 4% health (145 / 185), which means it takes 15 more damage per hit (30 more damage from critical hits). - \u221215 defense when below 12% health (436 / 556), which means it takes 7 more damage per hit (15 more damage from critical hits). - \u221230 defense when below 4% health (145 / 185), which means it takes 15 more damage per hit (30 more damage from critical hits)."
+  },
+  {
+    "Name": "Eater of Worlds",
+    "WikiPage": "Eater_of_Worlds",
+    "MatchNames": [
+      "Eater of Worlds"
+    ],
+    "Types": [
+      "Boss",
+      "Burrowing Enemy"
+    ],
+    "Environments": [
+      "The Corruption",
+      "Underground Corruption"
+    ],
+    "AiType": "Worm AI",
+    "KbResist": "100%",
+    "ImmuneTo": [
+      "Bleeding",
+      "Confused",
+      "Hemorrhage"
+    ],
+    "Summoning": "The Eater of Worlds spawns upon destroying every third Shadow Orb in a Corruption world. It can also be summoned manually by using a Worm Food in The Corruption or Underground Corruption, at any time.",
+    "ExpertMode": "- In Expert Mode, the Eater of Worlds has 5 extra body segments, all of its segments are 20% larger in size, and have 2 extra defense. It also has 20% increased maximum speed, and accelerates over twice as fast.\nThe increased speed allows it to reach a maximum height of approximately 44 tiles when burrowing out of tiles at full speed, before falling down. - The increased speed allows it to reach a maximum height of approximately 44 tiles when burrowing out of tiles at full speed, before falling down. - The Eater of Worlds will randomly shoot Vile Spit from its head and body segments, as long as the segments have an unobstructed line of sight to the player. The Vile Spit projectiles can be destroyed in a single hit from any attack or projectile.\nBody segments have a 1/900 (0.11%) chance per tick (average of once every 15\u00A0seconds) to shoot Vile Spit. They also can only shoot when they are above surface and are not in front of any background walls.\nHead segments shoot more often as their individual health decreases. The chance for them to shoot Vile Spit gradually increases from 1/390 (0.26%) per tick (average of once every 6.5\u00A0seconds) at full health to 1/90 (1.11%) per tick (average of once every 1.5\u00A0seconds) just before dying. - Body segments have a 1/900 (0.11%) chance per tick (average of once every 15\u00A0seconds) to shoot Vile Spit. They also can only shoot when they are above surface and are not in front of any background walls. - Head segments shoot more often as their individual health decreases. The chance for them to shoot Vile Spit gradually increases from 1/390 (0.26%) per tick (average of once every 6.5\u00A0seconds) at full health to 1/90 (1.11%) per tick (average of once every 1.5\u00A0seconds) just before dying. - The Eater of Worlds takes 80% less damage from the following projectiles and explosives (this damage reduction is applied before defense):"
+  },
+  {
+    "Name": "Brain of Cthulhu",
+    "WikiPage": "Brain_of_Cthulhu",
+    "MatchNames": [
+      "Brain of Cthulhu"
+    ],
+    "Types": [
+      "Boss"
+    ],
+    "Environments": [
+      "The Crimson"
+    ],
+    "AiType": "Brain of Cthulhu AI",
+    "KbResist": "55%60%65%",
+    "ImmuneTo": [
+      "Confused"
+    ],
+    "Summoning": "The Brain of Cthulhu spawns upon destroying every third Crimson Heart in a Crimson world. It can also be summoned manually by using a Bloody Spine in The Crimson or Underground Crimson, at any time.",
+    "ExpertMode": "In Expert Mode, the second phase has three mirror images of the Brain appear around the player, mirroring the Brain\u0027s movements and becoming more opaque as the boss loses health. The Creepers also behave much more aggressively and gain increased movement speed. Furthermore, both the Creepers (in the first phase) and the Brain (in the second phase) inflict a random debuff upon contact. The probabilities of applying each debuff are listed in the following table; note that the Creepers always inflict a debuff while the Brain only has a 1/3 (33.33%) chance to do so."
+  },
+  {
+    "Name": "Queen Bee",
+    "WikiPage": "Queen_Bee",
+    "MatchNames": [
+      "Queen Bee"
+    ],
+    "Types": [
+      "Boss"
+    ],
+    "Environments": [
+      "Bee Hive",
+      "Jungle",
+      "Underground Jungle"
+    ],
+    "AiType": "Queen Bee AI",
+    "KbResist": "100%",
+    "ImmuneTo": [
+      "Bleeding",
+      "Confused",
+      "Poisoned",
+      "Hemorrhage"
+    ],
+    "Summoning": "The Queen Bee spawns upon breaking a Larva found inside Bee Hives in the Underground Jungle. She can also be summoned manually by using an Abeemination in the Jungle or Underground Jungle, at any time.",
+    "ExpertMode": null
+  },
+  {
+    "Name": "Skeletron",
+    "WikiPage": "Skeletron",
+    "MatchNames": [
+      "Skeletron"
+    ],
+    "Types": [],
+    "Environments": [
+      "Dungeon entrance",
+      "Night"
+    ],
+    "AiType": "Skeletron Hand AI",
+    "KbResist": "100%",
+    "ImmuneTo": [
+      "Bleeding",
+      "Confused",
+      "Poisoned",
+      "Hemorrhage"
+    ],
+    "Summoning": "Summoning Skeletron requires the player to speak to the Old Man at the Dungeon\u0027s entrance at night. Upon selecting the \u0022Curse\u0022 option, he will turn into Skeletron. Skeletron can only be summoned once per night, as the Old Man will not respawn until dawn. Once Skeletron is defeated, the Old Man\u0027s curse will be lifted and he will no longer appear. Skeletron will thereafter only be summonable with the Clothier Voodoo Doll. Killing the Clothier at night with this accessory equipped will summon Skeletron. A special variant of Skeletron can be summoned via Chippy\u0027s Couch. See Red Hat variant below.",
+    "ExpertMode": "Skeletron has additional properties in Expert Mode: - The defense of its head is increased by 25 for each of its hands, resulting in a total defense of 60, initially. Once one hand is defeated, it drops to 35 and finally to 10 when both hands are defeated.\nDuring the spinning attack, Skeletron\u0027s defense is therefore also only reduced to 50 / 25. Only when both hands are defeated, it will be reduced to 0 like in Classic Mode. - During the spinning attack, Skeletron\u0027s defense is therefore also only reduced to 50 / 25. Only when both hands are defeated, it will be reduced to 0 like in Classic Mode. - While spinning, the head gets a 30% damage boost, making it deal 91 / 137 damage. - Skeletron will inflict debuffs upon contact with the player: its hands are able to inflict Slow for 1\u20132 / 1.5\u20132.5 seconds, and the head is able to inflict Bleeding for 6\u201310 / 7.5\u201312.5 seconds. - Hand slashes are 50% more frequent and receive a 16% speed increase.\nAdditionally, the hands return to the head faster after their attack.Verify - Additionally, the hands return to the head faster after their attack.Verify - The head accelerates and moves faster when not spinning. - The spin attack has its speed increased by 233%. Additionally, it gets further increases under certain circumstances:\n5% increased when one hand is defeated, and 10% when both are defeated.\nIf the player is 9.375 tiles away or more, its speed gets multiplied by 1.1 for every 3.125 tiles above this threshold, up to 2.6\u00D7 speed when at 37.5 tiles away. - 5% increased when one hand is defeated, and 10% when both are defeated. - If the player is 9.375 tiles away or more, its speed gets multiplied by 1.1 for every 3.125 tiles above this threshold, up to 2.6\u00D7 speed when at 37.5 tiles away. - Once either of the hands are destroyed or the head\u0027s health is reduced to below 75% (6,600 / 8,415), the head begins to shoot homing skulls at the player that despawn on contact with a solid block. It shoots one skull roughly every 1.33 seconds, and doubles the frequency to one skull roughly every 0.67 seconds once both hands are defeated. It pauses firing during its spin attack. - Skeletron moves faster and has better AI when targeting multiple players. With this, it is able to \u0022stun-lock\u0022 the player while spinning, able to almost instantly kill them if they are not able to escape (e.g. by using a hook)."
+  },
+  {
+    "Name": "Deerclops",
+    "WikiPage": "Deerclops",
+    "MatchNames": [
+      "Deerclops"
+    ],
+    "Types": [
+      "Boss"
+    ],
+    "Environments": [
+      "Snow biome",
+      "Blizzard"
+    ],
+    "AiType": "Deerclops AI",
+    "KbResist": "100%",
+    "ImmuneTo": [
+      "Confused",
+      "Shimmering"
+    ],
+    "Summoning": "Deerclops can be summoned manually by using a Deer Thing in the Snow or Ice biome, at any time. Deerclops can also spawn naturally at midnight (12:00\u00A0AM) in the surface Snow biome during a Blizzard when the following conditions are fulfilled: - At least one player in the world is in the surface Snow biome.\nThis player has at least 200 maximum health or at least 9 defense.\nThere are no town NPCs within a 240\u00D7135-tile rectangle centered on this player. - This player has at least 200 maximum health or at least 9 defense. - There are no town NPCs within a 240\u00D7135-tile rectangle centered on this player. - There are no other bosses already alive. - None of the following events are active: Old One\u0027s Army, Pumpkin Moon, Frost Moon, or any invasion.\nNote that this excludes certain events, such as the Blood Moon. They do not prevent Deerclops from spawning. - Note that this excludes certain events, such as the Blood Moon. They do not prevent Deerclops from spawning. - No Martian Probe is alive. - The countdown for the spawning of the Moon Lord has not begun, either due to manual summoning or defeating the fourth Celestial Pillar. - In Remix and Zenith worlds, Deerclops will only naturally spawn in Snow biomes on the Surface layer, where the Blizzard visual effect is not displayed.\nDeerclops will not spawn in the Cavern layer where the Blizzard effect is displayed. - Deerclops will not spawn in the Cavern layer where the Blizzard effect is displayed. If Deerclops has previously been defeated in the world, there is only a 1/4 (25%) chance for it to spawn naturally at midnight.",
+    "ExpertMode": null
+  },
+  {
+    "Name": "Wall of Flesh",
+    "WikiPage": "Wall_of_Flesh",
+    "MatchNames": [
+      "Wall of Flesh"
+    ],
+    "Types": [
+      "Flying Enemy"
+    ],
+    "Environments": [
+      "The Underworld"
+    ],
+    "AiType": "Demon Eye AI",
+    "KbResist": "20%/28%/36% (1 player)69% (2 players)79% (3 players)86%  (4 players)100% (5 players or more) (1 player)72% (2 players)82% (3 players)88% (4 players)100% (5 players or more)",
+    "ImmuneTo": [
+      "Confused",
+      "Shimmering"
+    ],
+    "Summoning": "The Wall of Flesh can be summoned by dropping a Guide Voodoo Doll into lava in The Underworld while the Guide is alive, which destroys the Guide Voodoo Doll and kills the Guide in the process. Alternatively, the boss can also be summoned by letting the Guide die within lava in The Underworld. He can die by any means (the player, an enemy, or the environment), as long as he is touching lava when he dies. The Wall of Flesh is summoned just beyond the player\u0027s screen on the side where the Guide Voodoo Doll was dropped into lava (or where the Guide was killed by lava), then moves in the direction of the player. As a general rule, it spawns at least 75 tiles away from the player. Technical details: When the Guide Voodoo Doll is destroyed or the Guide is killed in lava, the game checks whether all players are horizontally at least 75 tiles away from the location of the doll/Guide. If they are, then the Wall of Flesh is spawned at that horizontal position. Otherwise, the game moves one tile towards the closest lateral world border and checks again, repeating this until it encounters a tile that is horizontally at least 75 tiles away from any player. It stops 20 tiles before the true world border (i.e. 21/22 tiles away from the visible world border), even if a player is still within 75 tiles at that point (e.g. standing directly against the visible world border). After locating the horizontal spawn position, the game determines a valid vertical position. The spawning tile must not be occupied by a solid block and its liquid level must not exceed 100 (i.e. at most approx. 39% of the tile can contain liquid). Again, the game begins at the vertical position of the doll/Guide and checks if that location is valid. Then it checks one tile above that spot and one tile below it, then two tiles above and two tiles below, and so on, until finding a valid spot. If the game finds no valid spot after 1000 attempts (i.e. 1000 tiles above and below), then it reverts to the initial vertical position. Finally, the vertical limits are enforced: If the vertical position that was encountered is higher than 10 tiles below the Cavern\u2013Underworld border, it is forcibly moved down to that position (even though the tile there was not considered valid before), and if it is lower than 80 tiles below that border (roughly the vertical center of the Underworld), it is forcibly moved up to that position (again, even though the tile at that position was not considered valid before). The center of the Wall of Flesh\u0027s mouth appears at the determined location, and the eyes are spawned relative to it. The boss quickly aligns itself vertically with the player after spawning.",
+    "ExpertMode": null
+  },
+  {
+    "Name": "Queen Slime",
+    "WikiPage": "Queen_Slime",
+    "MatchNames": [
+      "Queen Slime"
+    ],
+    "Types": [
+      "Boss",
+      "Slime"
+    ],
+    "Environments": [
+      "The Hallow"
+    ],
+    "AiType": "Queen Slime AI",
+    "KbResist": "100%",
+    "ImmuneTo": [
+      "Poisoned",
+      "Hemorrhage",
+      "Confused",
+      "Bleeding",
+      "Shimmering"
+    ],
+    "Summoning": "Queen Slime is summoned by using a Gelatin Crystal in The Hallow or Underground Hallow, at any time.",
+    "ExpertMode": null
+  },
+  {
+    "Name": "The Twins",
+    "WikiPage": "The_Twins",
+    "MatchNames": [
+      "Retinazer",
+      "Spazmatism"
+    ],
+    "Types": [
+      "Boss"
+    ],
+    "Environments": [
+      "Surface",
+      "Night",
+      "Space",
+      "Night"
+    ],
+    "AiType": "Spazmatism AI",
+    "KbResist": "100%",
+    "ImmuneTo": [
+      "Bleeding",
+      "Confused",
+      "Poisoned",
+      "Hemorrhage"
+    ],
+    "Summoning": "Manual: The Twins can be summoned manually using a Mechanical Eye at night (from 7:30\u00A0PM to 4:30\u00A0AM). Random: The Twins can also spawn naturally at the start of the night, as long as they have not yet been defeated at least once in the current world. Their arrival when spawning naturally is announced by the status message \u0022This is going to be a terrible night...\u0022. In order for the boss to spawn naturally, the following conditions must be fulfilled at dusk (7:30\u00A0PM): - The world is in Hardmode and at least one Demon or Crimson Altar has been destroyed.\nIn worlds where the Skyblock special world seed is active and the tile threshold is not exceeded, The Twins can spawn even if no altars have been destroyed. - In worlds where the Skyblock special world seed is active and the tile threshold is not exceeded, The Twins can spawn even if no altars have been destroyed. - No boss is already alive, and the Eye of Cthulhu is not already spawning naturally. - None of the following events are active: Lantern Night, Old One\u0027s Army, Pumpkin Moon, or Frost Moon. - Time is not being accelerated by the Enchanted Sundial or Enchanted Moondial. If the conditions are met, there is a 1/10 (10%) chance for a random mechanical boss to spawn that has not yet been defeated in the world. This gives The Twins initially a spawn chance of 1/30 (3.33%) per night. If another mechanical boss is defeated first, the chance for The Twins to spawn increases to 1/20 (5%), and should both of the other mechanical bosses be defeated first, then The Twins have the full remaining 1/10 (10%) spawn chance per night. Once The Twins have been selected to spawn, the status message appears and a hidden countdown of 1\u00A0minute 21\u00A0seconds begins. The Twins spawn at the end of the countdown, at 8:51\u00A0PM. Another check is performed at that time, with all of the following conditions needing to be fulfilled in order for the boss to spawn: - At least one player is in the surface or Space layer.\nConsequently, the natural spawning of The Twins can easily be prevented by being in a layer lower than the surface at 8:51\u00A0PM. Returning to the surface afterward will not cause The Twins to spawn either (unlike with the Eye of Cthulhu).\nThis restriction is lifted in worlds where the world spawn point is below the surface, such as worlds with the special world seed Remix active or the secret world seed Mole people. The Twins can spawn naturally in those worlds regardless of the player\u0027s position, whether they are above or below the surface. - Consequently, the natural spawning of The Twins can easily be prevented by being in a layer lower than the surface at 8:51\u00A0PM. Returning to the surface afterward will not cause The Twins to spawn either (unlike with the Eye of Cthulhu). - This restriction is lifted in worlds where the world spawn point is below the surface, such as worlds with the special world seed Remix active or the secret world seed Mole people. The Twins can spawn naturally in those worlds regardless of the player\u0027s position, whether they are above or below the surface. - No boss is already alive. - The Lunar Events are not active and the countdown for the spawning of the Moon Lord has not begun, either due to manual summoning or defeating the fourth Celestial Pillar. - Time is not being accelerated by the Enchanted Sundial or Enchanted Moondial. In singleplayer, exiting the world during the countdown also prevents The Twins from spawning naturally. In worlds where the special seeds For the Worthy and The Constant are present but Celebration Mk 10 is not, The Twins will still be able to randomly spawn, even if they have been defeated before. For the Worthy and Remix: The Twins cannot be summoned in worlds where both the For the Worthy and Remix special world seeds are active, since the boss is part of Mechdusa instead.",
+    "ExpertMode": null
+  },
+  {
+    "Name": "The Destroyer",
+    "WikiPage": "The_Destroyer",
+    "MatchNames": [
+      "The Destroyer"
+    ],
+    "Types": [
+      "Boss",
+      "Burrowing Enemy"
+    ],
+    "Environments": [
+      "Surface",
+      "Night",
+      "Space",
+      "Night"
+    ],
+    "AiType": "The Destroyer AI",
+    "KbResist": "100%",
+    "ImmuneTo": [
+      "Debuffs",
+      "Whip debuffs"
+    ],
+    "Summoning": "Manual: The Destroyer can be summoned manually using a Mechanical Worm at night (from 7:30\u00A0PM to 4:30\u00A0AM). Random: The Destroyer can also spawn naturally at the start of the night, as long as it has not yet been defeated at least once in the current world. Its arrival when spawning naturally is announced by the status message \u0022You feel vibrations from deep below...\u0022. In order for the boss to spawn naturally, the following conditions must be fulfilled at dusk (7:30\u00A0PM): - The world is in Hardmode and at least one Demon or Crimson Altar has been destroyed.\nIn worlds where the Skyblock special world seed is active and the tile threshold is not exceeded, The Destroyer can spawn even if no altars have been destroyed. - In worlds where the Skyblock special world seed is active and the tile threshold is not exceeded, The Destroyer can spawn even if no altars have been destroyed. - No boss is already alive, and the Eye of Cthulhu is not already spawning naturally. - None of the following events are active: Lantern Night, Old One\u0027s Army, Pumpkin Moon, or Frost Moon. - Time is not being accelerated by the Enchanted Sundial or Enchanted Moondial. If the conditions are met, there is a 1/10 (10%) chance for a random mechanical boss to spawn that has not yet been defeated in the world. This gives The Destroyer initially a spawn chance of 1/30 (3.33%) per night. If another mechanical boss is defeated first, the chance for The Destroyer to spawn increases to 1/20 (5%), and should both of the other mechanical bosses be defeated first, then The Destroyer has the full remaining 1/10 (10%) spawn chance per night. Once The Destroyer has been selected to spawn, the status message appears and a hidden countdown of 1\u00A0minute 21\u00A0seconds begins. The Destroyer spawns at the end of the countdown, at 8:51\u00A0PM. Another check is performed at that time, with all of the following conditions needing to be fulfilled in order for the boss to spawn: - At least one player is in the surface or Space layer.\nConsequently, the natural spawning of The Destroyer can easily be prevented by being in a layer lower than the surface at 8:51\u00A0PM. Returning to the surface afterward will not cause The Destroyer to spawn either (unlike with the Eye of Cthulhu).\nThis restriction is lifted in worlds where the world spawn point is below the surface, such as worlds with the special world seed Remix active or the secret world seed Mole people. The Destroyer can spawn naturally in those worlds regardless of the player\u0027s position, whether they are above or below the surface. - Consequently, the natural spawning of The Destroyer can easily be prevented by being in a layer lower than the surface at 8:51\u00A0PM. Returning to the surface afterward will not cause The Destroyer to spawn either (unlike with the Eye of Cthulhu). - This restriction is lifted in worlds where the world spawn point is below the surface, such as worlds with the special world seed Remix active or the secret world seed Mole people. The Destroyer can spawn naturally in those worlds regardless of the player\u0027s position, whether they are above or below the surface. - No boss is already alive. - The Lunar Events are not active and the countdown for the spawning of the Moon Lord has not begun, either due to manual summoning or defeating the fourth Celestial Pillar. - Time is not being accelerated by the Enchanted Sundial or Enchanted Moondial. In singleplayer, exiting the world during the countdown also prevents The Destroyer from spawning naturally. In worlds where the special seeds For the Worthy and The Constant are present but Celebration Mk 10 is not, The Destroyer will still be able to randomly spawn, even if it has been defeated before. For the Worthy and Remix: The Destroyer cannot be summoned in worlds where both the For the Worthy and Remix special world seeds are active, since the boss is part of Mechdusa instead.",
+    "ExpertMode": null
+  },
+  {
+    "Name": "Skeletron Prime",
+    "WikiPage": "Skeletron_Prime",
+    "MatchNames": [
+      "Skeletron Prime"
+    ],
+    "Types": [],
+    "Environments": [
+      "Surface",
+      "Night",
+      "Space",
+      "Night"
+    ],
+    "AiType": "Prime Laser AI",
+    "KbResist": "100%",
+    "ImmuneTo": [
+      "Bleeding",
+      "Confused",
+      "Poisoned",
+      "Hemorrhage"
+    ],
+    "Summoning": "Manual: Skeletron Prime can be summoned manually using a Mechanical Skull at night (from 7:30\u00A0PM to 4:30\u00A0AM). Random: Skeletron Prime can also spawn naturally at the start of the night, as long as it has not yet been defeated at least once in the current world. Its arrival when spawning naturally is announced by the status message \u0022The air is getting colder around you...\u0022. In order for the boss to spawn naturally, the following conditions must be fulfilled at dusk (7:30\u00A0PM): - The world is in Hardmode and at least one Demon or Crimson Altar has been destroyed.\nIn worlds where the Skyblock special world seed is active and the tile threshold is not exceeded, Skeletron Prime can spawn even if no altars have been destroyed. - In worlds where the Skyblock special world seed is active and the tile threshold is not exceeded, Skeletron Prime can spawn even if no altars have been destroyed. - No boss is already alive, and the Eye of Cthulhu is not already spawning naturally. - None of the following events are active: Lantern Night, Old One\u0027s Army, Pumpkin Moon, or Frost Moon. - Time is not being accelerated by the Enchanted Sundial or Enchanted Moondial. If the conditions are met, there is a 1/10 (10%) chance for a random mechanical boss to spawn that has not yet been defeated in the world. This gives Skeletron Prime initially a spawn chance of 1/30 (3.33%) per night. If another mechanical boss is defeated first, the chance for Skeletron Prime to spawn increases to 1/20 (5%), and should both of the other mechanical bosses be defeated first, then Skeletron Prime has the full remaining 1/10 (10%) spawn chance per night. Once Skeletron Prime has been selected to spawn, the status message appears and a hidden countdown of 1\u00A0minute 21\u00A0seconds begins. Skeletron Prime spawns at the end of the countdown, at 8:51\u00A0PM. Another check is performed at that time, with all of the following conditions needing to be fulfilled in order for the boss to spawn: - At least one player is in the surface or Space layer.\nConsequently, the natural spawning of Skeletron Prime can easily be prevented by being in a layer lower than the surface at 8:51\u00A0PM. Returning to the surface afterward will not cause Skeletron Prime to spawn either (unlike with the Eye of Cthulhu).\nThis restriction is lifted in worlds where the world spawn point is below the surface, such as worlds with the special world seed Remix active or the secret world seed Mole people. Skeletron Prime can spawn naturally in those worlds regardless of the player\u0027s position, whether they are above or below the surface. - Consequently, the natural spawning of Skeletron Prime can easily be prevented by being in a layer lower than the surface at 8:51\u00A0PM. Returning to the surface afterward will not cause Skeletron Prime to spawn either (unlike with the Eye of Cthulhu). - This restriction is lifted in worlds where the world spawn point is below the surface, such as worlds with the special world seed Remix active or the secret world seed Mole people. Skeletron Prime can spawn naturally in those worlds regardless of the player\u0027s position, whether they are above or below the surface. - No boss is already alive. - The Lunar Events are not active and the countdown for the spawning of the Moon Lord has not begun, either due to manual summoning or defeating the fourth Celestial Pillar. - Time is not being accelerated by the Enchanted Sundial or Enchanted Moondial. In singleplayer, exiting the world during the countdown also prevents Skeletron Prime from spawning naturally. In worlds where the special seeds For the Worthy and The Constant are present but Celebration Mk 10 is not, Skeletron Prime will still be able to randomly spawn, even if it has been defeated before. For the Worthy and Remix: Skeletron Prime cannot be summoned in worlds where both the For the Worthy and Remix special world seeds are active, since the boss is part of Mechdusa instead.",
+    "ExpertMode": null
+  },
+  {
+    "Name": "Plantera",
+    "WikiPage": "Plantera",
+    "MatchNames": [
+      "Plantera"
+    ],
+    "Types": [
+      "Projectile NPC"
+    ],
+    "Environments": [
+      "Underground Jungle"
+    ],
+    "AiType": "Spore AI",
+    "KbResist": "100%",
+    "ImmuneTo": [
+      "Confused"
+    ],
+    "Summoning": "After all three mechanical bosses have been defeated, Plantera\u0027s Bulbs will randomly spawn in the Underground Jungle (indicated by the status message \u0022The jungle grows restless...\u0022). These bulbs emit a faint pink light in dark areas and immediately summon Plantera nearby upon being destroyed, usually a fair distance off-screen.",
+    "ExpertMode": "In Expert Mode, there are a few significant differences in Plantera\u0027s attacks, aside from the default increased health and damage. In the first form, her pink Seeds can travel through blocks, and all projectiles have limited homing capabilities. The cooldowns are also decreased: In her second form, Plantera and Plantera\u0027s Tentacles move faster than normal. In addition, there are nine more Plantera\u0027s Tentacles, attached to Plantera\u0027s Hooks in groups of three. Furthermore, the eight tentacles that are attached to Plantera\u0027s body can respawn after they have been killed (this does not apply to the tentacles on the hooks). The rate is randomized, but it depends on the number of tentacles that are alive \u2013 if all tentacles are destroyed, a new tentacle spawns after 5 seconds, on average. This is increased by 5 seconds per living tentacle, hence it takes an average of 180 seconds for all eight tentacles to fully respawn. A single defeated tentacle will take 40 seconds to respawn, on average, assuming the other seven tentacles remain alive for the duration."
+  },
+  {
+    "Name": "Golem",
+    "WikiPage": "Golem",
+    "MatchNames": [
+      "Golem"
+    ],
+    "Types": [],
+    "Environments": [
+      "Jungle Temple"
+    ],
+    "AiType": "Free Golem Head AI",
+    "KbResist": "100%",
+    "ImmuneTo": [
+      "Poisoned",
+      "Hemorrhage",
+      "On Fire!",
+      "Shimmering",
+      "Hellfire",
+      "Bleeding",
+      "Confused"
+    ],
+    "Summoning": "Golem is summoned by using a Lihzahrd Power Cell at the Lihzahrd Altar located in the final chamber of the Jungle Temple, at any time, and only if the current world is in Hardmode after Plantera is defeated. Upon pressing \u26B7 Open / Activate on the Lihzahrd Altar, one Lihzahrd Power Cell is consumed from the player\u0027s inventory and Golem is summoned directly above the altar. The Lihzahrd Altar can be relocated after being mined with a Picksaw or better. However, Golem will become enraged while outside of the Underground Jungle.",
+    "ExpertMode": null
+  },
+  {
+    "Name": "Duke Fishron",
+    "WikiPage": "Duke_Fishron",
+    "MatchNames": [
+      "Duke Fishron"
+    ],
+    "Types": [
+      "Boss",
+      "Aquatic"
+    ],
+    "Environments": [
+      "Ocean"
+    ],
+    "AiType": "Duke Fishron AI",
+    "KbResist": "100%",
+    "ImmuneTo": [
+      "Confused"
+    ],
+    "Summoning": "Duke Fishron is summoned by fishing in the Ocean at any time, using a Truffle Worm as bait (see Notes for details). Once the bobber bobs, reeling in the line spawns Duke Fishron, who emerges from the water, pauses for a moment, and then begins attacking the player. Duke Fishron is invulnerable during his summoning animation. Duke Fishron himself does not require any bosses to be defeated prior, meaning he can be summoned earlier than his intended stage of progression, and that Truffle Worms brought to a new world can be used to summon him.",
+    "ExpertMode": null
+  },
+  {
+    "Name": "The Torch God",
+    "WikiPage": "The_Torch_God",
+    "MatchNames": [
+      "The Torch God"
+    ],
+    "Types": [],
+    "Environments": [],
+    "AiType": null,
+    "KbResist": null,
+    "ImmuneTo": [],
+    "Summoning": null,
+    "ExpertMode": null
+  },
+  {
+    "Name": "Lunatic Cultist",
+    "WikiPage": "Lunatic_Cultist",
+    "MatchNames": [
+      "Lunatic Cultist"
+    ],
+    "Types": [
+      "Enemy"
+    ],
+    "Environments": [
+      "Dungeon entrance"
+    ],
+    "AiType": "Lunatic Cultist AI",
+    "KbResist": "100%",
+    "ImmuneTo": [
+      "Debuffs",
+      "Whip debuffs"
+    ],
+    "Summoning": "The Lunatic Cultist is summoned after killing the Cultists that spawn at the Dungeon\u0027s entrance after Skeletron and Golem have been defeated.",
+    "ExpertMode": null
+  },
+  {
+    "Name": "Moon Lord",
+    "WikiPage": "Moon_Lord",
+    "MatchNames": [
+      "Moon Lord",
+      "Moon Lord\u0027s Hand",
+      "Moon Lord\u0027s Core"
+    ],
+    "Types": [],
+    "Environments": [
+      "Lunar Events"
+    ],
+    "AiType": "Moon Lord Core AI",
+    "KbResist": "100%",
+    "ImmuneTo": [
+      "Confused",
+      "Shimmering"
+    ],
+    "Summoning": "The Moon Lord will spawn after destroying the four Celestial Pillars or can be summoned manually using a Celestial Sigil in any world where Golem has been defeated. The status message \u201CImpending doom approaches...\u201D indicates the Moon Lord\u0027s spawning countdown. During the countdown, the screen will go dim and all objects, tiles, and walls will oscillate back and forth, and then go back to normal, and the sound volume will gradually decrease, eventually becoming completely silent. If the Moon Lord is spawned by destroying the Celestial Pillars, it takes 60 seconds for him to spawn, and the screen effect will appear 5 times; each time the screen will go darker and all objects and walls will oscillate more violently. If using a Celestial Sigil to summon the Moon Lord, it takes 12 seconds for him to spawn, and the screen effect will only appear once.",
+    "ExpertMode": null
+  },
+  {
+    "Name": "Martian Saucer",
+    "WikiPage": "Martian_Saucer",
+    "MatchNames": [
+      "Martian Saucer"
+    ],
+    "Types": [
+      "Flying Enemy"
+    ],
+    "Environments": [
+      "Martian Madness"
+    ],
+    "AiType": "Martian Saucer AI",
+    "KbResist": "100%",
+    "ImmuneTo": [
+      "Debuffs",
+      "Whip debuffs"
+    ],
+    "Summoning": null,
+    "ExpertMode": null
+  },
+  {
+    "Name": "Empress of Light",
+    "WikiPage": "Empress_of_Light",
+    "MatchNames": [
+      "Empress of Light"
+    ],
+    "Types": [
+      "Boss"
+    ],
+    "Environments": [
+      "The Hallow"
+    ],
+    "AiType": "Empress of Light AI",
+    "KbResist": "100%",
+    "ImmuneTo": [
+      "Confused"
+    ],
+    "Summoning": "The Empress of Light is summoned by killing a Prismatic Lacewing, at any time. Prismatic Lacewings spawn in The Hallow on the Surface between dusk (7:30\u00A0PM) and midnight (12:00\u00A0AM) once Plantera has been defeated. They can be caught with a Bug Net (or its upgrades), then released elsewhere and killed by the player. If released outside of the Hallow, a Prismatic Lacewing will disappear almost immediately. The Empress of Light herself does not require any bosses to be defeated prior, meaning she can be summoned earlier than her intended stage of progression, and that Prismatic Lacewings brought to a new world can be used to summon her.",
+    "ExpertMode": null
+  }
+]

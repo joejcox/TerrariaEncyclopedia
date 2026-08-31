@@ -1,9 +1,9 @@
 {
   "id": "terraria-encyclopedia",
   "name": "Terraria Encyclopedia",
-  "version": "0.3.0",
+  "version": "0.5.0",
   "author": "Joe Cox",
-  "description": "Read-only in-game item browser with a full item detail page: stats, recipe, and a clickable \"used to make\" list for navigating between items.",
+  "description": "Read-only in-game Item and NPC/boss browser: recipes, sortable/filterable grids, real drop-rate data, and wiki-sourced boss info (type, environment, summoning, hardmode) for the 20 vanilla bosses.",
   "entry_dll": "TerrariaEncyclopedia.dll",
 
   "keybinds": [
@@ -11,7 +11,7 @@
       "id": "toggle",
       "label": "Toggle Encyclopedia",
       "description": "Open/close the Encyclopedia window",
-      "default": "F2"
+      "default": "P"
     }
   ]
 }

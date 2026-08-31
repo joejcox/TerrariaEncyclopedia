@@ -16,6 +16,10 @@ namespace TerrariaEncyclopedia.UI
     /// </summary>
     public class ItemBrowserPanel
     {
+        private enum Section { Items, Npcs }
+
+        private const int SectionToggleHeight = 30;
+
         private enum ViewMode { Grid, Detail }
 
         private enum SortMode { NameAsc, NameDesc, RarityAsc, RarityDesc, Oldest, Newest, SetGrouped }
@@ -62,6 +66,7 @@ namespace TerrariaEncyclopedia.UI
         private Dictionary<int, ItemEntry> _byId = new Dictionary<int, ItemEntry>();
         private List<ItemEntry> _filtered = new List<ItemEntry>();
         private int _activeTab;
+        private bool _hardmodeOnly;
         private int _sortModeIndex;
         private bool _sortDropdownOpen;
         private int _sortButtonX, _sortButtonY, _sortButtonWidth;
@@ -70,14 +75,43 @@ namespace TerrariaEncyclopedia.UI
         private ItemEntry _detailItem;
         private readonly Stack<int> _history = new Stack<int>();
 
+        private Section _section = Section.Items;
+
+        // ── NPC section state ──
+        private enum NpcTab { All, Town, Enemies, Bosses }
+        private static readonly (NpcTab Tab, string Label)[] NpcTabs =
+        {
+            (NpcTab.All, "All"), (NpcTab.Town, "Town NPCs"), (NpcTab.Enemies, "Enemies"), (NpcTab.Bosses, "Bosses"),
+        };
+        private enum NpcSortMode { NameAsc, NameDesc, LifeAsc, LifeDesc }
+        private static readonly (NpcSortMode Mode, string Label)[] NpcSortModes =
+        {
+            (NpcSortMode.NameAsc, "A-Z"), (NpcSortMode.NameDesc, "Z-A"),
+            (NpcSortMode.LifeAsc, "Life: Low-High"), (NpcSortMode.LifeDesc, "Life: High-Low"),
+        };
+
+        private List<NpcEntry> _allNpcs = new List<NpcEntry>();
+        private List<NpcEntry> _filteredNpcs = new List<NpcEntry>();
+        private readonly TextInput _npcSearch = new TextInput("Search NPCs...", 200);
+        private readonly ScrollView _npcScroll = new ScrollView();
+        private readonly ScrollView _npcDetailScroll = new ScrollView();
+        private int _npcActiveTab;
+        private bool _npcHardmodeOnly;
+        private int _npcSortModeIndex;
+        private bool _npcSortDropdownOpen;
+        private int _npcSortButtonX, _npcSortButtonY, _npcSortButtonWidth;
+        private ViewMode _npcView = ViewMode.Grid;
+        private NpcEntry _npcDetailItem;
+
         public ItemBrowserPanel()
         {
-            _panel = new DraggablePanel("terraria-encyclopedia", "Terraria Encyclopedia", 520, 480);
+            _panel = new DraggablePanel("terraria-encyclopedia", "Terraria Encyclopedia", 600, 500);
             // Same UIScale/scissor-rect mismatch found in Phase 1 — see Mod.cs history.
             _panel.ClipContent = false;
             _panel.RegisterDrawCallback(OnDraw);
-            _panel.OnClose = () => _search.Unfocus();
+            _panel.OnClose = () => { _search.Unfocus(); _npcSearch.Unfocus(); };
             _search.KeyBlockId = "terraria-encyclopedia";
+            _npcSearch.KeyBlockId = "terraria-encyclopedia";
         }
 
         public void Toggle()
@@ -96,6 +130,13 @@ namespace TerrariaEncyclopedia.UI
                 Filter();
             }
 
+            if (_allNpcs.Count == 0)
+            {
+                _allNpcs = NpcCatalogue.Build();
+                DropCatalogue.EnsureBuilt(_allNpcs);
+                FilterNpcs();
+            }
+
             GoHome();
             _panel.Open();
         }
@@ -106,12 +147,14 @@ namespace TerrariaEncyclopedia.UI
         {
             if (!_panel.IsOpen) return;
             _search.Update();
+            _npcSearch.Update();
         }
 
         public void Unload()
         {
             _panel.UnregisterDrawCallback();
             _search.Unfocus();
+            _npcSearch.Unfocus();
         }
 
         private void Filter()
@@ -123,6 +166,9 @@ namespace TerrariaEncyclopedia.UI
                 var category = (ItemCategory)(_activeTab - 1);
                 source = source.Where(e => e.Category == category);
             }
+
+            if (_hardmodeOnly)
+                source = source.Where(e => WikiEnrichment.IsHardmodeItem(e.Name));
 
             string search = _search.Text;
             if (!string.IsNullOrEmpty(search))
@@ -157,6 +203,8 @@ namespace TerrariaEncyclopedia.UI
             _history.Clear();
             _detailItem = null;
             _view = ViewMode.Grid;
+            _npcDetailItem = null;
+            _npcView = ViewMode.Grid;
         }
 
         private void OpenDetail(ItemEntry entry)
@@ -187,10 +235,18 @@ namespace TerrariaEncyclopedia.UI
             if (!_panel.BeginDraw()) return;
             try
             {
-                if (_view == ViewMode.Grid)
-                    DrawGridView();
+                DrawSectionToggle(_panel.ContentX, _panel.ContentY, _panel.ContentWidth);
+
+                if (_section == Section.Items)
+                {
+                    if (_view == ViewMode.Grid) DrawGridView();
+                    else DrawDetailView();
+                }
                 else
-                    DrawDetailView();
+                {
+                    if (_npcView == ViewMode.Grid) DrawNpcGridView();
+                    else DrawNpcDetailView();
+                }
             }
             finally
             {
@@ -198,15 +254,50 @@ namespace TerrariaEncyclopedia.UI
             }
         }
 
+        private void DrawSectionToggle(int x, int y, int width)
+        {
+            int halfWidth = width / 2;
+            DrawSectionButton(x, y, halfWidth - 2, "Items", Section.Items);
+            DrawSectionButton(x + halfWidth + 2, y, width - halfWidth - 2, "NPCs", Section.Npcs);
+        }
+
+        private void DrawSectionButton(int x, int y, int width, string label, Section section)
+        {
+            bool isActive = _section == section;
+            bool isHover = WidgetInput.IsMouseOver(x, y, width, SectionToggleHeight - 4);
+
+            UIRenderer.DrawRect(x, y, width, SectionToggleHeight - 4,
+                isActive ? UIColors.ItemActiveBg : (isHover ? UIColors.SectionBg : UIColors.InputBg));
+
+            int textWidth = TextUtil.MeasureWidth(label);
+            UIRenderer.DrawText(label, x + (width - textWidth) / 2, y + 5,
+                isActive ? UIColors.AccentText : UIColors.TextDim);
+
+            if (isHover && WidgetInput.MouseLeftClick)
+            {
+                WidgetInput.ConsumeClick();
+                if (_section != section)
+                {
+                    _section = section;
+                }
+            }
+        }
+
         private void DrawGridView()
         {
-            var s = new StackLayout(_panel.ContentX, _panel.ContentY, _panel.ContentWidth);
+            var s = new StackLayout(_panel.ContentX, _panel.ContentY + SectionToggleHeight, _panel.ContentWidth);
 
             int searchY = s.Advance(28);
-            _search.Draw(s.X, searchY, 220, 26);
+            _search.Draw(s.X, searchY, 200, 26);
             if (_search.HasChanged) Filter();
 
-            DrawSortButton(s.X + 230, searchY - 1, s.Width - 230);
+            DrawSortButton(s.X + 210, searchY - 1, 190);
+
+            if (Checkbox.DrawWithLabel(s.X + 410, searchY - 1, s.Width - 410, 28, "Hardmode only", _hardmodeOnly))
+            {
+                _hardmodeOnly = !_hardmodeOnly;
+                Filter();
+            }
 
             int tabsY = s.Advance(34);
             // While the sort dropdown is open, everything below it must ignore hover/click —
@@ -220,7 +311,7 @@ namespace TerrariaEncyclopedia.UI
             int gridX = s.X;
             int gridY = s.CurrentY;
             int gridWidth = s.Width;
-            int gridHeight = _panel.ContentHeight - s.TotalHeight;
+            int gridHeight = _panel.ContentHeight - SectionToggleHeight - s.TotalHeight;
 
             DrawGrid(gridX, gridY, gridWidth, gridHeight, interactive);
 
@@ -401,10 +492,11 @@ namespace TerrariaEncyclopedia.UI
             if (entry == null) { GoHome(); return; }
 
             int x = _panel.ContentX;
-            int y = _panel.ContentY;
+            int y = _panel.ContentY + SectionToggleHeight;
             int width = _panel.ContentWidth;
 
-            DrawNavBar(x, y, width);
+            DrawNavBar(x, y, width, GoBack, GoHome, _history.Count > 0);
+            if (WikiEnrichment.IsHardmodeItem(entry.Name)) DrawHardmodeMarker(x, y, width);
             y += NavBarHeight + 6;
 
             // Header: icon, name, category
@@ -422,16 +514,14 @@ namespace TerrariaEncyclopedia.UI
             DrawRecipeSection(x, y, width, bodyHeight, entry);
         }
 
-        private void DrawNavBar(int x, int y, int width)
+        private void DrawNavBar(int x, int y, int width, Action onBack, Action onHome, bool canGoBack)
         {
-            bool canGoBack = _history.Count > 0;
-
             UIRenderer.DrawRect(x, y, 60, NavBarHeight, canGoBack ? UIColors.InputBg : UIColors.SectionBg);
             UIRenderer.DrawText("< Back", x + 6, y + 7, canGoBack ? UIColors.Text : UIColors.TextDim);
             if (canGoBack && WidgetInput.IsMouseOver(x, y, 60, NavBarHeight))
             {
-                Tooltip.Set("Back to the previous item");
-                if (WidgetInput.MouseLeftClick) { GoBack(); WidgetInput.ConsumeClick(); }
+                Tooltip.Set("Back to the previous entry");
+                if (WidgetInput.MouseLeftClick) { onBack(); WidgetInput.ConsumeClick(); }
             }
 
             int homeX = x + 66;
@@ -439,8 +529,8 @@ namespace TerrariaEncyclopedia.UI
             UIRenderer.DrawText("Home", homeX + 12, y + 7, UIColors.Text);
             if (WidgetInput.IsMouseOver(homeX, y, 60, NavBarHeight))
             {
-                Tooltip.Set("Back to the item grid");
-                if (WidgetInput.MouseLeftClick) { GoHome(); WidgetInput.ConsumeClick(); }
+                Tooltip.Set("Back to the grid");
+                if (WidgetInput.MouseLeftClick) { onHome(); WidgetInput.ConsumeClick(); }
             }
         }
 
@@ -534,6 +624,427 @@ namespace TerrariaEncyclopedia.UI
                 ItemTooltip.Set(item.Id);
                 if (WidgetInput.MouseLeftClick)
                 {
+                    OpenDetail(item);
+                    WidgetInput.ConsumeClick();
+                }
+            }
+        }
+
+        // ── NPC section ──────────────────────────────────────────────────────
+
+        private void FilterNpcs()
+        {
+            IEnumerable<NpcEntry> source = _allNpcs;
+
+            switch (NpcTabs[_npcActiveTab].Tab)
+            {
+                case NpcTab.Town: source = source.Where(e => e.IsTownNpc); break;
+                case NpcTab.Enemies: source = source.Where(e => !e.IsTownNpc && !e.IsBoss); break;
+                case NpcTab.Bosses: source = source.Where(e => e.IsBoss); break;
+            }
+
+            if (_npcHardmodeOnly)
+                source = source.Where(e => WikiEnrichment.IsHardmodeNpc(e.Name));
+
+            string search = _npcSearch.Text;
+            if (!string.IsNullOrEmpty(search))
+            {
+                string lower = search.ToLowerInvariant();
+                bool isIdSearch = int.TryParse(search, out int searchId);
+                source = source.Where(e => (isIdSearch && e.Id == searchId) || e.Name.ToLowerInvariant().Contains(lower));
+            }
+
+            switch (NpcSortModes[_npcSortModeIndex].Mode)
+            {
+                case NpcSortMode.NameDesc: source = source.OrderByDescending(e => e.Name); break;
+                case NpcSortMode.LifeAsc: source = source.OrderBy(e => e.Life).ThenBy(e => e.Name); break;
+                case NpcSortMode.LifeDesc: source = source.OrderByDescending(e => e.Life).ThenBy(e => e.Name); break;
+                default: source = source.OrderBy(e => e.Name); break; // NameAsc
+            }
+
+            _filteredNpcs = source.ToList();
+            _npcScroll.ResetScroll();
+            _panel.Title = $"Terraria Encyclopedia ({_filteredNpcs.Count}/{_allNpcs.Count})";
+        }
+
+        private void OpenNpcDetail(NpcEntry entry)
+        {
+            _npcDetailItem = entry;
+            _npcView = ViewMode.Detail;
+            _npcDetailScroll.ResetScroll();
+        }
+
+        private void DrawNpcGridView()
+        {
+            var s = new StackLayout(_panel.ContentX, _panel.ContentY + SectionToggleHeight, _panel.ContentWidth);
+
+            int searchY = s.Advance(28);
+            _npcSearch.Draw(s.X, searchY, 200, 26);
+            if (_npcSearch.HasChanged) FilterNpcs();
+
+            DrawNpcSortButton(s.X + 210, searchY - 1, 190);
+
+            if (Checkbox.DrawWithLabel(s.X + 410, searchY - 1, s.Width - 410, 28, "Hardmode only", _npcHardmodeOnly))
+            {
+                _npcHardmodeOnly = !_npcHardmodeOnly;
+                FilterNpcs();
+            }
+
+            int tabsY = s.Advance(34);
+            bool interactive = !_npcSortDropdownOpen;
+            DrawNpcTabs(s.X, tabsY, s.Width, interactive);
+
+            s.Advance(6);
+
+            int gridX = s.X;
+            int gridY = s.CurrentY;
+            int gridWidth = s.Width;
+            int gridHeight = _panel.ContentHeight - SectionToggleHeight - s.TotalHeight;
+
+            DrawNpcGrid(gridX, gridY, gridWidth, gridHeight, interactive);
+
+            if (_npcSortDropdownOpen) DrawNpcSortDropdown();
+        }
+
+        private void DrawNpcTabs(int x, int y, int width, bool interactive)
+        {
+            int tabWidth = width / NpcTabs.Length;
+
+            for (int i = 0; i < NpcTabs.Length; i++)
+            {
+                int tabX = x + i * tabWidth;
+                int tabW = (i == NpcTabs.Length - 1) ? (width - i * tabWidth) : tabWidth - 2;
+                bool isActive = _npcActiveTab == i;
+                bool isHover = interactive && WidgetInput.IsMouseOver(tabX, y, tabW, 30);
+
+                UIRenderer.DrawRect(tabX, y, tabW, 30,
+                    isActive ? UIColors.ItemActiveBg : (isHover ? UIColors.SectionBg : UIColors.InputBg));
+                if (isActive)
+                    UIRenderer.DrawRect(tabX, y + 28, tabW, 2, UIColors.Accent);
+
+                string label = NpcTabs[i].Label;
+                int textWidth = TextUtil.MeasureWidth(label);
+                UIRenderer.DrawText(label, tabX + (tabW - textWidth) / 2, y + 8,
+                    isActive ? UIColors.AccentText : UIColors.TextDim);
+
+                if (isHover && WidgetInput.MouseLeftClick)
+                {
+                    WidgetInput.ConsumeClick();
+                    if (_npcActiveTab != i)
+                    {
+                        _npcActiveTab = i;
+                        FilterNpcs();
+                    }
+                }
+            }
+        }
+
+        private void DrawNpcSortButton(int x, int y, int width)
+        {
+            _npcSortButtonX = x;
+            _npcSortButtonY = y;
+            _npcSortButtonWidth = width;
+
+            string label = "Sort: " + NpcSortModes[_npcSortModeIndex].Label + (_npcSortDropdownOpen ? "  ^" : "  v");
+            bool isHover = WidgetInput.IsMouseOver(x, y, width, 28);
+
+            UIRenderer.DrawRect(x, y, width, 28, isHover || _npcSortDropdownOpen ? UIColors.SectionBg : UIColors.InputBg);
+            UIRenderer.DrawText(label, x + 6, y + 6, UIColors.Text);
+
+            if (isHover && WidgetInput.MouseLeftClick)
+            {
+                WidgetInput.ConsumeClick();
+                _npcSortDropdownOpen = !_npcSortDropdownOpen;
+            }
+        }
+
+        private void DrawNpcSortDropdown()
+        {
+            int rowHeight = 26;
+            int listY = _npcSortButtonY + 28;
+            int listHeight = NpcSortModes.Length * rowHeight;
+
+            UIRenderer.DrawRect(_npcSortButtonX, listY, _npcSortButtonWidth, listHeight, UIColors.PanelBg);
+            UIRenderer.DrawRectOutline(_npcSortButtonX, listY, _npcSortButtonWidth, listHeight, UIColors.Border);
+
+            for (int i = 0; i < NpcSortModes.Length; i++)
+            {
+                int rowY = listY + i * rowHeight;
+                bool isActive = i == _npcSortModeIndex;
+                bool isHover = WidgetInput.IsMouseOver(_npcSortButtonX, rowY, _npcSortButtonWidth, rowHeight);
+
+                if (isActive || isHover)
+                    UIRenderer.DrawRect(_npcSortButtonX, rowY, _npcSortButtonWidth, rowHeight,
+                        isActive ? UIColors.ItemActiveBg : UIColors.SectionBg);
+
+                UIRenderer.DrawText(NpcSortModes[i].Label, _npcSortButtonX + 6, rowY + 5,
+                    isActive ? UIColors.AccentText : UIColors.Text);
+
+                if (isHover && WidgetInput.MouseLeftClick)
+                {
+                    WidgetInput.ConsumeClick();
+                    _npcSortModeIndex = i;
+                    _npcSortDropdownOpen = false;
+                    FilterNpcs();
+                }
+            }
+
+            bool overButton = WidgetInput.IsMouseOver(_npcSortButtonX, _npcSortButtonY, _npcSortButtonWidth, 28);
+            bool overList = WidgetInput.IsMouseOver(_npcSortButtonX, listY, _npcSortButtonWidth, listHeight);
+            if (!overButton && !overList && WidgetInput.MouseLeftClick)
+            {
+                WidgetInput.ConsumeClick();
+                _npcSortDropdownOpen = false;
+            }
+        }
+
+        private void DrawNpcGrid(int gridX, int gridY, int gridWidth, int gridHeight, bool interactive)
+        {
+            int gridColumns = Math.Max(1, _npcScroll.ContentWidth > 0 ? _npcScroll.ContentWidth / SlotSize : gridWidth / SlotSize);
+            int totalRows = (_filteredNpcs.Count + gridColumns - 1) / gridColumns;
+            int totalContentHeight = totalRows * SlotSize;
+
+            _npcScroll.Begin(gridX, gridY, gridWidth, gridHeight, totalContentHeight);
+
+            int contentWidth = _npcScroll.ContentWidth;
+            gridColumns = Math.Max(1, contentWidth / SlotSize);
+
+            int visibleRows = gridHeight / SlotSize;
+            int startRow = _npcScroll.ScrollOffset / SlotSize;
+            int startIndex = startRow * gridColumns;
+
+            for (int i = 0; i < (visibleRows + 2) * gridColumns && startIndex + i < _filteredNpcs.Count; i++)
+            {
+                int npcIdx = startIndex + i;
+                int row = i / gridColumns;
+                int col = i % gridColumns;
+
+                int itemContentY = (startRow + row) * SlotSize;
+                if (!_npcScroll.IsVisible(itemContentY, SlotSize)) continue;
+
+                int slotX = gridX + col * SlotSize;
+                int slotY = _npcScroll.ContentY + itemContentY;
+
+                var entry = _filteredNpcs[npcIdx];
+                bool inScrollBounds = interactive && WidgetInput.IsMouseOver(gridX, gridY, gridWidth, gridHeight);
+                bool isHover = inScrollBounds && WidgetInput.IsMouseOver(slotX, slotY, SlotOuter, SlotOuter);
+
+                UIRenderer.DrawRect(slotX, slotY, SlotOuter, SlotOuter, isHover ? UIColors.InputFocusBg : UIColors.ItemBg);
+                if (isHover)
+                    UIRenderer.DrawRectOutline(slotX, slotY, SlotOuter, SlotOuter, UIColors.Accent, 1);
+
+                UIRenderer.DrawNPC(entry.Id, slotX + IconPad, slotY + IconPad, IconSize, IconSize);
+
+                if (isHover)
+                {
+                    Tooltip.Set(entry.Name, entry.IsBoss ? "Boss" : entry.IsTownNpc ? "Town NPC" : "Enemy");
+                    if (WidgetInput.MouseLeftClick)
+                    {
+                        OpenNpcDetail(entry);
+                        WidgetInput.ConsumeClick();
+                    }
+                }
+            }
+
+            _npcScroll.End();
+
+            if (_filteredNpcs.Count == 0)
+                UIRenderer.DrawText("No NPCs found", gridX + 5, gridY + 10, UIColors.Warning);
+        }
+
+        private void DrawNpcDetailView()
+        {
+            var entry = _npcDetailItem;
+            if (entry == null) { GoHome(); return; }
+
+            int x = _panel.ContentX;
+            int y = _panel.ContentY + SectionToggleHeight;
+            int width = _panel.ContentWidth;
+
+            DrawNavBar(x, y, width, GoHome, GoHome, false); // no cross-NPC nav chain — Back == Home here
+            if (WikiEnrichment.IsHardmodeNpc(entry.Name)) DrawHardmodeMarker(x, y, width);
+            y += NavBarHeight + 6;
+
+            UIRenderer.DrawNPC(entry.Id, x, y, 48, 48);
+            UIRenderer.DrawText(entry.Name, x + 58, y, UIColors.TextTitle);
+            string kind = entry.IsBoss ? "Boss" : entry.IsTownNpc ? "Town NPC" : "Enemy";
+            UIRenderer.DrawText($"{kind}  •  ID {entry.Id}", x + 58, y + 24, UIColors.TextDim);
+            y += 56;
+
+            var stats = new List<string> { $"Life: {entry.Life}", $"Defense: {entry.Defense}", $"Damage: {entry.Damage}" };
+            UIRenderer.DrawText(string.Join("    ", stats), x, y, UIColors.Text);
+            y += 30;
+
+            int bodyHeight = _panel.ContentHeight - (y - _panel.ContentY);
+            DrawNpcBody(x, y, width, bodyHeight, entry);
+        }
+
+        private void DrawHardmodeMarker(int x, int y, int width)
+        {
+            const string label = "HARDMODE";
+            int textWidth = TextUtil.MeasureWidth(label);
+            UIRenderer.DrawText(label, x + width - textWidth, y + 7, UIColors.Error);
+        }
+
+        /// <summary>Minimal word-wrap for the Bestiary description (plain UIRenderer.DrawText has none). Returns height used.</summary>
+        private int DrawWrappedText(string text, int x, int y, int maxWidth, TerrariaModder.Core.UI.Color4 color)
+        {
+            var lines = WrapTextLines(text, maxWidth);
+            int lineHeight = 18;
+            for (int i = 0; i < lines.Count; i++)
+                UIRenderer.DrawText(lines[i], x, y + i * lineHeight, color);
+            return lines.Count * lineHeight;
+        }
+
+        private List<string> WrapTextLines(string text, int maxWidth)
+        {
+            var result = new List<string>();
+            var words = text.Split(' ');
+            string line = "";
+            foreach (var word in words)
+            {
+                string candidate = line.Length == 0 ? word : line + " " + word;
+                if (TextUtil.MeasureWidth(candidate) > maxWidth && line.Length > 0)
+                {
+                    result.Add(line);
+                    line = word;
+                }
+                else
+                {
+                    line = candidate;
+                }
+            }
+            if (line.Length > 0) result.Add(line);
+            return result;
+        }
+
+        // Chance/stack/conditions text can run long ("Not Expert, First Time Killing Plantera")
+        // — its own row beneath the name avoids overflowing the panel instead of a fixed-width
+        // column, which is what the plain single-line RowHeight rows use for short "x1"/"x99".
+        private const int DropRowHeight = 48;
+
+        private const int TextRowHeight = 20;
+
+        private void AddWrappedRows(List<(string Header, ItemEntry Item, string Suffix, int Height)> rows,
+            string text, int width)
+        {
+            foreach (var line in WrapTextLines(text, width))
+                rows.Add((null, null, line, TextRowHeight));
+        }
+
+        private void DrawNpcBody(int x, int y, int width, int height, NpcEntry entry)
+        {
+            var rows = new List<(string Header, ItemEntry Item, string Suffix, int Height)>();
+
+            if (!string.IsNullOrEmpty(entry.Description))
+            {
+                AddWrappedRows(rows, entry.Description, width);
+                rows.Add((null, null, "", 8)); // spacer
+            }
+
+            if (entry.IsBoss)
+            {
+                var wiki = WikiEnrichment.GetBossInfo(entry.Name);
+                if (wiki != null)
+                {
+                    rows.Add(("Boss Info", null, null, RowHeight));
+                    var facts = new List<string>();
+                    if (wiki.Types?.Length > 0) facts.Add("Type: " + string.Join(", ", wiki.Types));
+                    if (wiki.Environments?.Length > 0) facts.Add("Environment: " + string.Join(", ", wiki.Environments));
+                    if (!string.IsNullOrEmpty(wiki.AiType)) facts.Add("AI: " + wiki.AiType);
+                    if (!string.IsNullOrEmpty(wiki.KbResist)) facts.Add("KB Resist: " + wiki.KbResist);
+                    if (wiki.ImmuneTo?.Length > 0) facts.Add("Immune to: " + string.Join(", ", wiki.ImmuneTo));
+                    foreach (var fact in facts) AddWrappedRows(rows, fact, width);
+
+                    if (!string.IsNullOrEmpty(wiki.Summoning))
+                    {
+                        rows.Add((null, null, "", 6));
+                        rows.Add(("Summoning & Spawning", null, null, RowHeight));
+                        AddWrappedRows(rows, wiki.Summoning, width);
+                    }
+
+                    if (!string.IsNullOrEmpty(wiki.ExpertMode))
+                    {
+                        rows.Add((null, null, "", 6));
+                        rows.Add(("Expert Mode", null, null, RowHeight));
+                        AddWrappedRows(rows, wiki.ExpertMode, width);
+                    }
+
+                    rows.Add((null, null, "", 8)); // spacer
+                }
+            }
+
+            var drops = DropCatalogue.DropsFor(entry.Id).OrderByDescending(d => d.Chance).ToList();
+
+            rows.Add(("Drops", null, null, RowHeight));
+            if (drops.Count == 0)
+            {
+                rows.Add((null, null, "No known item drops (may drop coins only, or nothing).", RowHeight));
+            }
+            else
+            {
+                foreach (var drop in drops)
+                {
+                    if (!_byId.TryGetValue(drop.ItemId, out var itemEntry)) continue;
+
+                    string chance = $"{drop.Chance * 100:0.##}%";
+                    string stack = drop.StackMax > drop.StackMin ? $"x{drop.StackMin}-{drop.StackMax}" : $"x{drop.StackMin}";
+                    string suffix = drop.Conditions.Count == 0
+                        ? $"{chance}  {stack}"
+                        : $"{chance}  {stack}  ({string.Join(", ", drop.Conditions)})";
+
+                    rows.Add((null, itemEntry, suffix, DropRowHeight));
+                }
+            }
+
+            int contentHeight = rows.Sum(r => r.Height);
+            _npcDetailScroll.Begin(x, y, width, height, contentHeight);
+
+            int rowY = 0;
+            foreach (var row in rows)
+            {
+                if (_npcDetailScroll.IsVisible(rowY, row.Height))
+                {
+                    int drawY = _npcDetailScroll.ContentY + rowY;
+                    DrawNpcDropRow(x, drawY, width, row.Header, row.Item, row.Suffix);
+                }
+                rowY += row.Height;
+            }
+
+            _npcDetailScroll.End();
+        }
+
+        private void DrawNpcDropRow(int x, int y, int width, string header, ItemEntry item, string suffix)
+        {
+            if (header != null)
+            {
+                UIRenderer.DrawText(header, x, y + 8, UIColors.TextTitle);
+                return;
+            }
+
+            if (item == null)
+            {
+                UIRenderer.DrawText(suffix, x + 4, y + 8, UIColors.TextDim);
+                return;
+            }
+
+            bool isHover = WidgetInput.IsMouseOver(x, y, width, DropRowHeight - 4);
+            if (isHover)
+                UIRenderer.DrawRect(x, y, width, DropRowHeight - 4, UIColors.InputFocusBg);
+
+            UIRenderer.DrawItem(item.Id, x, y, 28, 28);
+            UIRenderer.DrawText(item.Name, x + 34, y + 4, isHover ? UIColors.AccentText : UIColors.Text);
+            if (suffix != null)
+                DrawWrappedText(suffix, x + 34, y + 24, width - 34, UIColors.TextDim);
+
+            if (isHover)
+            {
+                ItemTooltip.Set(item.Id);
+                if (WidgetInput.MouseLeftClick)
+                {
+                    // Cross-section navigation: jump straight to the item's own detail page.
+                    _section = Section.Items;
+                    _history.Clear();
                     OpenDetail(item);
                     WidgetInput.ConsumeClick();
                 }

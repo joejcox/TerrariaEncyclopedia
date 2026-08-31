@@ -20,6 +20,14 @@
       <HintPath>..\..\Terraria\TerrariaModder\core\TerrariaModder.Core.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <!-- Part of the .NET Framework 4.8 BCL (System.Web.Extensions), not a NuGet package —
+         used for JavaScriptSerializer to read the wiki-scraper's JSON without risking a
+         duplicate-assembly-load conflict (see docs/framework-patches.md, patch #2). -->
+    <Reference Include="System.Web.Extensions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="WikiData\*.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

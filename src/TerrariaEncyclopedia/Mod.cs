@@ -16,7 +16,7 @@ namespace TerrariaEncyclopedia
     {
         public string Id => "terraria-encyclopedia";
         public string Name => "Terraria Encyclopedia";
-        public string Version => "0.3.0";
+        public string Version => "0.5.0";
 
         private ILogger _log;
         private ItemBrowserPanel _browser;
@@ -37,10 +37,10 @@ namespace TerrariaEncyclopedia
 
             // ponytail: project.md suggested F7, but F7 and F8 are both vanilla Terraria's own hidden
             // debug overlays (confirmed empirically — frame-timing graphs, then packet-stats — neither
-            // registered anywhere in TerrariaModder source) and F6 is Core's own mod menu. The bundled
-            // mods in this framework use F5/F9/F10 for their own keybinds, implying their authors already
-            // mapped F7/F8 as vanilla-reserved and avoided them — F2 sits outside all of that.
-            context.RegisterKeybind("toggle", "Toggle Encyclopedia", "Open/close the Encyclopedia window", "F2", OnTogglePressed);
+            // registered anywhere in TerrariaModder source) and F6 is Core's own mod menu. F2 turned
+            // out to be vanilla's "switch to Loadout 2" hotkey (confirmed live — kept swapping gear
+            // sets). P sits outside all of that.
+            context.RegisterKeybind("toggle", "Toggle Encyclopedia", "Open/close the Encyclopedia window", "P", OnTogglePressed);
 
             _log.Info($"{Name} v{Version} initialized. Terraria {GameVersionGuard.DetectedVersion}, {ItemID.Count} items loaded.");
         }
