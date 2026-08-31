@@ -55,6 +55,12 @@ The existing panel depends on TerrariaModder's renderer, draggable panel, scroll
 
 The host owns lifecycle and presentation facilities but does not model Terraria content. The Encyclopedia continues to read live game state through its feature implementation. A future Boss Checklist feature will likewise read current world progression through its own adapter, avoiding a prematurely broad game-data interface.
 
+### Use Terraria's stable UI coordinate sources at every callback
+
+Terraria changes `Main.mouseX`, `Main.mouseY`, `Main.screenWidth`, and `Main.screenHeight` between unscaled, world-scaled, and UI-scaled modes during update and draw. The host therefore derives feature input and viewport bounds from `PlayerInput`'s cached, Terraria-normalised coordinates and dimensions, then converts them once into logical UI units. It does not use raw FNA mouse coordinates or divide callback-dependent `Main` dimensions.
+
+The foreground cursor redraw follows Terraria's own cursor pass: begin with `UIScaleMatrix`, switch Terraria input globals to UI zoom for the draw, then restore the unscaled state. This keeps the required redraw directly over the native cursor at non-default UI scales while allowing the modal to remain above Terraria's original cursor pass.
+
 ## Risks / Trade-offs
 
 - **Bundled Mono startup hooks may drift between Terraria versions** → Prove bootstrap-to-main-menu on the supported macOS version before migrating UI code; retain the Windows path and normal launch as rollback.

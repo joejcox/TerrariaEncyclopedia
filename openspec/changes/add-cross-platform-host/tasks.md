@@ -46,8 +46,17 @@
 
 ## 4. Distribution and Acceptance
 
-- [ ] T08 Add macOS release assembly, manifests, licence checks, and updated build/release documentation
+- [ ] T10 Align macOS pointer interaction, tooltips, cursor redraw, and tab feedback with Terraria UI scaling
   - Depends on: T05
+  - Writes: src/TerrariaEncyclopedia.Host.Mono/GameHost.cs, src/TerrariaEncyclopedia/Hosting/TerrariaUiCoordinateSpace.cs, src/TerrariaEncyclopedia/UI/ItemBrowserPanel.cs, tests/TerrariaEncyclopedia.Tests/TerrariaUiCoordinateSpaceTests.cs
+  - Locks: macos-terraria-process
+  - Estimate: small
+  - Acceptance: At 100% and 150% UI scale, hover and click targets align with the visible pointer across the viewport, tooltips stay adjacent and bounded, the foreground cursor redraw overlaps Terraria's native cursor, and section/category tabs visibly distinguish hover and selected states.
+  - Verify changed: dotnet test tests/TerrariaEncyclopedia.Tests/TerrariaEncyclopedia.Tests.csproj --filter FullyQualifiedName~TerrariaUiCoordinateSpaceTests
+  - Verify: dotnet test tests/TerrariaEncyclopedia.Tests/TerrariaEncyclopedia.Tests.csproj && dotnet build src/TerrariaEncyclopedia.Host.Mono/TerrariaEncyclopedia.Host.Mono.csproj -c Release -p:TerrariaReferencePath="/Users/josephanson/Library/Application Support/Steam/steamapps/common/Terraria/Terraria.app/Contents/Resources/Terraria.exe" -p:FnaReferencePath="/Users/josephanson/Library/Application Support/Steam/steamapps/common/Terraria/Terraria.app/Contents/Resources/FNA.dll"
+
+- [ ] T08 Add macOS release assembly, manifests, licence checks, and updated build/release documentation
+  - Depends on: T10
   - Writes: tools/Packager/**, docs/BUILDING.md, docs/RELEASING.md, README.md, tests/TerrariaEncyclopedia.Packager.Tests/**
   - Locks: dependency-manifest, release-layout
   - Estimate: medium

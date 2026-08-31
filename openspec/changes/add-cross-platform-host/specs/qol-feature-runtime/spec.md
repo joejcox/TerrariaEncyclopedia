@@ -44,10 +44,24 @@ The migrated Encyclopedia SHALL retain its current item, NPC, boss, recipe, drop
 - **WHEN** the user opens the migrated Encyclopedia in Terraria 1.4.5.8
 - **THEN** the information and interactions available in version 0.8.0 remain available without TerrariaModder
 
+### Requirement: Encyclopedia interaction follows Terraria UI scaling
+The migrated Encyclopedia SHALL use the same logical UI coordinate space as Terraria for pointer input, viewport bounds, deferred tooltips, and the foreground cursor redraw.
+
+#### Scenario: Scaled pointer interaction
+- **WHEN** Terraria's UI scale is 150% and the user moves or clicks across the Encyclopedia
+- **THEN** hover and click targets remain aligned with the visible pointer throughout the viewport
+
+#### Scenario: Scaled tooltip and cursor presentation
+- **WHEN** a scaled pointer hovers an Encyclopedia control near either side or edge of the viewport
+- **THEN** the tooltip stays adjacent to that pointer, remains inside the logical viewport, and the foreground cursor redraw overlaps Terraria's native cursor
+
+#### Scenario: Tab interaction feedback
+- **WHEN** the pointer hovers or selects an Items, NPCs, item-category, or NPC-category tab
+- **THEN** the tab presents a visible hover or selected highlight without changing its hit target
+
 ### Requirement: Runtime scope remains first-party
 The runtime SHALL load only features compiled and registered by this repository and SHALL NOT scan for or execute third-party feature assemblies.
 
 #### Scenario: Unrecognised assembly is placed beside the host
 - **WHEN** an arbitrary assembly is added to the distribution directory
 - **THEN** the runtime ignores it unless it is explicitly part of the compiled feature registry
-
