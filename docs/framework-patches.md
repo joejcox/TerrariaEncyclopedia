@@ -66,6 +66,22 @@ item, then end and restore the batch with whatever sampler was active before
 (mirrors the existing `BeginClip`/`EndClip` save-restore technique in the same
 file).
 
+## 4. `src/Core/UI/Widgets/ItemTooltip.cs` — no way to embed the full tooltip inline
+
+`ItemTooltip` only exposed `Set()` + `DrawDeferred()`, which renders the built
+tooltip lines as a floating popup positioned near the mouse cursor — no public
+way to get the built lines, or to render them at a fixed position, for
+embedding full item stats (damage, use time, knockback, defense, flavor text)
+directly into a mod's own UI layout instead of only on hover.
+
+**Fix**: extracted the existing word-wrap loop out of the private
+`RenderLines()` into a shared `BuildWrappedLines(maxContentWidth)` helper (used
+by both), and added a new public `DrawAt(itemType, x, y, maxWidth, prefix,
+stack)` that builds the same tooltip lines and draws them at an explicit
+position, returning the height consumed so callers can lay out content below
+it. Zero changes to the existing hover-tooltip behavior (`Set()`/
+`DrawDeferred()`/`RenderLines()` untouched apart from the extraction).
+
 ## Deploy checklist after rebuilding the framework from source
 
 1. `dotnet build src/Core/TerrariaModder.Core.csproj -c Release` (with patches

@@ -1,9 +1,9 @@
 {
   "id": "terraria-encyclopedia",
   "name": "Terraria Encyclopedia",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "author": "Joe Cox",
-  "description": "Read-only in-game item browser: search, category filters, icon grid, and an item details strip.",
+  "description": "Read-only in-game item browser with a full item detail page: stats, recipe, and a clickable \"used to make\" list for navigating between items.",
   "entry_dll": "TerrariaEncyclopedia.dll",
 
   "keybinds": [

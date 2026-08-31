@@ -16,7 +16,7 @@ namespace TerrariaEncyclopedia
     {
         public string Id => "terraria-encyclopedia";
         public string Name => "Terraria Encyclopedia";
-        public string Version => "0.2.0";
+        public string Version => "0.3.0";
 
         private ILogger _log;
         private ItemBrowserPanel _browser;

@@ -23,6 +23,8 @@ namespace TerrariaEncyclopedia.Content
         public string Name;
         public int MaxStack;
         public int Rarity;
+        public int Damage;
+        public int Defense;
         public ItemCategory Category;
     }
 
@@ -53,6 +55,8 @@ namespace TerrariaEncyclopedia.Content
                         Name = name,
                         MaxStack = item.maxStack,
                         Rarity = item.rare,
+                        Damage = item.damage,
+                        Defense = item.defense,
                         Category = Classify(item)
                     });
                 }
