@@ -5,6 +5,9 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+- Wiki-sourced boss data for the four Lunar Event pillars (Vortex/Nebula/Solar/Stardust), found missing via a live cross-check against every real in-game boss — total boss coverage is now 24/24. Their Type/Environment/Summoning/Aftermath/Tips fields are mostly empty (known gap: they share one combined wiki page structured unlike a standalone boss page); their live game data (stats, drops, hardmode marking) is unaffected.
+
 ## [0.8.0] - 2026-08-31
 
 ### Added
