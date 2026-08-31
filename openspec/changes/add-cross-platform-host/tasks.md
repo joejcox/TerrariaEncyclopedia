@@ -46,7 +46,7 @@
 
 ## 4. Distribution and Acceptance
 
-- [ ] T10 Align macOS pointer interaction, tooltips, cursor redraw, and tab feedback with Terraria UI scaling
+- [x] T10 Align macOS pointer interaction, tooltips, cursor redraw, and tab feedback with Terraria UI scaling
   - Depends on: T05
   - Writes: src/TerrariaEncyclopedia.Host.Mono/GameHost.cs, src/TerrariaEncyclopedia/Hosting/TerrariaUiCoordinateSpace.cs, src/TerrariaEncyclopedia/UI/ItemBrowserPanel.cs, tests/TerrariaEncyclopedia.Tests/TerrariaUiCoordinateSpaceTests.cs
   - Locks: macos-terraria-process
