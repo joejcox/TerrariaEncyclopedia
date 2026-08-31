@@ -41,6 +41,13 @@ public static class Program
         ("Moon Lord", "Moon_Lord", new[] { "Moon Lord", "Moon Lord's Hand", "Moon Lord's Core" }),
         ("Martian Saucer", "Martian_Saucer", new[] { "Martian Saucer" }),
         ("Empress of Light", "Empress_of_Light", new[] { "Empress of Light" }),
+        // Confirmed via a live boss-list dump (NPCID.Sets.ShouldBeCountedAsBossForBestiary) that
+        // these four were the only real bosses missing from this curated list — everything else
+        // already matched.
+        ("Vortex Pillar", "Vortex_Pillar", new[] { "Vortex Pillar" }),
+        ("Nebula Pillar", "Nebula_Pillar", new[] { "Nebula Pillar" }),
+        ("Solar Pillar", "Solar_Pillar", new[] { "Solar Pillar" }),
+        ("Stardust Pillar", "Stardust_Pillar", new[] { "Stardust Pillar" }),
     };
 
     public static async Task Main()

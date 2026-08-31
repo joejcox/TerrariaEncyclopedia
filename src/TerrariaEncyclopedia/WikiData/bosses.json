@@ -484,5 +484,69 @@
     "ExpertMode": null,
     "Aftermath": null,
     "Tips": "- The Guide to Critter Companionship can be used to avoid accidentally summoning the boss, as it prevents the player from damaging critters, including the Prismatic Lacewing.\n- Capturing Prismatic Lacewings with a Bug Net rather than killing them immediately allows the player to fight the Empress of Light at a proper time and place once prepared.\n- Although the Prismatic Lacewing can only spawn at night, the Empress of Light can be spawned at any time of day using captured Prismatic Lacewings.\n- If the Prismatic Lacewing is released outside of the Hallow, it will disappear very quickly. To ensure that it gets killed, the player can place the critter directly into a stationary area-of-effect projectile, such as a Clinger Staff\u0027s flame pillar or a Rainbow Gun\u0027s rainbow.\n- A Rod of Discord will help the player evade some of the Empress of Light\u0027s attacks.\n- If attempting to fight the Empress of Light during the day to obtain the Terraprisma, defense and damage resistance should be completely disregarded in favor of damage and mobility, as any damage taken will be beyond lethal regardless.\n  - The dash ability from the Shield of Cthulhu, Master Ninja Gear, or Solar Flare armor can increase mobility.\n  - Wings with hover or fast acceleration capabilities, such as Fishron or Betsy\u0027s Wings or the Jetpack, can be quite effective for dodging.\n  - Dodges from Holy Protection, the Black Belt and its upgrades, and the Brain of Confusion will not protect the player from death, so it is recommended to replace them with armor and accessories that increase damage output.\n  - If using the Rod of Discord during her daytime fight, the Chaos State debuff can be disregarded entirely unless the damage from it would also kill the player. Losing a fraction of health to Chaos State is far better than losing all of it to one of the Empress of Light\u0027s attacks.\n  - A riskier strategy would see the use of flying mounts instead of wings or boots, which would free up accessory slots for increased damage output.\n  - Arenas do not require structures that boost defense or health regeneration, like Campfires, Heart Lanterns, or Bast Statues, as taking any damage instantly kills the player.\n- Use weapons that are capable of dealing damage reliably from long range or have homing, such as the Blizzard Staff, Possessed Hatchet, Scourge of the Corruptor, Tsunami, Aerial Bane, Snowman Cannon, Chain Gun, or Tactical Shotgun with Chlorophyte Bullets.\n- A large arena constructed of Asphalt Blocks and layers of platforms is highly recommended, especially with the demand for mobility while fighting the Empress of Light during the day.\n- She is not immune to any practical debuffs. This can be a good extra source of damage, especially with the use of Ichor, Betsy\u0027s Curse, or Daybroken.\n- It is best to stay at an average level or below the Empress of Light as she zips above the player\u0027s position after every attack she does, making it more likely for the player to be killed by contact damage during the day or take unnecessary hits during the night."
+  },
+  {
+    "Name": "Vortex Pillar",
+    "WikiPage": "Vortex_Pillar",
+    "MatchNames": [
+      "Vortex Pillar"
+    ],
+    "Types": [],
+    "Environments": [],
+    "AiType": null,
+    "KbResist": null,
+    "ImmuneTo": [],
+    "Summoning": null,
+    "ExpertMode": null,
+    "Aftermath": null,
+    "Tips": null
+  },
+  {
+    "Name": "Nebula Pillar",
+    "WikiPage": "Nebula_Pillar",
+    "MatchNames": [
+      "Nebula Pillar"
+    ],
+    "Types": [],
+    "Environments": [],
+    "AiType": null,
+    "KbResist": null,
+    "ImmuneTo": [],
+    "Summoning": null,
+    "ExpertMode": null,
+    "Aftermath": null,
+    "Tips": null
+  },
+  {
+    "Name": "Solar Pillar",
+    "WikiPage": "Solar_Pillar",
+    "MatchNames": [
+      "Solar Pillar"
+    ],
+    "Types": [],
+    "Environments": [],
+    "AiType": null,
+    "KbResist": null,
+    "ImmuneTo": [],
+    "Summoning": null,
+    "ExpertMode": null,
+    "Aftermath": null,
+    "Tips": null
+  },
+  {
+    "Name": "Stardust Pillar",
+    "WikiPage": "Stardust_Pillar",
+    "MatchNames": [
+      "Stardust Pillar"
+    ],
+    "Types": [],
+    "Environments": [],
+    "AiType": null,
+    "KbResist": null,
+    "ImmuneTo": [],
+    "Summoning": null,
+    "ExpertMode": null,
+    "Aftermath": null,
+    "Tips": null
   }
 ]
