@@ -36,7 +36,7 @@
 
 ## 3. Feature Migration and Platforms
 
-- [ ] T05 Migrate Terraria Encyclopedia to the host feature interface and verify behavioural parity on macOS
+- [x] T05 Migrate Terraria Encyclopedia to the host feature interface and verify behavioural parity on macOS
   - Depends on: T02, T03, T04
   - Writes: TerrariaEncyclopedia.sln, src/TerrariaEncyclopedia.Host.Mono/**, src/TerrariaEncyclopedia/**, tests/TerrariaEncyclopedia.Tests/**, tests/smoke/macos-encyclopedia.sh
   - Locks: dependency-manifest, macos-terraria-process
