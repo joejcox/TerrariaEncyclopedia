@@ -55,7 +55,7 @@
   - Verify changed: dotnet test tests/TerrariaEncyclopedia.Tests/TerrariaEncyclopedia.Tests.csproj --filter FullyQualifiedName~TerrariaUiCoordinateSpaceTests
   - Verify: dotnet test tests/TerrariaEncyclopedia.Tests/TerrariaEncyclopedia.Tests.csproj && dotnet build src/TerrariaEncyclopedia.Host.Mono/TerrariaEncyclopedia.Host.Mono.csproj -c Release -p:TerrariaReferencePath="/Users/josephanson/Library/Application Support/Steam/steamapps/common/Terraria/Terraria.app/Contents/Resources/Terraria.exe" -p:FnaReferencePath="/Users/josephanson/Library/Application Support/Steam/steamapps/common/Terraria/Terraria.app/Contents/Resources/FNA.dll"
 
-- [ ] T11 Integrate current Encyclopedia content without regressing the macOS host
+- [x] T11 Integrate current Encyclopedia content without regressing the macOS host
   - Depends on: T10
   - Writes: CHANGELOG.md, README.md, docs/RELEASING.md, docs/framework-patches.md, tools/WikiScraper/Program.cs, src/TerrariaEncyclopedia.Host.Mono/GameHost.cs, src/TerrariaEncyclopedia/Content/**, src/TerrariaEncyclopedia/TerrariaEncyclopedia.csproj, src/TerrariaEncyclopedia/UI/EncyclopediaSectionSelection.cs, src/TerrariaEncyclopedia/UI/ItemBrowserPanel.cs, src/TerrariaEncyclopedia/WikiData/**, tests/TerrariaEncyclopedia.Tests/**
   - Locks: dependency-manifest, macos-terraria-process
