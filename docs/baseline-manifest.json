@@ -1,0 +1,11 @@
+{
+  "recordedAt": "2026-08-31 03:29:29",
+  "terrariaInstallPath": "F:\\SteamLibrary\\steamapps\\common\\Terraria",
+  "detectedTerrariaVersion": "1.4.5.8",
+  "steamBuildId": "24893155",
+  "executableHashes": {
+    "Terraria.exe": "960A03BFF6050CF7BE16DFC1A7B19E10FC2C4F8F835A6A3B135A50DD9E6BA2F3",
+    "TerrariaServer.exe": "328872C65A4A7A94F050EAD1566F1567AF15C3193D4D7008A460507D3686D7C2",
+    "steam_api.dll": "8D36DE57CC6436F4E82EE672023F17A7F83A7A55AF558582C2C139F83FB33ED0"
+  }
+}

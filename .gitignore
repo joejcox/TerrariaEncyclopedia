@@ -1,0 +1,11 @@
+bin/
+obj/
+build/
+*.wld
+*.wld.bak
+*.plr
+*.plr.bak
+*.map
+Backups/
+*.dll
+Terraria/
