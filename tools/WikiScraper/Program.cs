@@ -78,6 +78,8 @@ public static class Program
                 ParseStatisticsTable(doc, info);
                 info.Summoning = ExtractSection(doc, "Summoning_and_spawning", "Summoning", "Spawning");
                 info.ExpertMode = ExtractSection(doc, "Expert_Mode");
+                info.Aftermath = ExtractSection(doc, "Aftermath");
+                info.Tips = ExtractSection(doc, "Tips");
 
                 results.Add(info);
             }
@@ -134,6 +136,29 @@ public static class Program
     }
 
     /// <summary>
+    /// Recursively collects list items, indenting nested sub-lists. Each &lt;li&gt;'s own text is
+    /// taken with any nested &lt;ul&gt; removed first — a plain .InnerText on a &lt;li&gt; that
+    /// contains a nested list recursively includes the nested items' text too, so selecting both
+    /// the parent and the nested &lt;li&gt; via a single ".//li" query double-counts the nested
+    /// content (confirmed: several bosses' Expert Mode text had entire sentences duplicated).
+    /// </summary>
+    private static void CollectListItems(HtmlNode ul, string indent, List<string> parts)
+    {
+        foreach (var li in ul.SelectNodes("./li") ?? Enumerable.Empty<HtmlNode>())
+        {
+            var clone = li.CloneNode(true);
+            foreach (var nestedUl in (clone.SelectNodes(".//ul") ?? Enumerable.Empty<HtmlNode>()).ToList())
+                nestedUl.Remove();
+
+            string text = HtmlEntity.DeEntitize(clone.InnerText).Trim();
+            if (text.Length > 0) parts.Add(indent + "- " + text);
+
+            var childUl = li.SelectSingleNode("./ul");
+            if (childUl != null) CollectListItems(childUl, indent + "  ", parts);
+        }
+    }
+
+    /// <summary>
     /// Plain-text content between a named heading (by its mw-headline id) and the next heading
     /// of equal-or-higher level. h2 sections often contain their own h3 sub-sections (e.g.
     /// "Summoning and spawning" > "Manual"/"Random") — those are included as sub-labels, not
@@ -171,11 +196,7 @@ public static class Program
             }
             else if (node.Name == "ul")
             {
-                foreach (var li in node.SelectNodes(".//li") ?? Enumerable.Empty<HtmlNode>())
-                {
-                    string text = HtmlEntity.DeEntitize(li.InnerText).Trim();
-                    if (text.Length > 0) parts.Add("- " + text);
-                }
+                CollectListItems(node, "", parts);
             }
 
             node = node.NextSibling;
@@ -184,8 +205,10 @@ public static class Program
         if (parts.Count == 0) return null;
 
         // Strip "[edit]" section-edit links and "[3]"-style footnote reference markers that
-        // bleed into InnerText from nested <span>/<sup> markup — noise, not content.
-        string joined = string.Join(" ", parts);
+        // bleed into InnerText from nested <span>/<sup> markup — noise, not content. Joined with
+        // newlines (not spaces) so bullet points and paragraphs each land on their own line
+        // instead of running together as one continuous paragraph.
+        string joined = string.Join("\n", parts);
         joined = System.Text.RegularExpressions.Regex.Replace(joined, @"\[edit\]", "");
         joined = System.Text.RegularExpressions.Regex.Replace(joined, @"\[\d+\]", "");
         return joined.Trim();
@@ -241,4 +264,6 @@ public class BossInfo
     public string[] ImmuneTo { get; set; } = Array.Empty<string>();
     public string? Summoning { get; set; }
     public string? ExpertMode { get; set; }
+    public string? Aftermath { get; set; }
+    public string? Tips { get; set; }
 }

@@ -19,6 +19,8 @@ namespace TerrariaEncyclopedia.Content
         public string[] ImmuneTo { get; set; }
         public string Summoning { get; set; }
         public string ExpertMode { get; set; }
+        public string Aftermath { get; set; }
+        public string Tips { get; set; }
     }
 
     /// <summary>

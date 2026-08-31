@@ -105,7 +105,7 @@ namespace TerrariaEncyclopedia.UI
 
         public ItemBrowserPanel()
         {
-            _panel = new DraggablePanel("terraria-encyclopedia", "Terraria Encyclopedia", 600, 500);
+            _panel = new DraggablePanel("terraria-encyclopedia", "Terraria Encyclopedia", 1200, 750);
             // Same UIScale/scissor-rect mismatch found in Phase 1 — see Mod.cs history.
             _panel.ClipContent = false;
             _panel.RegisterDrawCallback(OnDraw);
@@ -890,7 +890,7 @@ namespace TerrariaEncyclopedia.UI
         private int DrawWrappedText(string text, int x, int y, int maxWidth, TerrariaModder.Core.UI.Color4 color)
         {
             var lines = WrapTextLines(text, maxWidth);
-            int lineHeight = 18;
+            int lineHeight = UIRenderer.TextLineHeight;
             for (int i = 0; i < lines.Count; i++)
                 UIRenderer.DrawText(lines[i], x, y + i * lineHeight, color);
             return lines.Count * lineHeight;
@@ -899,47 +899,83 @@ namespace TerrariaEncyclopedia.UI
         private List<string> WrapTextLines(string text, int maxWidth)
         {
             var result = new List<string>();
-            var words = text.Split(' ');
-            string line = "";
-            foreach (var word in words)
+
+            // Wiki-scraped text uses "\n" as a forced break between bullet points/paragraphs —
+            // word-wrap each of those independently rather than treating the whole block as one
+            // continuous run-on paragraph.
+            foreach (var paragraph in text.Replace("\r\n", "\n").Split('\n'))
             {
-                string candidate = line.Length == 0 ? word : line + " " + word;
-                if (TextUtil.MeasureWidth(candidate) > maxWidth && line.Length > 0)
+                var words = paragraph.Split(' ');
+                string line = "";
+                foreach (var word in words)
                 {
-                    result.Add(line);
-                    line = word;
+                    string candidate = line.Length == 0 ? word : line + " " + word;
+                    if (TextUtil.MeasureWidth(candidate) > maxWidth && line.Length > 0)
+                    {
+                        result.Add(line);
+                        line = word;
+                    }
+                    else
+                    {
+                        line = candidate;
+                    }
                 }
-                else
-                {
-                    line = candidate;
-                }
+                result.Add(line); // even an empty paragraph preserves the blank line
             }
-            if (line.Length > 0) result.Add(line);
             return result;
         }
 
         // Chance/stack/conditions text can run long ("Not Expert, First Time Killing Plantera")
         // — its own row beneath the name avoids overflowing the panel instead of a fixed-width
         // column, which is what the plain single-line RowHeight rows use for short "x1"/"x99".
-        private const int DropRowHeight = 48;
+        // Computed from the game's real font height (UIRenderer.TextLineHeight), not a guessed
+        // constant — a hardcoded 18-20px guess overlapped badly on long wrapped text (worse the
+        // more lines stacked), since the actual rendered font is taller than that.
+        private static int DropRowHeight => 24 + UIRenderer.TextLineHeight + 8;
 
-        private const int TextRowHeight = 20;
+        private static int TextRowHeight => UIRenderer.TextLineHeight;
 
-        private void AddWrappedRows(List<(string Header, ItemEntry Item, string Suffix, int Height)> rows,
-            string text, int width)
+        private static readonly Color4 LabelPurple = new Color4(190, 130, 230);
+        private static readonly Color4 LabelGreen = new Color4(120, 200, 120);
+        private static readonly Color4 LabelBlue = new Color4(120, 170, 230);
+        private static readonly Color4 LabelTeal = new Color4(90, 200, 190);
+        private static readonly Color4 LabelRed = new Color4(220, 100, 100);
+
+        private class BodyRow
+        {
+            public string Header;
+            public string SectionKey; // non-null on a header row that should be collapsible
+            public ItemEntry Item;
+            public string Suffix;
+            public string Label;
+            public Color4? LabelColor;
+            public string LabelTooltip;
+            public int Height;
+        }
+
+        private readonly HashSet<string> _collapsedSections = new HashSet<string>();
+
+        private void AddWrappedRows(List<BodyRow> rows, string text, int width)
         {
             foreach (var line in WrapTextLines(text, width))
-                rows.Add((null, null, line, TextRowHeight));
+                rows.Add(new BodyRow { Suffix = line, Height = TextRowHeight });
+        }
+
+        /// <summary>Adds a clickable, collapsible section header, then the body rows (via addBody) unless collapsed.</summary>
+        private void AddSection(List<BodyRow> rows, string key, Action addBody)
+        {
+            rows.Add(new BodyRow { Header = key, SectionKey = key, Height = RowHeight });
+            if (!_collapsedSections.Contains(key)) addBody();
         }
 
         private void DrawNpcBody(int x, int y, int width, int height, NpcEntry entry)
         {
-            var rows = new List<(string Header, ItemEntry Item, string Suffix, int Height)>();
+            var rows = new List<BodyRow>();
 
             if (!string.IsNullOrEmpty(entry.Description))
             {
-                AddWrappedRows(rows, entry.Description, width);
-                rows.Add((null, null, "", 8)); // spacer
+                AddSection(rows, "Description", () => AddWrappedRows(rows, entry.Description, width));
+                rows.Add(new BodyRow { Suffix = "", Height = 8 }); // spacer
             }
 
             if (entry.IsBoss)
@@ -947,42 +983,57 @@ namespace TerrariaEncyclopedia.UI
                 var wiki = WikiEnrichment.GetBossInfo(entry.Name);
                 if (wiki != null)
                 {
-                    rows.Add(("Boss Info", null, null, RowHeight));
-                    var facts = new List<string>();
-                    if (wiki.Types?.Length > 0) facts.Add("Type: " + string.Join(", ", wiki.Types));
-                    if (wiki.Environments?.Length > 0) facts.Add("Environment: " + string.Join(", ", wiki.Environments));
-                    if (!string.IsNullOrEmpty(wiki.AiType)) facts.Add("AI: " + wiki.AiType);
-                    if (!string.IsNullOrEmpty(wiki.KbResist)) facts.Add("KB Resist: " + wiki.KbResist);
-                    if (wiki.ImmuneTo?.Length > 0) facts.Add("Immune to: " + string.Join(", ", wiki.ImmuneTo));
-                    foreach (var fact in facts) AddWrappedRows(rows, fact, width);
+                    AddSection(rows, "Boss Info", () =>
+                    {
+                        if (wiki.Types?.Length > 0)
+                            rows.Add(new BodyRow { Label = "Type", LabelColor = LabelPurple, Suffix = string.Join(", ", wiki.Types), Height = TextRowHeight });
+                        if (wiki.Environments?.Length > 0)
+                            rows.Add(new BodyRow { Label = "Environment", LabelColor = LabelGreen, Suffix = string.Join(", ", wiki.Environments), Height = TextRowHeight });
+                        if (!string.IsNullOrEmpty(wiki.AiType))
+                            rows.Add(new BodyRow { Label = "AI", LabelColor = LabelBlue, Suffix = wiki.AiType, Height = TextRowHeight });
+                        if (!string.IsNullOrEmpty(wiki.KbResist))
+                            rows.Add(new BodyRow { Label = "KB Resist", LabelColor = LabelTeal, LabelTooltip = "Knockback Resistance", Suffix = wiki.KbResist, Height = TextRowHeight });
+                        if (wiki.ImmuneTo?.Length > 0)
+                            rows.Add(new BodyRow { Label = "Immune to", LabelColor = LabelRed, Suffix = string.Join(", ", wiki.ImmuneTo), Height = TextRowHeight });
+                    });
+                    rows.Add(new BodyRow { Suffix = "", Height = 8 });
 
                     if (!string.IsNullOrEmpty(wiki.Summoning))
                     {
-                        rows.Add((null, null, "", 6));
-                        rows.Add(("Summoning & Spawning", null, null, RowHeight));
-                        AddWrappedRows(rows, wiki.Summoning, width);
+                        AddSection(rows, "Summoning & Spawning", () => AddWrappedRows(rows, wiki.Summoning, width));
+                        rows.Add(new BodyRow { Suffix = "", Height = 6 });
                     }
 
                     if (!string.IsNullOrEmpty(wiki.ExpertMode))
                     {
-                        rows.Add((null, null, "", 6));
-                        rows.Add(("Expert Mode", null, null, RowHeight));
-                        AddWrappedRows(rows, wiki.ExpertMode, width);
+                        AddSection(rows, "Expert Mode", () => AddWrappedRows(rows, wiki.ExpertMode, width));
+                        rows.Add(new BodyRow { Suffix = "", Height = 6 });
                     }
 
-                    rows.Add((null, null, "", 8)); // spacer
+                    if (!string.IsNullOrEmpty(wiki.Aftermath))
+                    {
+                        AddSection(rows, "Aftermath", () => AddWrappedRows(rows, wiki.Aftermath, width));
+                        rows.Add(new BodyRow { Suffix = "", Height = 6 });
+                    }
+
+                    if (!string.IsNullOrEmpty(wiki.Tips))
+                    {
+                        AddSection(rows, "Tips", () => AddWrappedRows(rows, wiki.Tips, width));
+                        rows.Add(new BodyRow { Suffix = "", Height = 6 });
+                    }
                 }
             }
 
             var drops = DropCatalogue.DropsFor(entry.Id).OrderByDescending(d => d.Chance).ToList();
 
-            rows.Add(("Drops", null, null, RowHeight));
-            if (drops.Count == 0)
+            AddSection(rows, "Drops", () =>
             {
-                rows.Add((null, null, "No known item drops (may drop coins only, or nothing).", RowHeight));
-            }
-            else
-            {
+                if (drops.Count == 0)
+                {
+                    rows.Add(new BodyRow { Suffix = "No known item drops (may drop coins only, or nothing).", Height = RowHeight });
+                    return;
+                }
+
                 foreach (var drop in drops)
                 {
                     if (!_byId.TryGetValue(drop.ItemId, out var itemEntry)) continue;
@@ -993,9 +1044,9 @@ namespace TerrariaEncyclopedia.UI
                         ? $"{chance}  {stack}"
                         : $"{chance}  {stack}  ({string.Join(", ", drop.Conditions)})";
 
-                    rows.Add((null, itemEntry, suffix, DropRowHeight));
+                    rows.Add(new BodyRow { Item = itemEntry, Suffix = suffix, Height = DropRowHeight });
                 }
-            }
+            });
 
             int contentHeight = rows.Sum(r => r.Height);
             _npcDetailScroll.Begin(x, y, width, height, contentHeight);
@@ -1006,7 +1057,7 @@ namespace TerrariaEncyclopedia.UI
                 if (_npcDetailScroll.IsVisible(rowY, row.Height))
                 {
                     int drawY = _npcDetailScroll.ContentY + rowY;
-                    DrawNpcDropRow(x, drawY, width, row.Header, row.Item, row.Suffix);
+                    DrawNpcBodyRow(x, drawY, width, row);
                 }
                 rowY += row.Height;
             }
@@ -1014,38 +1065,61 @@ namespace TerrariaEncyclopedia.UI
             _npcDetailScroll.End();
         }
 
-        private void DrawNpcDropRow(int x, int y, int width, string header, ItemEntry item, string suffix)
+        private void DrawNpcBodyRow(int x, int y, int width, BodyRow row)
         {
-            if (header != null)
+            if (row.SectionKey != null)
             {
-                UIRenderer.DrawText(header, x, y + 8, UIColors.TextTitle);
+                bool collapsed = _collapsedSections.Contains(row.SectionKey);
+                bool isHover = WidgetInput.IsMouseOver(x, y, width, RowHeight);
+                if (isHover) UIRenderer.DrawRect(x, y, width, RowHeight, UIColors.SectionBg);
+
+                string arrow = collapsed ? "> " : "v ";
+                UIRenderer.DrawText(arrow + row.Header, x, y + 8, UIColors.TextTitle);
+
+                if (isHover && WidgetInput.MouseLeftClick)
+                {
+                    WidgetInput.ConsumeClick();
+                    if (collapsed) _collapsedSections.Remove(row.SectionKey);
+                    else _collapsedSections.Add(row.SectionKey);
+                }
                 return;
             }
 
-            if (item == null)
+            if (row.Label != null)
             {
-                UIRenderer.DrawText(suffix, x + 4, y + 8, UIColors.TextDim);
+                UIRenderer.DrawText(row.Label + ":", x + 4, y + 4, row.LabelColor ?? UIColors.TextDim);
+                int labelWidth = TextUtil.MeasureWidth(row.Label + ": ");
+                UIRenderer.DrawText(row.Suffix, x + 4 + labelWidth, y + 4, UIColors.Text);
+
+                if (row.LabelTooltip != null && WidgetInput.IsMouseOver(x, y, width, TextRowHeight))
+                    Tooltip.Set(row.LabelTooltip);
                 return;
             }
 
-            bool isHover = WidgetInput.IsMouseOver(x, y, width, DropRowHeight - 4);
-            if (isHover)
+            if (row.Item == null)
+            {
+                UIRenderer.DrawText(row.Suffix, x + 4, y + 4, UIColors.TextDim);
+                return;
+            }
+
+            bool isRowHover = WidgetInput.IsMouseOver(x, y, width, DropRowHeight - 4);
+            if (isRowHover)
                 UIRenderer.DrawRect(x, y, width, DropRowHeight - 4, UIColors.InputFocusBg);
 
-            UIRenderer.DrawItem(item.Id, x, y, 28, 28);
-            UIRenderer.DrawText(item.Name, x + 34, y + 4, isHover ? UIColors.AccentText : UIColors.Text);
-            if (suffix != null)
-                DrawWrappedText(suffix, x + 34, y + 24, width - 34, UIColors.TextDim);
+            UIRenderer.DrawItem(row.Item.Id, x, y, 28, 28);
+            UIRenderer.DrawText(row.Item.Name, x + 34, y + 4, isRowHover ? UIColors.AccentText : UIColors.Text);
+            if (row.Suffix != null)
+                DrawWrappedText(row.Suffix, x + 34, y + 24, width - 34, UIColors.TextDim);
 
-            if (isHover)
+            if (isRowHover)
             {
-                ItemTooltip.Set(item.Id);
+                ItemTooltip.Set(row.Item.Id);
                 if (WidgetInput.MouseLeftClick)
                 {
                     // Cross-section navigation: jump straight to the item's own detail page.
                     _section = Section.Items;
                     _history.Clear();
-                    OpenDetail(item);
+                    OpenDetail(row.Item);
                     WidgetInput.ConsumeClick();
                 }
             }

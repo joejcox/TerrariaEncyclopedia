@@ -1,7 +1,7 @@
 {
   "id": "terraria-encyclopedia",
   "name": "Terraria Encyclopedia",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "author": "Joe Cox",
   "description": "Read-only in-game Item and NPC/boss browser: recipes, sortable/filterable grids, real drop-rate data, and wiki-sourced boss info (type, environment, summoning, hardmode) for the 20 vanilla bosses.",
   "entry_dll": "TerrariaEncyclopedia.dll",
