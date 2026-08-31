@@ -1,0 +1,5 @@
+schema: spec-driven
+created: 2026-08-31
+goal: Replace the TerrariaModder dependency with a repository-owned minimal host
+  for Terraria Encyclopedia, preserving Windows behaviour while enabling native
+  Linux and macOS support.
