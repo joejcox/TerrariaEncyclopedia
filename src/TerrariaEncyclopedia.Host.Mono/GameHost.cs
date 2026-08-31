@@ -12,6 +12,7 @@ using Microsoft.Xna.Framework.Input;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.GameInput;
+using TerrariaEncyclopedia.Hosting;
 using TerrariaEncyclopedia.Runtime;
 using TerrariaEncyclopedia.Runtime.UI.Fna;
 using TerrariaEncyclopedia.Runtime.UI.Input;
@@ -147,7 +148,7 @@ namespace TerrariaEncyclopedia.Host.Mono
             catch (Exception exception)
             {
                 Console.Error.WriteLine("Terraria Encyclopedia initialisation failed: " + exception);
-                WriteMarker("feature-host-failed", exception.GetType().Name);
+                DisableFeature("feature-host-failed", exception.GetType().Name);
             }
         }
 
@@ -200,8 +201,8 @@ namespace TerrariaEncyclopedia.Host.Mono
             }
             catch (Exception exception)
             {
-                RestoreInputBlock();
                 Console.Error.WriteLine("Terraria Encyclopedia update host failed: " + exception);
+                DisableFeature("feature-host-failed", "update-" + exception.GetType().Name);
             }
         }
 
@@ -219,13 +220,21 @@ namespace TerrariaEncyclopedia.Host.Mono
             }
             catch (Exception exception)
             {
-                RestoreInputBlock();
                 Console.Error.WriteLine("Terraria Encyclopedia render host failed: " + exception);
+                DisableFeature("feature-host-failed", "render-" + exception.GetType().Name);
             }
             finally
             {
-                renderer.EndFrame();
-                if (feature?.IsOpen == true)
+                try
+                {
+                    renderer.EndFrame();
+                }
+                catch (Exception exception)
+                {
+                    Console.Error.WriteLine("Terraria Encyclopedia render cleanup failed: " + exception);
+                    DisableFeature("feature-host-failed", "render-cleanup-" + exception.GetType().Name);
+                }
+                if (initialised && feature?.IsOpen == true)
                 {
                     try
                     {
@@ -243,7 +252,11 @@ namespace TerrariaEncyclopedia.Host.Mono
         {
             try
             {
-                runtime?.Unload();
+                var cleanup = new FeatureFailureCleanup(
+                    () => runtime?.Unload(),
+                    () => renderer?.ReleaseTextEntry(),
+                    RestoreInputBlock);
+                cleanup.Run();
             }
             catch (Exception exception)
             {
@@ -251,7 +264,6 @@ namespace TerrariaEncyclopedia.Host.Mono
             }
             finally
             {
-                RestoreInputBlock();
                 initialised = false;
             }
         }
@@ -329,9 +341,9 @@ namespace TerrariaEncyclopedia.Host.Mono
             FeatureStatus status = runtime?.Features.SingleOrDefault();
             if (status != null && !status.IsEnabled)
             {
-                RestoreInputBlock();
-                initialised = false;
-                WriteMarker("feature-disabled", status.Failure?.Stage.ToString() ?? "unknown");
+                DisableFeature(
+                    "feature-disabled",
+                    status.Failure?.Stage.ToString() ?? "unknown");
                 return;
             }
 
@@ -379,6 +391,27 @@ namespace TerrariaEncyclopedia.Host.Mono
             overlayOwnsInputBlock = false;
         }
 
+        private static void DisableFeature(string phase, string detail)
+        {
+            try
+            {
+                var cleanup = new FeatureFailureCleanup(
+                    () => runtime?.Unload(),
+                    () => renderer?.ReleaseTextEntry(),
+                    RestoreInputBlock);
+                cleanup.Run();
+            }
+            catch (Exception exception)
+            {
+                Console.Error.WriteLine("Terraria Encyclopedia failure cleanup failed: " + exception);
+            }
+            finally
+            {
+                initialised = false;
+                WriteMarker(phase, detail);
+            }
+        }
+
         private sealed class ConsoleLogSink : IFeatureLogSink
         {
             public void Write(FeatureLogEntry entry)
@@ -420,6 +453,8 @@ namespace TerrariaEncyclopedia.Host.Mono
             public IItemTooltipSource ItemTooltips => itemTooltips;
 
             public int TooltipBuildCount => itemTooltips.BuildCount;
+
+            public void ReleaseTextEntry() => textEntry.Release();
 
             public int TextLineHeight => RequireRenderer().TextLineHeight;
 
@@ -659,6 +694,13 @@ namespace TerrariaEncyclopedia.Host.Mono
             public void End(string ownerId)
             {
                 if (!string.Equals(owner, ownerId, StringComparison.Ordinal))
+                    return;
+                Release();
+            }
+
+            public void Release()
+            {
+                if (owner == null)
                     return;
                 PlayerInput.WritingText = previousWritingText;
                 Main.blockInput = previousBlockInput;

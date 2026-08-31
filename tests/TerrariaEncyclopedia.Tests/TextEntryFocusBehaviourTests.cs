@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using TerrariaEncyclopedia.Hosting;
 using TerrariaEncyclopedia.Runtime.UI.Input;
 using TerrariaEncyclopedia.UI;
 using Xunit;
@@ -11,19 +13,22 @@ namespace TerrariaEncyclopedia.Tests
         public void SectionSwitchReleasesOutgoingSearchBeforeToggleEligibilityIsChecked()
         {
             var underlying = new RecordingTextEntrySession();
-            var focus = new FocusHarness(new ExclusiveTextEntrySession(underlying));
+            var session = new ExclusiveTextEntrySession(underlying);
+            var section = new EncyclopediaSectionSelection(
+                () => session.End(ItemsOwner),
+                () => session.End(NpcsOwner));
 
-            focus.Focus(ItemsOwner);
-            Assert.False(focus.CanToggleWithP);
+            session.Begin(ItemsOwner);
+            Assert.False(CanToggleWithP(session));
 
-            focus.SwitchSection(NpcsOwner);
-            Assert.True(focus.CanToggleWithP);
+            section.SwitchTo(EncyclopediaSection.Npcs);
+            Assert.True(CanToggleWithP(session));
 
-            focus.Focus(NpcsOwner);
-            Assert.False(focus.CanToggleWithP);
+            session.Begin(NpcsOwner);
+            Assert.False(CanToggleWithP(session));
 
-            focus.Unfocus(NpcsOwner);
-            Assert.True(focus.CanToggleWithP);
+            session.End(NpcsOwner);
+            Assert.True(CanToggleWithP(session));
             Assert.Equal(
                 new[] { "begin:" + ItemsOwner, "end:" + ItemsOwner, "begin:" + NpcsOwner, "end:" + NpcsOwner },
                 underlying.Events);
@@ -45,34 +50,31 @@ namespace TerrariaEncyclopedia.Tests
                 underlying.Events);
         }
 
+        [Fact]
+        public void FeatureFailureReleasesTextEntryAndInputWhenUnloadThrows()
+        {
+            var events = new List<string>();
+            var cleanup = new FeatureFailureCleanup(
+                () =>
+                {
+                    events.Add("unload");
+                    throw new InvalidOperationException("simulated feature failure");
+                },
+                () => events.Add("release-text-entry"),
+                () => events.Add("restore-input-block"));
+
+            Assert.Throws<InvalidOperationException>(() => cleanup.Run());
+            Assert.Equal(
+                new[] { "unload", "release-text-entry", "restore-input-block" },
+                events);
+        }
+
         private const string ItemsOwner = "terraria-encyclopedia-items";
         private const string NpcsOwner = "terraria-encyclopedia-npcs";
 
-        private sealed class FocusHarness
+        private static bool CanToggleWithP(ExclusiveTextEntrySession session)
         {
-            private readonly ExclusiveTextEntrySession session;
-            private string section = ItemsOwner;
-
-            public FocusHarness(ExclusiveTextEntrySession session)
-            {
-                this.session = session;
-            }
-
-            public bool CanToggleWithP =>
-                !session.IsOwner(ItemsOwner) && !session.IsOwner(NpcsOwner);
-
-            public void Focus(string nextOwner) => session.Begin(nextOwner);
-
-            public void SwitchSection(string nextSection)
-            {
-                if (section == nextSection)
-                    return;
-
-                session.End(section);
-                section = nextSection;
-            }
-
-            public void Unfocus(string endingOwner) => session.End(endingOwner);
+            return !session.IsOwner(ItemsOwner) && !session.IsOwner(NpcsOwner);
         }
 
         private sealed class RecordingTextEntrySession : ITextEntrySession

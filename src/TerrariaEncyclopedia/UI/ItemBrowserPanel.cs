@@ -14,8 +14,6 @@ namespace TerrariaEncyclopedia.UI
     /// </summary>
     public class ItemBrowserPanel
     {
-        private enum Section { Items, Npcs }
-
         private const int SectionToggleHeight = 30;
 
         private enum ViewMode { Grid, Detail }
@@ -72,7 +70,7 @@ namespace TerrariaEncyclopedia.UI
         private ItemEntry _detailItem;
         private readonly EntryNavigation _navigation = new EntryNavigation();
 
-        private Section _section = Section.Items;
+        private readonly EncyclopediaSectionSelection _section;
 
         // ── NPC section state ──
         private static readonly (NpcFilter Tab, string Label)[] NpcTabs =
@@ -103,6 +101,7 @@ namespace TerrariaEncyclopedia.UI
             _data = data ?? throw new ArgumentNullException(nameof(data));
             _search = new TextInput("terraria-encyclopedia-items", "Search items...", 200);
             _npcSearch = new TextInput("terraria-encyclopedia-npcs", "Search NPCs...", 200);
+            _section = new EncyclopediaSectionSelection(_search.Unfocus, _npcSearch.Unfocus);
             _panel = new DraggablePanel("terraria-encyclopedia", "Terraria Encyclopedia", 1200, 750);
             // Same UIScale/scissor-rect mismatch found in Phase 1 — see Mod.cs history.
             _panel.ClipContent = false;
@@ -214,7 +213,7 @@ namespace TerrariaEncyclopedia.UI
             {
                 DrawSectionToggle(_panel.ContentX, _panel.ContentY, _panel.ContentWidth);
 
-                if (_section == Section.Items)
+                if (_section.Current == EncyclopediaSection.Items)
                 {
                     if (_view == ViewMode.Grid) DrawGridView();
                     else DrawDetailView();
@@ -234,13 +233,13 @@ namespace TerrariaEncyclopedia.UI
         private void DrawSectionToggle(int x, int y, int width)
         {
             int halfWidth = width / 2;
-            DrawSectionButton(x, y, halfWidth - 2, "Items", Section.Items);
-            DrawSectionButton(x + halfWidth + 2, y, width - halfWidth - 2, "NPCs", Section.Npcs);
+            DrawSectionButton(x, y, halfWidth - 2, "Items", EncyclopediaSection.Items);
+            DrawSectionButton(x + halfWidth + 2, y, width - halfWidth - 2, "NPCs", EncyclopediaSection.Npcs);
         }
 
-        private void DrawSectionButton(int x, int y, int width, string label, Section section)
+        private void DrawSectionButton(int x, int y, int width, string label, EncyclopediaSection section)
         {
-            bool isActive = _section == section;
+            bool isActive = _section.Current == section;
             bool isHover = WidgetInput.IsMouseOver(x, y, width, SectionToggleHeight - 4);
 
             UIRenderer.DrawRect(x, y, width, SectionToggleHeight - 4,
@@ -253,24 +252,8 @@ namespace TerrariaEncyclopedia.UI
             if (isHover && WidgetInput.MouseLeftClick)
             {
                 WidgetInput.ConsumeClick();
-                if (_section != section)
-                {
-                    SwitchSection(section);
-                }
+                _section.SwitchTo(section);
             }
-        }
-
-        private void SwitchSection(Section section)
-        {
-            if (_section == section)
-                return;
-
-            if (_section == Section.Items)
-                _search.Unfocus();
-            else
-                _npcSearch.Unfocus();
-
-            _section = section;
         }
 
         private void DrawGridView()
@@ -1279,7 +1262,7 @@ namespace TerrariaEncyclopedia.UI
                 if (WidgetInput.MouseLeftClick)
                 {
                     // Cross-section navigation: jump straight to the item's own detail page.
-                    SwitchSection(Section.Items);
+                    _section.SwitchTo(EncyclopediaSection.Items);
                     _navigation.Home();
                     OpenDetail(row.Item);
                     WidgetInput.ConsumeClick();

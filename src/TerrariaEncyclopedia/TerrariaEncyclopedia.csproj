@@ -33,6 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="TerrariaEncyclopedia.Host.Mono" />
     <InternalsVisibleTo Include="TerrariaEncyclopedia.Tests" />
   </ItemGroup>
 
