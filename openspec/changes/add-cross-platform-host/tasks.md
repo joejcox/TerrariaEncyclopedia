@@ -10,7 +10,7 @@
 
 ## 2. Bootstrap and Feature Runtime
 
-- [ ] T02 Implement and prove the non-destructive macOS pre-entry bootstrap against the installed Apple Silicon Terraria copy
+- [x] T02 Implement and prove the non-destructive macOS pre-entry bootstrap against the installed Apple Silicon Terraria copy
   - Depends on: T01
   - Writes: src/TerrariaEncyclopedia.Host.Mono/**, scripts/launch-macos.sh, tests/smoke/macos-bootstrap.sh
   - Locks: macos-terraria-process
@@ -18,7 +18,7 @@
   - Acceptance: The smoke check starts the original macOS launcher with a host marker loaded before the Terraria entry point, observes the marker, terminates the test process, and confirms the managed game assembly hash is unchanged.
   - Verify: tests/smoke/macos-bootstrap.sh --terraria-path "/Users/josephanson/Library/Application Support/Steam/steamapps/common/Terraria"
 
-- [ ] T03 Implement the first-party feature registry, lifecycle, failure isolation, logging, and input interfaces with fake-feature tests
+- [x] T03 Implement the first-party feature registry, lifecycle, failure isolation, logging, and input interfaces with fake-feature tests
   - Depends on: T01
   - Writes: src/TerrariaEncyclopedia.Runtime/**, tests/TerrariaEncyclopedia.Runtime.Tests/**
   - Locks: none
