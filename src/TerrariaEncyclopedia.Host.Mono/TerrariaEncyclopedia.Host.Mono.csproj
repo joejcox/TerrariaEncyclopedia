@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>TerrariaEncyclopedia.Host.Mono</AssemblyName>
+    <RootNamespace>TerrariaEncyclopedia.Host.Mono</RootNamespace>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+</Project>
