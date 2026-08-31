@@ -20,10 +20,32 @@
       <HintPath>..\..\Terraria\TerrariaModder\core\TerrariaModder.Core.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <!-- Same physical 0Harmony.dll TerrariaInjector itself loads (Terraria/0Harmony.dll, next
+         to TerrariaInjector.exe) — Private=false so we don't ship a second copy, which is
+         exactly the duplicate-Harmony bug that broke every keybind earlier in this project
+         (see docs/framework-patches.md, patch #2). -->
+    <Reference Include="0Harmony">
+      <HintPath>..\..\Terraria\0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
     <!-- Part of the .NET Framework 4.8 BCL (System.Web.Extensions), not a NuGet package —
          used for JavaScriptSerializer to read the wiki-scraper's JSON without risking a
          duplicate-assembly-load conflict (see docs/framework-patches.md, patch #2). -->
     <Reference Include="System.Web.Extensions" />
+    <!-- Calling Main.OpenPlayerChat() specifically requires the compiler to resolve Main's base
+         type chain, which needs these assemblies' identity even though Terraria.exe's own merged
+         types cover Vector2/Color/etc. already. Installed in the GAC by the XNA 4.0
+         redistributable Terraria ships alongside (xnafx40_redist.msi) — the modern SDK-style
+         build doesn't probe the GAC by name, so an explicit path is needed; Private=false since
+         it's a system assembly already present at runtime, not something to ship a copy of. -->
+    <Reference Include="Microsoft.Xna.Framework.Game, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553">
+      <HintPath>C:\Windows\Microsoft.NET\assembly\GAC_32\Microsoft.Xna.Framework.Game\v4.0_4.0.0.0__842cf8be1de50553\Microsoft.Xna.Framework.Game.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Microsoft.Xna.Framework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553">
+      <HintPath>C:\Windows\Microsoft.NET\assembly\GAC_32\Microsoft.Xna.Framework\v4.0_4.0.0.0__842cf8be1de50553\Microsoft.Xna.Framework.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>

@@ -134,6 +134,16 @@ namespace TerrariaEncyclopedia.UI
                 return;
             }
 
+            EnsureDataBuilt();
+            GoHome();
+            _panel.Open();
+        }
+
+        /// <summary>Lazy-builds every catalogue exactly once — shared by Toggle() and by external
+        /// entry points (e.g. clicking an item link in chat) that need the data ready even if the
+        /// panel has never been opened this session.</summary>
+        private void EnsureDataBuilt()
+        {
             if (_all.Count == 0)
             {
                 _all = ItemCatalogue.Build();
@@ -155,9 +165,23 @@ namespace TerrariaEncyclopedia.UI
                 _events = WikiEnrichment.GetAllEvents();
                 FilterEvents();
             }
+        }
 
-            GoHome();
-            _panel.Open();
+        /// <summary>Opens the panel (if closed) straight to a specific item's detail page — used by ChatItemLinkPatch when an item link in chat is clicked.</summary>
+        public void OpenItemById(int itemId)
+        {
+            EnsureDataBuilt();
+            if (!_byId.TryGetValue(itemId, out var entry)) return;
+
+            if (!_panel.IsOpen)
+            {
+                GoHome();
+                _panel.Open();
+            }
+
+            _section = Section.Items;
+            _history.Clear();
+            OpenDetail(entry);
         }
 
         public void Close() => _panel.Close();
@@ -525,6 +549,7 @@ namespace TerrariaEncyclopedia.UI
             int width = _panel.ContentWidth - DetailPadX * 2;
 
             DrawNavBar(x, y, width, GoBack, GoHome, _history.Count > 0);
+            DrawLinkToChatButton(x + 136, y, entry.Id);
             string badge = entry.IsExpertExclusive ? "EXPERT" : null;
             if (WikiEnrichment.IsHardmodeItem(entry.Name)) badge = badge == null ? "HARDMODE" : badge + "  HARDMODE";
             if (badge != null) DrawHardmodeMarker(x, y, width, badge);
@@ -545,6 +570,34 @@ namespace TerrariaEncyclopedia.UI
 
             int bodyHeight = _panel.ContentHeight - (y - _panel.ContentY);
             DrawRecipeSection(x, y, width, bodyHeight, entry);
+        }
+
+        private const int LinkButtonWidth = 110;
+
+        private void DrawLinkToChatButton(int x, int y, int itemId)
+        {
+            bool isHover = WidgetInput.IsMouseOver(x, y, LinkButtonWidth, NavBarHeight);
+            UIRenderer.DrawRect(x, y, LinkButtonWidth, NavBarHeight, isHover ? UIColors.SectionBg : UIColors.InputBg);
+            UIRenderer.DrawText("Link to Chat", x + 8, y + 7, isHover ? UIColors.AccentText : UIColors.Text);
+
+            if (isHover)
+            {
+                Tooltip.Set("Insert this item's chat link, same as Alt+Click from your inventory");
+                if (WidgetInput.MouseLeftClick)
+                {
+                    WidgetInput.ConsumeClick();
+                    LinkItemToChat(itemId);
+                }
+            }
+        }
+
+        /// <summary>Reuses the exact same real game method Alt+Click uses (ItemTagHandler.GenerateTag), and opens chat first if it isn't already, matching vanilla's own Alt+Click behavior.</summary>
+        private static void LinkItemToChat(int itemId)
+        {
+            var item = new Terraria.Item();
+            item.SetDefaults(itemId);
+            if (!Terraria.Main.drawingPlayerChat) Terraria.Main.OpenPlayerChat();
+            Terraria.Main.chatText += Terraria.GameContent.UI.Chat.ItemTagHandler.GenerateTag(item);
         }
 
         /// <summary>Sell price, research count, granted buff (+tooltip/duration), and created projectile — all read live from the game, not the wiki.</summary>

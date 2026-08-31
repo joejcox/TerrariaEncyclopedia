@@ -21,6 +21,10 @@ namespace TerrariaEncyclopedia
         private ILogger _log;
         private ItemBrowserPanel _browser;
 
+        // Lets a Harmony patch (ChatItemLinkPatch — a static class with no instance of its own)
+        // reach the one browser panel instance to open an item clicked in chat.
+        public static ItemBrowserPanel Browser { get; private set; }
+
         public void Initialize(ModContext context)
         {
             _log = context.Logger;
@@ -33,6 +37,7 @@ namespace TerrariaEncyclopedia
             }
 
             _browser = new ItemBrowserPanel();
+            Browser = _browser;
             FrameEvents.OnPreUpdate += OnUpdate;
 
             // ponytail: project.md suggested F7, but F7 and F8 are both vanilla Terraria's own hidden
@@ -53,6 +58,7 @@ namespace TerrariaEncyclopedia
         {
             FrameEvents.OnPreUpdate -= OnUpdate;
             _browser?.Unload();
+            Browser = null;
             _log.Info($"{Name} unloaded");
         }
     }
