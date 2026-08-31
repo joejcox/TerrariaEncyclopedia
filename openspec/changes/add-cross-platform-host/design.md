@@ -59,7 +59,7 @@ The host owns lifecycle and presentation facilities but does not model Terraria 
 
 Terraria changes `Main.mouseX`, `Main.mouseY`, `Main.screenWidth`, and `Main.screenHeight` between unscaled, world-scaled, and UI-scaled modes during update and draw. The host therefore derives feature input and viewport bounds from `PlayerInput`'s cached, Terraria-normalised coordinates and dimensions, then converts them once into logical UI units. It does not use raw FNA mouse coordinates or divide callback-dependent `Main` dimensions.
 
-The foreground cursor redraw follows Terraria's own cursor pass: begin with `UIScaleMatrix`, switch Terraria input globals to UI zoom for the draw, then restore the unscaled state. This keeps the required redraw directly over the native cursor at non-default UI scales while allowing the modal to remain above Terraria's original cursor pass.
+The foreground cursor redraw follows Terraria's own cursor pass: begin with `UIScaleMatrix`, switch Terraria input globals to UI zoom for the draw, then restore the exact callback state. This keeps the required redraw directly over the native cursor at non-default UI scales while allowing the modal to remain above Terraria's original cursor pass without changing Terraria's subsequent input state.
 
 ## Risks / Trade-offs
 
