@@ -4,5 +4,31 @@
     <AssemblyName>TerrariaEncyclopedia.Runtime</AssemblyName>
     <RootNamespace>TerrariaEncyclopedia.Runtime</RootNamespace>
     <Nullable>disable</Nullable>
+    <GameFramework Condition="'$(GameFramework)' == ''">Portable</GameFramework>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(GameFramework)' == 'FNA'">
+    <TargetFrameworks>net48</TargetFrameworks>
+    <DefineConstants>$(DefineConstants);TERRARIA_FNA</DefineConstants>
+    <OutputPath>bin\$(Configuration)\FNA\</OutputPath>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(GameFramework)' == 'FNA' and '$(FnaReferencePath)' != ''">
+    <Reference Include="FNA">
+      <HintPath>$(FnaReferencePath)</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <Target Name="ValidateGameFramework" BeforeTargets="PrepareForBuild">
+    <Error
+      Condition="'$(GameFramework)' != 'Portable' and '$(GameFramework)' != 'FNA'"
+      Text="GameFramework must be Portable or FNA." />
+    <Error
+      Condition="'$(GameFramework)' == 'FNA' and '$(FnaReferencePath)' == ''"
+      Text="FNA builds require an explicit FnaReferencePath to the installed game's FNA.dll." />
+    <Error
+      Condition="'$(GameFramework)' == 'FNA' and '$(FnaReferencePath)' != '' and !Exists('$(FnaReferencePath)')"
+      Text="FnaReferencePath does not exist: $(FnaReferencePath)" />
+  </Target>
 </Project>
