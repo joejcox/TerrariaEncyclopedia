@@ -45,13 +45,19 @@ namespace TerrariaEncyclopedia.Content
             { NPCID.BestiaryGirl, 23 }, { NPCID.Princess, 24 },
         };
 
-        private static readonly Dictionary<int, List<ShopItemEntry>> Cache = new Dictionary<int, List<ShopItemEntry>>();
+        private static readonly ShopCatalogueSnapshot Snapshot = new ShopCatalogueSnapshot();
         private static readonly List<ShopItemEntry> Empty = new List<ShopItemEntry>();
+
+        /// <summary>
+        /// Starts a new conditional-inventory snapshot. Shops remain lazy and are captured on
+        /// first use during the session, avoiding repeated SetupShop work during rendering.
+        /// </summary>
+        public static void BeginBrowseSession() => Snapshot.Reset();
 
         public static List<ShopItemEntry> ShopFor(int npcId)
         {
             if (!ShopIndexByNpcId.TryGetValue(npcId, out int shopIndex)) return Empty;
-            if (Cache.TryGetValue(npcId, out var cached)) return cached;
+            if (Snapshot.TryGetShop(npcId, out var cached)) return cached;
 
             var items = new List<ShopItemEntry>();
             try
@@ -88,33 +94,23 @@ namespace TerrariaEncyclopedia.Content
                 // Defensive only — every entry in ShopIndexByNpcId is verified to have a real shop.
             }
 
-            Cache[npcId] = items;
+            Snapshot.StoreShop(npcId, items);
             return items;
         }
 
         // Reverse index (item -> which NPCs sell it) for the item detail page's "Sold by"
         // section — built lazily on first use by calling ShopFor for the small, fixed set of
         // known shop NPCs (~23), not all ~200 town+enemy NPCs, so it stays cheap.
-        private static Dictionary<int, List<ShopSellerEntry>> _sellerIndex;
-        private static readonly List<ShopSellerEntry> EmptySellers = new List<ShopSellerEntry>();
-
         public static List<ShopSellerEntry> SellersOf(int itemId)
         {
-            if (_sellerIndex == null)
+            if (!Snapshot.HasSellerIndex)
             {
-                _sellerIndex = new Dictionary<int, List<ShopSellerEntry>>();
                 foreach (var npcId in ShopIndexByNpcId.Keys)
-                {
-                    foreach (var item in ShopFor(npcId))
-                    {
-                        if (!_sellerIndex.TryGetValue(item.ItemId, out var list))
-                            _sellerIndex[item.ItemId] = list = new List<ShopSellerEntry>();
-                        list.Add(new ShopSellerEntry { NpcId = npcId, Cost = item.Cost });
-                    }
-                }
+                    ShopFor(npcId);
+                Snapshot.BuildSellerIndex(ShopIndexByNpcId.Keys);
             }
 
-            return _sellerIndex.TryGetValue(itemId, out var sellers) ? sellers : EmptySellers;
+            return Snapshot.SellersOf(itemId);
         }
     }
 }

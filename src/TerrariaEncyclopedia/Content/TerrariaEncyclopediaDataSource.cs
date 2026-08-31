@@ -13,6 +13,8 @@ namespace TerrariaEncyclopedia.Content
         private List<ItemEntry> items;
         private List<NpcEntry> npcs;
 
+        public void BeginBrowseSession() => NpcShopCatalogue.BeginBrowseSession();
+
         public IReadOnlyList<ItemEntry> LoadItems()
         {
             if (items == null)

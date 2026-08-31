@@ -175,5 +175,23 @@ namespace TerrariaEncyclopedia.Content
             bool receivesPlayerBaseChance = !summon && (melee || ranged || magic);
             return itemCriticalChance + (receivesPlayerBaseChance ? 4 : 0);
         }
+
+        public static ItemAcquisitionDetails ComposeItemAcquisition(
+            IEnumerable<RecipeInfo> recipes,
+            IEnumerable<DropEntry> drops,
+            IEnumerable<ShopSellerEntry> sellers)
+        {
+            if (recipes == null)
+                throw new ArgumentNullException(nameof(recipes));
+            if (drops == null)
+                throw new ArgumentNullException(nameof(drops));
+            if (sellers == null)
+                throw new ArgumentNullException(nameof(sellers));
+
+            return new ItemAcquisitionDetails(
+                recipes.ToList(),
+                drops.OrderByDescending(drop => drop.Chance).ToList(),
+                sellers.ToList());
+        }
     }
 }

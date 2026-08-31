@@ -145,4 +145,26 @@ namespace TerrariaEncyclopedia.Content
         public int NpcId;
         public int Cost;
     }
+
+    public sealed class ItemAcquisitionDetails
+    {
+        internal ItemAcquisitionDetails(
+            IReadOnlyList<RecipeInfo> recipes,
+            IReadOnlyList<DropEntry> drops,
+            IReadOnlyList<ShopSellerEntry> sellers)
+        {
+            Recipes = recipes;
+            Drops = drops;
+            Sellers = sellers;
+        }
+
+        public IReadOnlyList<RecipeInfo> Recipes { get; }
+
+        public IReadOnlyList<DropEntry> Drops { get; }
+
+        public IReadOnlyList<ShopSellerEntry> Sellers { get; }
+
+        public bool NeedsUnknownSourceFallback =>
+            Recipes.Count == 0 && Drops.Count == 0 && Sellers.Count == 0;
+    }
 }

@@ -134,6 +134,50 @@ namespace TerrariaEncyclopedia.Tests
         }
 
         [Fact]
+        public void MixedAcquisitionRetainsCraftingDropsAndSellers()
+        {
+            var recipe = new RecipeInfo { ResultItemId = 99 };
+            var drop = new DropEntry { NpcId = 13, ItemId = 99, Chance = 0.25f };
+            var seller = new ShopSellerEntry { NpcId = 1, Cost = 100 };
+
+            ItemAcquisitionDetails acquisition = EncyclopediaQueries.ComposeItemAcquisition(
+                new[] { recipe },
+                new[] { drop },
+                new[] { seller });
+
+            Assert.Same(recipe, acquisition.Recipes.Single());
+            Assert.Same(drop, acquisition.Drops.Single());
+            Assert.Same(seller, acquisition.Sellers.Single());
+            Assert.False(acquisition.NeedsUnknownSourceFallback);
+        }
+
+        [Fact]
+        public void ShopSnapshotResetDiscardsConditionalInventoryAndSellerIndex()
+        {
+            var snapshot = new ShopCatalogueSnapshot();
+            snapshot.StoreShop(1, new List<ShopItemEntry>
+            {
+                new ShopItemEntry { ItemId = 99, Cost = 100 }
+            });
+            snapshot.BuildSellerIndex(new[] { 1 });
+
+            Assert.True(snapshot.TryGetShop(1, out _));
+            Assert.Equal(1, snapshot.SellersOf(99).Single().NpcId);
+
+            snapshot.Reset();
+
+            Assert.False(snapshot.TryGetShop(1, out _));
+            Assert.False(snapshot.HasSellerIndex);
+            snapshot.StoreShop(1, new List<ShopItemEntry>
+            {
+                new ShopItemEntry { ItemId = 42, Cost = 250 }
+            });
+            snapshot.BuildSellerIndex(new[] { 1 });
+            Assert.Empty(snapshot.SellersOf(99));
+            Assert.Equal(1, snapshot.SellersOf(42).Single().NpcId);
+        }
+
+        [Fact]
         public void WikiPreferencesTakePrecedenceAndRetainLiveUniqueBehaviour()
         {
             var live = new NpcPersonalityEntry { HasUniqueBehavior = true };
@@ -214,6 +258,7 @@ namespace TerrariaEncyclopedia.Tests
 
         private sealed class FakeDataSource : IEncyclopediaDataSource
         {
+            public void BeginBrowseSession() { }
             public IReadOnlyList<ItemEntry> LoadItems() => Items;
             public IReadOnlyList<NpcEntry> LoadNpcs() => Npcs;
             public IReadOnlyList<EventWikiInfo> LoadEvents() => new[]

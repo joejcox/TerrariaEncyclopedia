@@ -47,8 +47,8 @@ build in that case.
   price (with real coin icons), buff granted (icon + tooltip + duration),
   projectile created, Journey Mode research count, crafting station, direct
   recipe, a recursive crafting tree of what each ingredient is itself made
-  from, drop and seller sources for non-craftable items, and what other items
-  use this one.
+  from, drop and seller sources whether or not the item is craftable, and what
+  other items use this one.
 - **NPCs & Bosses** — search/filter/sort, town/enemy/boss tabs, stats, real
   drop-rate percentages (sorted highest-chance first) including conditions
   like "Downed Plantera," town-NPC shops and living preferences, and — for
@@ -58,6 +58,11 @@ build in that case.
 - **Events** — search 13 invasions, moons and world events, with wiki-sourced
   summoning, completion, notes and tips.
 - **Hardmode marking** for items/NPCs that are Hardmode-exclusive.
+
+Town-NPC shop conditions are snapshotted per browsing session: reopening the
+Encyclopedia clears the previous snapshot, and each shop is captured when it is
+first viewed in that session. This keeps conditional inventories current without
+rebuilding every shop on each rendered frame.
 
 ## For developers
 

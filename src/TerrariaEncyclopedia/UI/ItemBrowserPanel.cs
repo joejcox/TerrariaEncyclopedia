@@ -140,6 +140,8 @@ namespace TerrariaEncyclopedia.UI
                 return;
             }
 
+            _data.BeginBrowseSession();
+
             if (_all.Count == 0)
             {
                 _all = _data.LoadItems().ToList();
@@ -665,44 +667,22 @@ namespace TerrariaEncyclopedia.UI
 
         private void DrawRecipeSection(int x, int y, int width, int height, ItemEntry entry)
         {
-            var recipes = _data.RecipesFor(entry.Id);
+            var acquisition = EncyclopediaQueries.ComposeItemAcquisition(
+                _data.RecipesFor(entry.Id),
+                _data.SourcesFor(entry.Id),
+                _data.SellersOf(entry.Id));
             var usedIn = _data.UsedIn(entry.Id);
 
             // Build a flat list of rows to render inside one scroll area: section headers + item rows.
             var rows = new List<(string Header, ItemEntry Item, string Suffix, int IndentX)>();
 
-            if (recipes.Count == 0)
+            if (acquisition.Recipes.Count == 0)
             {
                 rows.Add(("Crafting", null, null, 0));
-
-                // Reuses the same live NPC drop-rule data (Main.ItemDropsDB) the NPC pages
-                // already show — condition text here is exact (e.g. "In Master Mode", not
-                // "Hardmode") since it comes from the real drop rule, not a guess.
-                var sources = _data.SourcesFor(entry.Id).OrderByDescending(d => d.Chance).ToList();
-                foreach (var drop in sources)
-                {
-                    var dropNpc = _allNpcs.FirstOrDefault(n => n.Id == drop.NpcId);
-                    if (dropNpc == null) continue;
-
-                    string chance = $"{drop.Chance * 100:0.##}%";
-                    string conditions = drop.Conditions.Count == 0 ? "" : $" ({string.Join(", ", drop.Conditions)})";
-                    rows.Add((null, null, $"Dropped by {dropNpc.Name} — {chance}{conditions}", 0));
-                }
-
-                var sellers = _data.SellersOf(entry.Id);
-                foreach (var seller in sellers)
-                {
-                    var sellerNpc = _allNpcs.FirstOrDefault(n => n.Id == seller.NpcId);
-                    if (sellerNpc == null) continue;
-                    rows.Add((null, null, $"Sold by {sellerNpc.Name} — {FormatCoinsText(seller.Cost)}", 0));
-                }
-
-                if (sources.Count == 0 && sellers.Count == 0)
-                    rows.Add((null, null, "Not craftable — found some other way (drop, purchase, world gen).", 0));
             }
             else
             {
-                foreach (var recipe in recipes)
+                foreach (var recipe in acquisition.Recipes)
                 {
                     rows.Add(("Crafting", null, null, 0));
                     if (recipe.StationTileIds.Count > 0)
@@ -717,6 +697,30 @@ namespace TerrariaEncyclopedia.UI
                     }
                 }
             }
+
+            // Reuses the same live NPC drop-rule data (Main.ItemDropsDB) the NPC pages
+            // already show — condition text here is exact (e.g. "In Master Mode", not
+            // "Hardmode") since it comes from the real drop rule, not a guess. Acquisition
+            // rows are independent of craftability because an item can have several sources.
+            foreach (var drop in acquisition.Drops)
+            {
+                var dropNpc = _allNpcs.FirstOrDefault(n => n.Id == drop.NpcId);
+                if (dropNpc == null) continue;
+
+                string chance = $"{drop.Chance * 100:0.##}%";
+                string conditions = drop.Conditions.Count == 0 ? "" : $" ({string.Join(", ", drop.Conditions)})";
+                rows.Add((null, null, $"Dropped by {dropNpc.Name} — {chance}{conditions}", 0));
+            }
+
+            foreach (var seller in acquisition.Sellers)
+            {
+                var sellerNpc = _allNpcs.FirstOrDefault(n => n.Id == seller.NpcId);
+                if (sellerNpc == null) continue;
+                rows.Add((null, null, $"Sold by {sellerNpc.Name} — {FormatCoinsText(seller.Cost)}", 0));
+            }
+
+            if (acquisition.NeedsUnknownSourceFallback)
+                rows.Add((null, null, "Not craftable — found some other way (drop, purchase, world gen).", 0));
 
             rows.Add(("Used to make", null, null, 0));
             if (usedIn.Count == 0)

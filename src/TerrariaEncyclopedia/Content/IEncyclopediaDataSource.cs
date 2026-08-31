@@ -4,6 +4,8 @@ namespace TerrariaEncyclopedia.Content
 {
     public interface IEncyclopediaDataSource
     {
+        void BeginBrowseSession();
+
         IReadOnlyList<ItemEntry> LoadItems();
 
         IReadOnlyList<NpcEntry> LoadNpcs();
