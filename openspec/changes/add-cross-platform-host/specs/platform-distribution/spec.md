@@ -1,6 +1,6 @@
 ## Purpose
 
-Produce platform-specific development and release artefacts that activate the QoL host without including copyrighted Terraria files or obsolete framework dependencies.
+Produce a macOS development and release artefact that activates the QoL host without including copyrighted Terraria files or unrelated framework dependencies.
 
 ## ADDED Requirements
 
@@ -11,8 +11,8 @@ Release artefacts SHALL contain the host, first-party features, permitted third-
 - **WHEN** a platform release archive is assembled
 - **THEN** its manifest contains no file copied from a Terraria installation
 
-### Requirement: Each platform has a direct launch entry point
-Each supported platform distribution SHALL provide a documented launch entry point that accepts an optional Terraria installation path.
+### Requirement: macOS has a direct launch entry point
+The macOS distribution SHALL provide a documented launch entry point that accepts an optional Terraria installation path.
 
 #### Scenario: Default launch
 - **WHEN** a user invokes the platform launch entry point without arguments
@@ -29,10 +29,9 @@ The repository SHALL document and automate generation of each platform distribut
 - **WHEN** the documented build command runs with the required SDK and an explicitly supplied local Terraria reference path
 - **THEN** it produces the expected platform artefacts without editing the Terraria installation
 
-### Requirement: Legacy dependencies are removed after parity
-Once the new host passes the supported compatibility matrix, release artefacts SHALL no longer include TerrariaModder or TerrariaInjector.
+### Requirement: The macOS artefact excludes legacy Windows dependencies
+Once the new host passes macOS acceptance, the macOS release artefact SHALL NOT include TerrariaModder or TerrariaInjector. The existing Windows release path remains unchanged.
 
-#### Scenario: Completed migration bundle
-- **WHEN** a release is assembled after host parity is declared
+#### Scenario: Completed macOS migration bundle
+- **WHEN** a macOS release is assembled after host parity is declared
 - **THEN** neither TerrariaModder nor TerrariaInjector files are present in the bundle
-

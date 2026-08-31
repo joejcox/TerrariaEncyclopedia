@@ -1,6 +1,6 @@
 ## Purpose
 
-Provide a non-destructive launcher that activates first-party quality-of-life features in a supported Terraria installation on Windows, Linux, and macOS.
+Provide a non-destructive macOS launcher that activates first-party quality-of-life features while retaining portable installation discovery for later platform work.
 
 ## ADDED Requirements
 
@@ -30,20 +30,16 @@ The host SHALL activate the QoL feature runtime without replacing, renaming, pat
 - **WHEN** Terraria is later launched normally through Steam
 - **THEN** it starts without the host or its features
 
-### Requirement: Supported platforms use their native Terraria runtime
-The host SHALL support Windows x64, Linux x64, macOS x64, and macOS arm64 by using the managed runtime and native libraries appropriate to the selected Terraria installation.
+### Requirement: Supported macOS architectures use Terraria's native runtime
+The host SHALL support macOS x64 and macOS arm64 by using the managed runtime and native libraries shipped with the selected Terraria installation.
 
 #### Scenario: Apple Silicon launch
 - **WHEN** an Apple Silicon user selects the native macOS Terraria installation
 - **THEN** the host launches the arm64 game path without requiring Rosetta or a separately installed Mono runtime
 
-#### Scenario: Linux launch
-- **WHEN** a Linux x64 user selects a supported native Terraria installation
-- **THEN** the host launches through Terraria's Linux runtime and native libraries rather than Wine or Proton
-
-#### Scenario: Windows launch
-- **WHEN** a Windows x64 user selects a supported Terraria installation
-- **THEN** the host launches the managed game with the required in-process feature bootstrap
+#### Scenario: Intel macOS launch
+- **WHEN** an Intel macOS user selects the native macOS Terraria installation
+- **THEN** the same managed host artefacts launch through the x64 slice of Terraria's universal runtime
 
 ### Requirement: Unsupported game versions fail safely
 The host SHALL verify the Terraria managed assembly version before activating features and SHALL leave normal game execution available when the version is unsupported.
@@ -62,4 +58,3 @@ The host SHALL report platform, architecture, selected paths, detected version, 
 #### Scenario: Runtime bootstrap fails
 - **WHEN** the platform runtime starts but cannot load the feature bootstrap
 - **THEN** the host exits or leaves Terraria unmodified and reports the failed stage and relevant file path
-
