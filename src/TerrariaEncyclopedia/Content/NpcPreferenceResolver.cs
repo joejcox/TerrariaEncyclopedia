@@ -5,7 +5,7 @@ namespace TerrariaEncyclopedia.Content
     public static class NpcPreferenceResolver
     {
         /// <summary>
-        /// Uses the complete wiki table when present, falls back to Terraria's live personality
+        /// Uses a non-empty wiki table when present, falls back to Terraria's live personality
         /// data otherwise, and always retains live unique-behaviour markers such as the Princess.
         /// </summary>
         public static NpcPersonalityEntry Resolve(
@@ -24,7 +24,7 @@ namespace TerrariaEncyclopedia.Content
             AddAll(result, wiki.LikeBiomes, wiki.LikeNeighbors, Affection.Like);
             AddAll(result, wiki.DislikeBiomes, wiki.DislikeNeighbors, Affection.Dislike);
             AddAll(result, wiki.HateBiomes, wiki.HateNeighbors, Affection.Hate);
-            return result;
+            return result.Biomes.Count == 0 && result.Neighbors.Count == 0 ? live : result;
         }
 
         private static void AddAll(

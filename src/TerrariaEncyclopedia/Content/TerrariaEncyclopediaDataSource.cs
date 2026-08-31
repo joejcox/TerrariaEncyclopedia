@@ -78,6 +78,9 @@ namespace TerrariaEncyclopedia.Content
                 NpcPersonalityCatalogue.Get(npcId));
         }
 
+        public string GetNpcHowToGet(string npcName) =>
+            WikiEnrichment.GetNpcPreferences(npcName)?.HowToGet;
+
         public string StationName(int tileId)
         {
             EnsureItemsLoaded();

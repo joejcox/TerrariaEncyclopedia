@@ -12,6 +12,7 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 - Town NPC shop inventories ("Items Sold") with live item + coin-icon cost.
 - Item detail pages now show "Dropped by" and "Sold by" for items with no crafting recipe, reusing the same live drop-rule and shop data — this also fixes item pages showing a generic Hardmode badge instead of the real, more precise condition (e.g. "In Master Mode").
 - New top-level **Events** section (Blood Moon, invasions, Pumpkin/Frost Moon, Martian Madness, Lunar Events, Old One's Army, and more) — entirely wiki-sourced, since events have no live data source at all (only Old One's Army has a dedicated engine-level enemy list; everything else is imperative spawn logic).
+- Town NPC pages now show "How to Get" (house/move-in/rescue requirements, e.g. Tavernkeep's rescue-as-Unconscious-Man-after-EoW/BoC) — this text lives only in each wiki page's unstructured intro paragraph before any heading, with no dedicated section of its own.
 
 ### Fixed
 - Weapon crit chance displayed 4 percentage points too low everywhere (the FNA host tooltip drew `item.crit` directly instead of accounting for the game's implicit +4% base, confirmed via IL disassembly of `Player.ResetEffects`).

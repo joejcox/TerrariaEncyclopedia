@@ -1246,6 +1246,14 @@ namespace TerrariaEncyclopedia.UI
                 rows.Add(new BodyRow { Suffix = "", Height = 8 }); // spacer
             }
 
+            string howToGet = entry.IsTownNpc ? _data.GetNpcHowToGet(entry.Name) : null;
+            if (!string.IsNullOrWhiteSpace(howToGet))
+            {
+                rows.Add(new BodyRow { Header = "How to Get", Height = RowHeight });
+                AddWrappedRows(rows, howToGet, width);
+                rows.Add(new BodyRow { Suffix = "", Height = 8 });
+            }
+
             // Terraria's live rules include legitimate drops for some town NPCs, so query every
             // NPC rather than discarding those rules based on the catalogue's town flag.
             var drops = _data.DropsFor(entry.Id).OrderByDescending(d => d.Chance).ToList();

@@ -28,6 +28,8 @@ namespace TerrariaEncyclopedia.Content
 
         NpcPersonalityEntry GetNpcPersonality(int npcId, string npcName);
 
+        string GetNpcHowToGet(string npcName);
+
         string StationName(int tileId);
 
         bool IsHardmodeItem(string itemName);

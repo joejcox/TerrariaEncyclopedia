@@ -1,5 +1,8 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
 using TerrariaEncyclopedia.Content;
 using Xunit;
 
@@ -129,6 +132,8 @@ namespace TerrariaEncyclopedia.Tests
             Assert.Equal(99, source.ShopFor(1).Single().ItemId);
             Assert.Equal(1, source.SellersOf(99).Single().NpcId);
             Assert.True(source.GetNpcPersonality(1, "Guide").HasUniqueBehavior);
+            Assert.Contains("vacant house", source.GetNpcHowToGet("Guide"));
+            Assert.Null(source.GetNpcHowToGet("Zombie"));
             Assert.Equal("Demon Altar", source.StationName(26));
             Assert.Equal("Expert tactics", source.GetBossInfo("Eye of Cthulhu").ExpertMode);
         }
@@ -228,6 +233,55 @@ namespace TerrariaEncyclopedia.Tests
             Assert.Same(live, NpcPreferenceResolver.Resolve(null, live));
         }
 
+        [Fact]
+        public void AcquisitionOnlyWikiEntryFallsBackToLivePreferences()
+        {
+            var live = new NpcPersonalityEntry { HasUniqueBehavior = true };
+            live.Biomes.Add(new PersonalityPreference { Level = Affection.Like, Label = "Forest" });
+            var acquisitionOnly = new NpcPreferencesWikiInfo
+            {
+                HowToGet = "Arrives after a vacant house becomes available."
+            };
+
+            Assert.Same(live, NpcPreferenceResolver.Resolve(acquisitionOnly, live));
+            Assert.Null(NpcPreferenceResolver.Resolve(acquisitionOnly, null));
+        }
+
+        [Fact]
+        public void NpcPreferenceJsonContainsCleanAcquisitionGuidance()
+        {
+            string path = Path.GetFullPath(Path.Combine(
+                AppContext.BaseDirectory,
+                "..", "..", "..", "..", "..",
+                "src", "TerrariaEncyclopedia", "WikiData", "npc-preferences.json"));
+            using var document = JsonDocument.Parse(File.ReadAllText(path));
+            JsonElement[] entries = document.RootElement.EnumerateArray().ToArray();
+
+            string[] names = entries.Select(entry => entry.GetProperty("Name").GetString()).ToArray();
+            Assert.All(names, name => Assert.False(string.IsNullOrWhiteSpace(name)));
+            Assert.Equal(names.Length, names.Distinct().Count());
+            Assert.DoesNotContain(entries, entry => entry.GetProperty("WikiPage").GetString() == "Bunny");
+
+            foreach (JsonElement entry in entries)
+            {
+                if (!entry.TryGetProperty("HowToGet", out JsonElement guidance))
+                    continue;
+
+                string text = guidance.GetString();
+                Assert.False(string.IsNullOrWhiteSpace(text));
+                Assert.True(
+                    text.IndexOf("Verify", StringComparison.OrdinalIgnoreCase) < 0,
+                    $"{entry.GetProperty("Name").GetString()} contains a verification artefact.");
+                Assert.True(text.IndexOf("[edit]", StringComparison.OrdinalIgnoreCase) < 0);
+                Assert.DoesNotMatch(@"\[\d+\]", text);
+                Assert.DoesNotContain("harmless critter", text, StringComparison.OrdinalIgnoreCase);
+            }
+
+            Assert.Contains("vacant house", GuidanceFor(entries, "Merchant"), StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("Unconscious Man", GuidanceFor(entries, "Tavernkeep"), StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("randomly visits", GuidanceFor(entries, "Traveling Merchant"), StringComparison.OrdinalIgnoreCase);
+        }
+
         [Theory]
         [InlineData(0, true, false, false, false, 4)]
         [InlineData(2, false, true, false, false, 6)]
@@ -255,6 +309,11 @@ namespace TerrariaEncyclopedia.Tests
         {
             return EncyclopediaQueries.FilterItems(Items, null, false, null, mode, _ => false)[0].Id;
         }
+
+        private static string GuidanceFor(IEnumerable<JsonElement> entries, string name) =>
+            entries.Single(entry => entry.GetProperty("Name").GetString() == name)
+                .GetProperty("HowToGet")
+                .GetString();
 
         private static IReadOnlyList<NpcEntry> QueryNpcs(
             NpcFilter filter,
@@ -320,6 +379,9 @@ namespace TerrariaEncyclopedia.Tests
                 : new ShopSellerEntry[0];
             public NpcPersonalityEntry GetNpcPersonality(int npcId, string npcName) =>
                 new NpcPersonalityEntry { HasUniqueBehavior = npcId == 1 };
+            public string GetNpcHowToGet(string npcName) => npcName == "Guide"
+                ? "Moves in when a vacant house is available."
+                : null;
             public string StationName(int tileId) => tileId == 26 ? "Demon Altar" : "Unknown";
             public bool IsHardmodeItem(string itemName) => itemName == "Nebula Blaze";
             public bool IsHardmodeNpc(string npcName) => npcName == "Retinazer";
