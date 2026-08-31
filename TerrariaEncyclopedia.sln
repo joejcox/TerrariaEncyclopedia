@@ -1,0 +1,36 @@
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TerrariaEncyclopedia", "src\TerrariaEncyclopedia\TerrariaEncyclopedia.csproj", "{E09197E6-79CE-48F7-A6B8-4830B8B9B16D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TerrariaEncyclopedia.Host", "src\TerrariaEncyclopedia.Host\TerrariaEncyclopedia.Host.csproj", "{02625B85-A004-42DC-B7BE-2C7B3EF02E09}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TerrariaEncyclopedia.Host.Tests", "tests\TerrariaEncyclopedia.Host.Tests\TerrariaEncyclopedia.Host.Tests.csproj", "{E8231204-AE70-4343-964C-D1FF8BAFF5B0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WikiScraper", "tools\WikiScraper\WikiScraper.csproj", "{6897C36D-4FE6-4D46-BE01-FBD24B72108D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E09197E6-79CE-48F7-A6B8-4830B8B9B16D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E09197E6-79CE-48F7-A6B8-4830B8B9B16D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E09197E6-79CE-48F7-A6B8-4830B8B9B16D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E09197E6-79CE-48F7-A6B8-4830B8B9B16D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{02625B85-A004-42DC-B7BE-2C7B3EF02E09}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{02625B85-A004-42DC-B7BE-2C7B3EF02E09}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{02625B85-A004-42DC-B7BE-2C7B3EF02E09}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{02625B85-A004-42DC-B7BE-2C7B3EF02E09}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E8231204-AE70-4343-964C-D1FF8BAFF5B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E8231204-AE70-4343-964C-D1FF8BAFF5B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E8231204-AE70-4343-964C-D1FF8BAFF5B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E8231204-AE70-4343-964C-D1FF8BAFF5B0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6897C36D-4FE6-4D46-BE01-FBD24B72108D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6897C36D-4FE6-4D46-BE01-FBD24B72108D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6897C36D-4FE6-4D46-BE01-FBD24B72108D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6897C36D-4FE6-4D46-BE01-FBD24B72108D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
