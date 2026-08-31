@@ -244,10 +244,16 @@ namespace TerrariaEncyclopedia.UI
 
             UIRenderer.DrawRect(x, y, width, SectionToggleHeight - 4,
                 isActive ? UIColors.ItemActiveBg : (isHover ? UIColors.SectionBg : UIColors.InputBg));
+            if (isHover)
+                UIRenderer.DrawRectOutline(
+                    x, y, width, SectionToggleHeight - 4, UIColors.Accent);
+            if (isActive)
+                UIRenderer.DrawRect(
+                    x, y + SectionToggleHeight - 6, width, 2, UIColors.Accent);
 
             int textWidth = TextUtil.MeasureWidth(label);
             UIRenderer.DrawText(label, x + (width - textWidth) / 2, y + 5,
-                isActive ? UIColors.AccentText : UIColors.TextDim);
+                isActive || isHover ? UIColors.AccentText : UIColors.TextDim);
 
             if (isHover && WidgetInput.MouseLeftClick)
             {
@@ -369,6 +375,8 @@ namespace TerrariaEncyclopedia.UI
 
                 UIRenderer.DrawRect(tabX, y, tabW, 30,
                     isActive ? UIColors.ItemActiveBg : (isHover ? UIColors.SectionBg : UIColors.InputBg));
+                if (isHover)
+                    UIRenderer.DrawRectOutline(tabX, y, tabW, 30, UIColors.Accent);
                 if (isActive)
                     UIRenderer.DrawRect(tabX, y + 28, tabW, 2, UIColors.Accent);
 
@@ -381,7 +389,7 @@ namespace TerrariaEncyclopedia.UI
                 {
                     int textWidth = TextUtil.MeasureWidth(tab.Label);
                     UIRenderer.DrawText(tab.Label, tabX + (tabW - textWidth) / 2, y + 8,
-                        isActive ? UIColors.AccentText : UIColors.TextDim);
+                        isActive || isHover ? UIColors.AccentText : UIColors.TextDim);
                 }
 
                 if (isHover)
@@ -806,13 +814,15 @@ namespace TerrariaEncyclopedia.UI
 
                 UIRenderer.DrawRect(tabX, y, tabW, 30,
                     isActive ? UIColors.ItemActiveBg : (isHover ? UIColors.SectionBg : UIColors.InputBg));
+                if (isHover)
+                    UIRenderer.DrawRectOutline(tabX, y, tabW, 30, UIColors.Accent);
                 if (isActive)
                     UIRenderer.DrawRect(tabX, y + 28, tabW, 2, UIColors.Accent);
 
                 string label = NpcTabs[i].Label;
                 int textWidth = TextUtil.MeasureWidth(label);
                 UIRenderer.DrawText(label, tabX + (tabW - textWidth) / 2, y + 8,
-                    isActive ? UIColors.AccentText : UIColors.TextDim);
+                    isActive || isHover ? UIColors.AccentText : UIColors.TextDim);
 
                 if (isHover && WidgetInput.MouseLeftClick)
                 {

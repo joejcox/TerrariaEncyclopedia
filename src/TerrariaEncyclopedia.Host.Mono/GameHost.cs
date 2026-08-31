@@ -272,7 +272,6 @@ namespace TerrariaEncyclopedia.Host.Mono
 
         private static InputSnapshot CaptureInput()
         {
-            float scale = Math.Max(0.01f, Main.UIScale);
             KeyboardState keyboard = Keyboard.GetState();
             MouseState mouse = Mouse.GetState();
             IEnumerable<InputKey> keys = keyboard.GetPressedKeys()
@@ -291,7 +290,10 @@ namespace TerrariaEncyclopedia.Host.Mono
 
             return new InputSnapshot(
                 keys,
-                new InputPoint((int)(mouse.X / scale), (int)(mouse.Y / scale)),
+                TerrariaUiCoordinateSpace.ToLogicalPointer(
+                    PlayerInput.MouseX,
+                    PlayerInput.MouseY,
+                    Main.UIScale),
                 buttons,
                 mouse.ScrollWheelValue);
         }
@@ -439,12 +441,10 @@ namespace TerrariaEncyclopedia.Host.Mono
             {
                 get
                 {
-                    float scale = Math.Max(0.01f, Main.UIScale);
-                    return new RenderRectangle(
-                        0,
-                        0,
-                        Math.Max(1, (int)(Main.screenWidth / scale)),
-                        Math.Max(1, (int)(Main.screenHeight / scale)));
+                    return TerrariaUiCoordinateSpace.ToLogicalViewport(
+                        PlayerInput.RealScreenWidth,
+                        PlayerInput.RealScreenHeight,
+                        Main.UIScale);
                 }
             }
 
@@ -543,22 +543,45 @@ namespace TerrariaEncyclopedia.Host.Mono
 
             public void DrawCursor()
             {
-                Main.spriteBatch.Begin(
-                    SpriteSortMode.Deferred,
-                    BlendState.AlphaBlend,
-                    Main.SamplerStateForCursor,
-                    DepthStencilState.None,
-                    RasterizerState.CullNone,
-                    null,
-                    Main.UIScaleMatrix);
+                int mouseX = Main.mouseX;
+                int mouseY = Main.mouseY;
+                int lastMouseX = Main.lastMouseX;
+                int lastMouseY = Main.lastMouseY;
+                int screenWidth = Main.screenWidth;
+                int screenHeight = Main.screenHeight;
+                bool cursorBatchActive = false;
+
                 try
                 {
+                    Main.spriteBatch.Begin(
+                        SpriteSortMode.Deferred,
+                        BlendState.AlphaBlend,
+                        Main.SamplerStateForCursor,
+                        DepthStencilState.None,
+                        RasterizerState.CullNone,
+                        null,
+                        Main.UIScaleMatrix);
+                    cursorBatchActive = true;
+                    PlayerInput.SetZoom_UI();
                     bool smart = Main.SmartCursorIsUsed;
                     Main.DrawCursor(Main.DrawThickCursor(smart), smart);
                 }
                 finally
                 {
-                    Main.spriteBatch.End();
+                    try
+                    {
+                        if (cursorBatchActive)
+                            Main.spriteBatch.End();
+                    }
+                    finally
+                    {
+                        Main.mouseX = mouseX;
+                        Main.mouseY = mouseY;
+                        Main.lastMouseX = lastMouseX;
+                        Main.lastMouseY = lastMouseY;
+                        Main.screenWidth = screenWidth;
+                        Main.screenHeight = screenHeight;
+                    }
                 }
             }
 
