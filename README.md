@@ -67,3 +67,5 @@ quick-start:
   distributable zip referenced above.
 - [`docs/framework-patches.md`](docs/framework-patches.md) — the specific
   patches this project's fork of TerrariaModder's Core carries, and why.
+- [`CLAUDE.md`](CLAUDE.md) — ground rules and known state for anyone (or any
+  AI assistant) picking up work here, e.g. macOS support.
