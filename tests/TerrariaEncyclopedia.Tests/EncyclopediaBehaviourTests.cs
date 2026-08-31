@@ -277,8 +277,11 @@ namespace TerrariaEncyclopedia.Tests
                 Assert.DoesNotContain("harmless critter", text, StringComparison.OrdinalIgnoreCase);
                 Assert.DoesNotContain("vendor", text, StringComparison.OrdinalIgnoreCase);
                 Assert.DoesNotContain("sells", text, StringComparison.OrdinalIgnoreCase);
+                Assert.DoesNotContain("shop", text, StringComparison.OrdinalIgnoreCase);
                 Assert.DoesNotContain("defend", text, StringComparison.OrdinalIgnoreCase);
+                Assert.DoesNotContain("attack", text, StringComparison.OrdinalIgnoreCase);
                 Assert.DoesNotContain("dropping", text, StringComparison.OrdinalIgnoreCase);
+                Assert.DoesNotContain("loot", text, StringComparison.OrdinalIgnoreCase);
             }
 
             Assert.Equal(

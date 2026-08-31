@@ -416,7 +416,7 @@ public static class Program
             {
                 if (next.Name == "ul")
                 {
-                    CollectListItems(next, "", parts);
+                    CollectAcquisitionListItems(next, parts);
                     continue;
                 }
 
@@ -433,6 +433,20 @@ public static class Program
 
         if (parts.Count == 0) return null;
         return JoinAndCleanFootnotes(parts);
+    }
+
+    /// <summary>
+    /// Lead lists on NPC pages are not dedicated arrival data. Only retain list entries that
+    /// read like a move-in, rescue, visit, or prerequisite condition; shop, combat, loot, and
+    /// other encyclopaedia details must not leak into the compact "How to Get" field.
+    /// </summary>
+    private static void CollectAcquisitionListItems(HtmlNode list, List<string> parts)
+    {
+        foreach (var item in list.SelectNodes("./li") ?? Enumerable.Empty<HtmlNode>())
+        {
+            string text = ExtractCleanText(item);
+            if (IsAcquisitionListItem(text)) parts.Add(text);
+        }
     }
 
     private static string ExtractAcquisitionSentences(string text, string npcName)
@@ -473,6 +487,41 @@ public static class Program
 
         return text.IndexOf("respawn", StringComparison.OrdinalIgnoreCase) < 0
             && cues.Any(cue => text.IndexOf(cue, StringComparison.OrdinalIgnoreCase) >= 0);
+    }
+
+    private static bool IsAcquisitionListItem(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text) || ContainsNonAcquisitionDetail(text)) return false;
+
+        string[] arrivalCues =
+        {
+            "will move in", "can move in", "move into", "can arrive", "will arrive",
+            "will spawn", "can spawn", "spawns", "rescu", "bound", "unconscious",
+            "tortured", "encountered", "can be found", "randomly visits",
+            "random chance of appearing", "can appear", "will appear", "vacant house",
+            "available house", "requires a house", "does not require a house",
+        };
+        string[] prerequisiteCues =
+        {
+            "at least", "all players", "any player", "in their inventories", "health",
+            "defeated", "hardmode", "invasion", "bestiar", "town npc", "other npcs",
+            "frost legion", "glowing mushroom",
+        };
+
+        return arrivalCues.Concat(prerequisiteCues)
+            .Any(cue => text.IndexOf(cue, StringComparison.OrdinalIgnoreCase) >= 0);
+    }
+
+    private static bool ContainsNonAcquisitionDetail(string text)
+    {
+        string[] excludedCues =
+        {
+            "vendor", "sells", "shop", "purchase", "buy", "price", "discount",
+            "attack", "damage", "defend", "fight", "combat", "weapon", "enemy",
+            "drops", "drop ", "loot", "reward", "banner",
+        };
+
+        return excludedCues.Any(cue => text.IndexOf(cue, StringComparison.OrdinalIgnoreCase) >= 0);
     }
 
     private static string ExtractCleanText(HtmlNode node)
