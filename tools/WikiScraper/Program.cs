@@ -48,6 +48,20 @@ public static class Program
         ("Nebula Pillar", "Nebula_Pillar", new[] { "Nebula Pillar" }),
         ("Solar Pillar", "Solar_Pillar", new[] { "Solar Pillar" }),
         ("Stardust Pillar", "Stardust_Pillar", new[] { "Stardust Pillar" }),
+        // Event/invasion bosses: the wiki's "Boss NPCs" category lists these (confirmed via its
+        // API), but neither npc.boss nor NPCID.Sets.ShouldBeCountedAsBossForBestiary flag them in
+        // the actual game data (verified live) — see NpcCatalogue.ExtraWikiBosses. Both tiers of
+        // Dark Mage/Ogre share one display name each, so one MatchNames entry covers both NPCIDs.
+        // Brings the total to 33, matching the wiki's own count.
+        ("Betsy", "Betsy", new[] { "Betsy" }),
+        ("Ogre", "Ogre", new[] { "Ogre" }),
+        ("Dark Mage", "Dark_Mage", new[] { "Dark Mage" }),
+        ("Mourning Wood", "Mourning_Wood", new[] { "Mourning Wood" }),
+        ("Pumpking", "Pumpking", new[] { "Pumpking" }),
+        ("Everscream", "Everscream", new[] { "Everscream" }),
+        ("Santa-NK1", "Santa-NK1", new[] { "Santa-NK1" }),
+        ("Ice Queen", "Ice_Queen", new[] { "Ice Queen" }),
+        ("Flying Dutchman", "Flying_Dutchman", new[] { "Flying Dutchman" }),
     };
 
     public static async Task Main()
