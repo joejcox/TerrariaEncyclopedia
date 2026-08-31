@@ -2,7 +2,7 @@
   {
     "Name": "Merchant",
     "WikiPage": "Merchant",
-    "HowToGet": "The Merchant is an NPC vendor who will move in once the following conditions have been met:\n- There is an available vacant house.\n- All players in the current world have more than 50\u00A0Silver total between them in their inventories. Coins stored in chests and portable storage items like the Piggy Bank do not count toward this requirement.\nThese requirements only apply to the initial spawning. If the Merchant is killed, he will automatically respawn after some time.\nThe Merchant will defend himself against nearby enemies by lobbing Throwing Knives. He deals 12 / 18 / 21 damage at the start of the game, and gains various stat boosts as the player progresses.",
+    "HowToGet": "Merchant will move in when a vacant house is available and all players have more than 50 Silver in their inventories.",
     "LoveBiomes": [],
     "LoveNeighbors": [],
     "LikeBiomes": [
@@ -27,7 +27,7 @@
   {
     "Name": "Nurse",
     "WikiPage": "Nurse",
-    "HowToGet": "The Nurse is an NPC who will move in once the following criteria have been met:\n- There is an available vacant house.\n- The player\u0027s maximum health is greater than 100.\n- The Merchant is present.\nThe Nurse will fully restore the player\u0027s health and cure them of any active debuffs at the cost of coins (there are exceptions, see Notes and History).\nHealing costs are 1\u00A0Copper per health restored, plus an additional 1\u00A0Silver per active debuff on the player, all multiplied by the Nurse\u0027s current Happiness price adjustment, and then doubled if playing on Expert Mode. Also, the Nurse charges increasing amounts of money for healing as the game progresses; these specific increases are listed below. Thus, at the start of the game, the cost of restoring 100 health can range from 75\u00A0Copper / 1\u00A0Silver 50\u00A0Copper (with maximum happiness) to 1\u00A0Silver 50\u00A0Copper / 3\u00A0Silver (with maximum unhappiness), while by endgame it can range from 1\u00A0Gold 50\u00A0Silver / 3\u00A0Gold up to 3\u00A0Gold / 6\u00A0Gold.\nThe Nurse will defend herself against nearby enemies by throwing green syringes that damage and poison enemies for 3\u20135 seconds. She can also throw red syringes to heal herself and other nearby NPCs for 20 health, which can also home in on targets. She deals 8 / 12 / 14 damage at the start of the game, and gains various stat boosts as the player progresses.",
+    "HowToGet": "Nurse will move in when a vacant house is available, the player's maximum health exceeds 100, and the Merchant is present.",
     "LoveBiomes": [],
     "LoveNeighbors": [
       "Arms Dealer"
@@ -54,7 +54,7 @@
   {
     "Name": "Arms Dealer",
     "WikiPage": "Arms_Dealer",
-    "HowToGet": "The Arms Dealer is an NPC vendor who mainly sells ammunition items as well as guns. He will move in once the following criteria have been met:\n- There is an available vacant house.\n- The player has at least one bullet or bullet-firing gun in their inventory (guns and bullets stored in storage items like chests, or portable storage items like the Piggy Bank do not count towards this requirement).\nThese requirements only apply to the initial spawning. If the Arms Dealer is killed, he will automatically respawn after some time.\nThe Arms Dealer will defend himself against nearby enemies with a Flintlock Pistol, before upgrading to a Minishark during Hardmode. He deals 24 / 36 / 42 damage in pre-Hardmode, which decreases to 15 / 22 / 26 damage in Hardmode to balance the Minishark\u0027s fire rate, and gains various stat boosts as the player progresses.",
+    "HowToGet": "Arms Dealer will move in when a vacant house is available and the player has a bullet or bullet-firing gun in their inventory.",
     "LoveBiomes": [],
     "LoveNeighbors": [
       "Nurse"
@@ -80,7 +80,7 @@
   {
     "Name": "Dryad",
     "WikiPage": "Dryad",
-    "HowToGet": "The Dryad is an NPC vendor who sells various nature-themed items, including seeds, powders, and Planter Boxes. She will move in once the following criteria have been met:\n- There is an available vacant house.\n- The Eye of Cthulhu, Eater of Worlds, Brain of Cthulhu, or Skeletron has been defeated.\nIn addition to selling items, the Dryad can also report the percentages of Corruption/Crimson and Hallow that exist in the current world, which is based on the total number of blocks of each corresponding biome.\nThe Dryad will defend herself against nearby enemies by casting the Dryad\u0027s Ward, which summons two rotating circles of leaves around her, with the outer circle indicating the range of the attack. The attack lasts 10\u00A0seconds in total, however, if the Dryad takes damage when casting, the attack immediately ends. Counting from when the circles of leaves are summoned (and assuming the Dryad is uninterrupted), within the first 1.67\u00A0seconds, the radius of the Dryad\u0027s Ward is 18.75 tiles (300 pixels). The radius then generally increases to 37.5 tiles (600 pixels) over the course of 3.33\u00A0seconds, remains unchanged for another 3.33\u00A0seconds, after which the radius generally increases to 75 tiles (1200 pixels) over the course of 1.17\u00A0seconds before finally dissipating. 0.5\u00A0seconds after the circles of leaves are summoned, the Dryad\u0027s Blessing buff is granted to players and other town NPCs within its radius, while Dryad\u0027s Bane is inflicted on enemies with a clear line of sight inside its radius. Dryad\u0027s Blessing provides defense, health regeneration, and a thorns effect (similar to the Thorns Potion), while Dryad\u0027s Bane deals damage over time. See Dryad\u0027s Blessing page for details about the buff and debuff.",
+    "HowToGet": "Dryad will move in when a vacant house is available and the Eye of Cthulhu, Eater of Worlds, Brain of Cthulhu, or Skeletron has been defeated.",
     "LoveBiomes": [],
     "LoveNeighbors": [],
     "LikeBiomes": [
@@ -105,7 +105,7 @@
   {
     "Name": "Guide",
     "WikiPage": "Guide",
-    "HowToGet": "The Guide is usually the first NPC a player encounters. He spawns near the player when the world is created. He provides tips mainly aimed at new players via the \u201CHelp\u201D option and displays crafting recipes (including the crafting station required) of items shown to him via the \u201CCrafting\u201D option.\nUnlike most other NPCs, the Guide spawns upon world creation, before a house is available. He will, however, move into the first house built. If he is killed, a proper house will need to be built before he can respawn, but he has no additional requirements.\nThe Guide will defend himself against nearby enemies using a Wooden Bow, firing Wooden Arrows initially and then upgrading to Flaming Arrows during Hardmode. He deals 8 / 12 / 14 damage at the start of the game, and gains various stat boosts as the player progresses.",
+    "HowToGet": "The Guide spawns near the player when the world is created and moves into the first house built. After he dies, a proper house is required for him to respawn.",
     "LoveBiomes": [],
     "LoveNeighbors": [],
     "LikeBiomes": [
@@ -130,7 +130,7 @@
   {
     "Name": "Old Man",
     "WikiPage": "Old_Man",
-    "HowToGet": "The Old Man is an NPC whose primary function is to summon Skeletron, and can be found at the Dungeon\u0027s entrance. When spoken to at night, the Old Man will give the player the option to \u201CCurse\u201D, which summons Skeletron. When spoken to during the day, the Old Man will tell the player to return at night. He will also judge players with 300 maximum health (15 hearts) or less, or 10 defense or less as unworthy, but still allows them to summon Skeletron.\nThe Dungeon can be entered without defeating Skeletron, but traveling deeper than ground level within it (below zero depth) will spawn Dungeon Guardians that will most likely kill the player on contact (see Guide:Dungeon Guardian strategies).\nWhen Skeletron is defeated, the Old Man is freed from his curse and will arrive as the Clothier (as long as a vacant house is available), in addition to allowing access to the Dungeon.",
+    "HowToGet": "The Old Man can be found at the Dungeon's entrance. Defeating Skeletron frees him as the Clothier, who arrives when a vacant house is available.",
     "LoveBiomes": [],
     "LoveNeighbors": [],
     "LikeBiomes": [],
@@ -143,7 +143,7 @@
   {
     "Name": "Demolitionist",
     "WikiPage": "Demolitionist",
-    "HowToGet": "The Demolitionist is an NPC vendor who sells explosives. He will move in once the following criteria have been met:\n- There is an available vacant house.\n- The player has an explosive in their inventory (items stored in storage items like chests, or portable storage items like the Piggy Bank do not count towards this requirement).\n- The Merchant is present.\nThese requirements only apply to the initial spawning. If the Demolitionist is killed, he will automatically respawn after some time.\nThe Demolitionist will defend himself against nearby enemies by throwing Grenades. He deals 20 / 30 / 35 damage at the start of the game, and gains various stat boosts as the player progresses.",
+    "HowToGet": "Demolitionist will move in when a vacant house is available, the player has an explosive in their inventory, and the Merchant is present.",
     "LoveBiomes": [],
     "LoveNeighbors": [
       "Tavernkeep"
@@ -170,7 +170,7 @@
   {
     "Name": "Clothier",
     "WikiPage": "Clothier",
-    "HowToGet": "The Clothier is an NPC vendor who mainly sells vanity items. He will move in once the following criteria have been met:\n- There is an available vacant house.\n- Skeletron has been defeated.\nHe is the same character as the Old Man who guards the Dungeon before Skeletron is defeated. After defeating Skeletron, the Old Man is freed from his curse, and he disappears from the Dungeon\u0027s entrance. His clothes are no longer tattered, his eyes have turned from red to blue, and he is wearing a Red Hat and scarf. Equipping the Clothier Voodoo Doll allows the player to attack and kill the Clothier (similar to the Guide Voodoo Doll) with any damage-inflicting item. Doing so at night resummons Skeletron, but killing the Clothier without the Clothier Voodoo Doll equipped (such as by using the Flymeal on its own) will not summon the boss.\nThe Clothier will defend himself against nearby enemies by firing shadowflame skull projectiles that damage and inflict the Shadowflame debuff on enemies for 5\u201310 seconds. He deals 16 / 24 / 28 damage at the start of the game, and gains various stat boosts as the player progresses.",
+    "HowToGet": "Clothier will move in when a vacant house is available and Skeletron has been defeated.",
     "LoveBiomes": [],
     "LoveNeighbors": [
       "Truffle"
@@ -198,7 +198,7 @@
   {
     "Name": "Goblin Tinkerer",
     "WikiPage": "Goblin_Tinkerer",
-    "HowToGet": "The Goblin Tinkerer is an NPC vendor who sells several unique items and also provides the reforge function. He will move in once the following criteria have been met:\n- There is an available vacant house.\n- Rescuing him as the Bound Goblin, who can be rarely encountered in the Cavern layer (or the Underground layer if playing on the Remix special world seed), after a Goblin Army has been defeated. Interacting with him in this state with \u26B7 Open / Activate will free him. If the Bound Goblin is killed, he will still be able to respawn afterwards; if the Goblin Tinkerer NPC is killed, he will move in again after some time as long as there are vacant houses.\nThe Goblin Tinkerer\u0027s reforge option allows the player to randomize the modifier of a weapon or accessory, which makes the resulting item\u0027s stats better or worse than they were originally. Reforging costs one-third of the item\u0027s current value, which can also be affected by its current modifier. The reforge cost is also affected by the Goblin Tinkerer\u0027s happiness, and therefore can be decreased by equipping a Discount Card or Greedy Ring.\nThe Goblin Tinkerer will defend himself against nearby enemies by throwing Spiky Balls. He deals 15 / 22 / 26 damage at the start of the game, and gains various stat boosts as the player progresses.\nThe Bound Goblin is one of the few entities that can be detected by the Lifeform Analyzer or its upgrades.",
+    "HowToGet": "Goblin Tinkerer will move in when a vacant house is available after rescuing the Bound Goblin in the Cavern layer following a Goblin Army defeat.",
     "LoveBiomes": [],
     "LoveNeighbors": [
       "Mechanic"
@@ -226,7 +226,7 @@
   {
     "Name": "Wizard",
     "WikiPage": "Wizard",
-    "HowToGet": "The Wizard is a Hardmode NPC vendor who sells magic-related items. He will move in once the following criteria have been met:\n- There is an available vacant house.\n- Rescuing him as the Bound Wizard, who can be rarely encountered in the Cavern layer once the Wall of Flesh has been defeated. Interacting with him in this state with \u26B7 Open / Activate will free him. If the Bound Wizard is killed, he will still be able to respawn afterwards; if the Wizard NPC is killed, he will move in again after some time as long as there are vacant houses.\nThe Wizard will defend himself against nearby enemies by casting fireballs similar to those of the Flower of Fire, which damage and inflict the On Fire! debuff on enemies for 5 seconds. He deals 18 / 27 / 31 damage at the start of the game, and gains various stat boosts as the player progresses.\nThe Wizard occasionally replaces his regular quote with a comment about the player\u0027s luck, and this is the only way to estimate a player\u0027s luck value in the game.\nThe Bound Wizard is one of the few entities that can be detected by the Lifeform Analyzer or its upgrades.",
+    "HowToGet": "Wizard will move in when a vacant house is available after rescuing the Bound Wizard in the Cavern layer after defeating the Wall of Flesh.",
     "LoveBiomes": [],
     "LoveNeighbors": [
       "Golfer"
@@ -252,7 +252,7 @@
   {
     "Name": "Mechanic",
     "WikiPage": "Mechanic",
-    "HowToGet": "The Mechanic is an NPC vendor who sells wire, actuators, and various mechanisms, as well as Wire Cutters and Wrenches, allowing the player to construct and activate wired devices like traps and critter engines. She will move in once the following criteria have been met:\n- There is an available vacant house.\n- Rescuing her as the Bound Mechanic, who can be rarely encountered in the Dungeon in the Cavern layer and below after Skeletron has been defeated. Interacting with her in this state with \u26B7 Open / Activate will free her. If the Bound Mechanic is killed, she will still be able to respawn afterwards; if the Mechanic NPC is killed, she will move in again after some time as long as there are vacant houses.\nThe Mechanic will defend herself against nearby enemies with her Combat Wrench. She deals 11 / 16 / 19 damage at the start of the game, and gains various stat boosts as the player progresses. The Mechanic also has a 1/8 (12.5%) chance of dropping the Combat Wrench upon death.\nThe Bound Mechanic is one of the few entities that can be detected by the Lifeform Analyzer or its upgrades.",
+    "HowToGet": "Mechanic will move in when a vacant house is available after rescuing the Bound Mechanic in the Dungeon after defeating Skeletron.",
     "LoveBiomes": [],
     "LoveNeighbors": [
       "Goblin Tinkerer"
@@ -280,7 +280,7 @@
   {
     "Name": "Santa Claus",
     "WikiPage": "Santa_Claus",
-    "HowToGet": "Santa Claus is a unique Hardmode NPC vendor who sells various decorative Christmas-themed items. He will move in once the following criteria have been met:\n- There is an available vacant house.\n- The Frost Legion event has been completed at least once.\nSanta Claus will only spawn during the Christmas seasonal event (December 15 \u2013 December 31, or unlocked for one in-game day outside of those dates by reaching the Frost Moon event\u0027s 15th wave), after which he dies.\nSanta Claus will defend himself against nearby enemies by throwing baubles.",
+    "HowToGet": "Santa Claus will move in when a vacant house is available and the Frost Legion has been completed. He only spawns during the Christmas seasonal event.",
     "LoveBiomes": [
       "Snow biome"
     ],
@@ -301,7 +301,7 @@
   {
     "Name": "Truffle",
     "WikiPage": "Truffle",
-    "HowToGet": "The Truffle is a Hardmode NPC vendor who sells various mushroom-themed items. He can arrive homelessly as soon as Hardmode starts, and he can only move into vacant houses that are located in (or near) a surface Glowing Mushroom biome (i.e. one that is above 0 elevation).\n- Surface Glowing Mushroom biomes do not generate naturally and therefore must be manually created. 100 tiles of Mushroom grass and Glowing Mushroom plants are required to create a Glowing Mushroom biome.\nIf the Truffle spawns into a vacant house in a surface Glowing Mushroom biome, he is considered unlocked and can then be reassigned to a house at any elevation, as long as it is in a Glowing Mushroom biome. Moving a homeless Truffle into suitable house is not considered unlocking him; in this case, he can only be reassigned into houses in surface Glowing Mushroom biomes.\nAfter the Truffle dies, if the Truffle is unlocked, he can respawn into vacant houses located in Glowing Mushroom biomes at any height; if he is not unlocked, he can only respawn into vacant houses located in surface Glowing Mushroom biomes. Otherwise, he can only respawn homelessly.\nWhen threatened by enemies, the Truffle will release Mushroom Spores, which hover in midair and explode into spore clouds upon contact with enemies.",
+    "HowToGet": "Truffle can arrive homelessly once Hardmode starts and can move into a vacant house in or near a surface Glowing Mushroom biome.",
     "LoveBiomes": [],
     "LoveNeighbors": [
       "Guide"
@@ -325,7 +325,7 @@
   {
     "Name": "Steampunker",
     "WikiPage": "Steampunker",
-    "HowToGet": "The Steampunker is a Hardmode NPC vendor who sells the Clentaminator, various furniture crafting stations, and other steampunk-themed items. She will move in once the following criteria have been met:\n- There is an available vacant house.\n- One of the mechanical bosses (The Twins, The Destroyer, or Skeletron Prime) have been defeated.\nThe Steampunker will attack nearby enemies using a Clockwork Assault Rifle and High Velocity Bullets for defense.",
+    "HowToGet": "Steampunker will move in when a vacant house is available and one mechanical boss has been defeated.",
     "LoveBiomes": [],
     "LoveNeighbors": [
       "Cyborg"
@@ -351,7 +351,7 @@
   {
     "Name": "Dye Trader",
     "WikiPage": "Dye_Trader",
-    "HowToGet": "The Dye Trader is an NPC vendor who sells the Dye Vat and other dye-related items. He will move in when the following criteria have been met:\n- There is an available vacant house.\n- The player has a dye, dye plant, Strange Plant, or Dye Vat in their inventory, and at least four other town NPCs are in the world. Note that while the Old Man, Traveling Merchant, and town pets count towards this total, the Skeleton Merchant does not.\nThese requirements only apply to the initial spawning. If the Dye Trader is killed, he will automatically respawn after some time.\nOnce Hardmode has been reached, players may trade Strange Plants with the Dye Trader for uncraftable and unpurchasable animated dyes. These dyes are given at random in sets of 6 for each exchanged Strange Plant.\nThe Dye Trader will defend himself against nearby enemies with his Exotic Scimitar. He deals 11 / 16 / 19 damage at the start of the game, and gains various stat boosts as the player progresses. The Dye Trader also has a 1/8 (12.5%) chance of dropping the Exotic Scimitar upon death.",
+    "HowToGet": "Dye Trader will move in when a vacant house is available and the player has a dye, dye plant, Strange Plant, or Dye Vat in their inventory while at least four other town NPCs are present.",
     "LoveBiomes": [],
     "LoveNeighbors": [],
     "LikeBiomes": [
@@ -376,7 +376,7 @@
   {
     "Name": "Party Girl",
     "WikiPage": "Party_Girl",
-    "HowToGet": "The Party Girl is an NPC vendor who sells festive novelty items and furniture.\nUnlike other town NPCs, the Party Girl only has a 1/40 (2.5%) chance to be eligible for spawning every 2-minute interval, during which she is subject to regular NPC spawn rate, once the criteria below are met. In other words, she will take on average 40 times longer to spawn than regular NPCs. Along with this percentage chance, she will move in once the following criteria are met:\n- There is an available vacant house.\n- 20 other town NPCs are in the world. Note that while the Old Man, Traveling Merchant, and town pets count towards this total, the Skeleton Merchant does not.\nIf the Party Girl is killed, she will respawn with normal spawn chances instead of being rarer.\nThe Party Girl will defend herself against nearby enemies by throwing Happy Grenades. She deals 30 / 45 / 52 damage at the start of the game, and gains various stat boosts as the player progresses. The Party Girl also has a 1/4 (25%) chance of dropping 30\u201360 Happy Grenades upon death.\nDuring a natural Party, she will give a Slice of Cake to the first player that talks to her.",
+    "HowToGet": "Party Girl has a 1/40 chance to become eligible every two minutes once a vacant house is available and 20 other town NPCs are present.",
     "LoveBiomes": [],
     "LoveNeighbors": [
       "Wizard",
@@ -405,7 +405,7 @@
   {
     "Name": "Cyborg",
     "WikiPage": "Cyborg",
-    "HowToGet": "The Cyborg is a Hardmode, post-Plantera NPC vendor who sells several \u0022high-tech\u0022 items, most notably rocket ammunition for launcher weapons. He will move in once the following criteria have been met:\n- There is an available vacant house.\n- Plantera has been defeated.\nThe Cyborg will defend himself against nearby enemies with three different kinds of explosives: grenades, rockets, and proximity mines, which are identical in behavior to the Grenade Launcher, Rocket Launcher, and Proximity Mine Launcher respectively. The Cyborg\u0027s proximity mines will also deal triple their usual damage when stationary.",
+    "HowToGet": "Cyborg will move in when a vacant house is available and Plantera has been defeated.",
     "LoveBiomes": [],
     "LoveNeighbors": [],
     "LikeBiomes": [
@@ -431,7 +431,7 @@
   {
     "Name": "Painter",
     "WikiPage": "Painter",
-    "HowToGet": "The Painter is an NPC vendor who sells paint and painting tools, as well as paintings and wallpapers. He will move in once the following criteria have been met:\n- There is an available vacant house.\n- 8 other town NPCs are in the world. Note that while the Old Man, Traveling Merchant, and town pets count towards this total, the Skeleton Merchant does not.\nThe Painter\u0027s shop inventory changes based on external factors. The biome in which he is talked to, the moon phase, and seasonal events all determine which paintings and wallpapers are available.\nHe has two shop menus: one is the default \u201CShop\u201D, where paint and painting tools are sold; the other is \u201CDecor\u201D, where paintings and wallpapers are sold. If any pylon is available, it is sold in both shop menus.\nThe Painter will defend himself against nearby enemies with his Paintball Gun. He deals 8 / 12 / 14 damage during pre-Hardmode, which increases to 10 / 15 / 17 damage during Hardmode, and gains various stat boosts as the player progresses. The Painter also has a 1/10 (10%) chance of dropping the Paintball Gun upon death.",
+    "HowToGet": "Painter will move in when a vacant house is available and eight other town NPCs are present.",
     "LoveBiomes": [],
     "LoveNeighbors": [
       "Dryad"
@@ -456,7 +456,7 @@
   {
     "Name": "Witch Doctor",
     "WikiPage": "Witch_Doctor",
-    "HowToGet": "The Witch Doctor is an NPC vendor who will move in once the following criteria have been met:\n- There is an available vacant house.\n- The Queen Bee has been defeated.\nThe Witch Doctor will defend himself against nearby enemies by shooting Poison Darts from a Blowgun that damage and poison enemies for 30\u201360 seconds. He deals 20 / 30 / 35 damage at the start of the game, and gains various stat boosts as the player progresses.",
+    "HowToGet": "Witch Doctor will move in when a vacant house is available and Queen Bee has been defeated.",
     "LoveBiomes": [],
     "LoveNeighbors": [],
     "LikeBiomes": [
@@ -481,7 +481,7 @@
   {
     "Name": "Pirate",
     "WikiPage": "Pirate",
-    "HowToGet": "The Pirate is a Hardmode NPC vendor who sells cannons and other pirate-related items, with a nearly identical appearance to the Pirate Captain enemy. He will move in once the following criteria have been met:\n- There is an available vacant house.\n- The Pirate Invasion event has been completed at least once.\nHe will defend himself using his Pirate Cannon, which fires both bullets and cannonballs.",
+    "HowToGet": "Pirate will move in when a vacant house is available and the Pirate Invasion has been completed.",
     "LoveBiomes": [],
     "LoveNeighbors": [
       "Angler"
@@ -509,7 +509,7 @@
   {
     "Name": "Stylist",
     "WikiPage": "Stylist",
-    "HowToGet": "The Stylist is an NPC vendor who can change the player\u0027s hairstyle and hair color. She also sells a variety of Hair Dyes, which apply dynamic effects to the player\u0027s hair. She will move in once the following criteria have been met:\n- There is an available vacant house.\n- Rescuing her as the Webbed Stylist, who can be encountered randomly in Spider Nests in the Cavern layer. Interacting with her in this state with \u26B7 Open / Activate will free her. If the Webbed Stylist is killed, she will still be able to respawn afterwards; if the Stylist NPC is killed, she will move in again after some time as long as there are vacant houses.\nSelecting the \u201CHair Style\u201D option in the Stylist\u0027s dialog opens a window where the player can choose a new hairstyle and color. The changes are immediately visible on the character for preview. Permanently applying the changes incurs a fee: switching to a different hairstyle costs 10\u00A0Gold; changing hair color costs 2\u00A0Gold. Hairstyle and color can be changed repeatedly and at any time.\nLike with all other vendors, the Stylist\u0027s prices can vary depending on her happiness; this also affects her prices for hairstyle and color changes, as follows: The combined cost of changing hairstyle and color is multiplied by her happiness-based price multiplier, and then rounded to the nearest multiple of 1\u00A0Gold. Thus, the cost of changing hairstyles can be 8\u201315 Gold Coin, changing hair colors can cost 2\u20133 Gold Coin, and changing both hairstyle and hair color at once can range from 10\u00A0Gold to 18\u00A0Gold.\nThe Stylist will defend herself against nearby enemies with her Stylish Scissors. She deals 10 / 15 / 17 damage at the start of the game, and gains various stat boosts as the player progresses. The Stylist also has a 1/8 (12.5%) chance of dropping the Stylish Scissors upon death.\nThe Webbed Stylist is one of the few entities that can be detected by the Lifeform Analyzer or its upgrades.",
+    "HowToGet": "Stylist will move in when a vacant house is available after rescuing the Webbed Stylist in a Spider Nest in the Cavern layer.",
     "LoveBiomes": [],
     "LoveNeighbors": [
       "Dye Trader"
@@ -535,7 +535,7 @@
   {
     "Name": "Traveling Merchant",
     "WikiPage": "Traveling_Merchant",
-    "HowToGet": "The Traveling Merchant is a unique NPC vendor who randomly visits the player\u0027s town for one in-game day. His inventory is randomized and different every visit, selling approximately 4\u201310 different items listed below.\nIn order for the Traveling Merchant to spawn, at least 2 other NPCs must already be present. The Guide counts as one of these, but the Old Man and Skeleton Merchant do not. He will not spawn during Solar Eclipses, the Goblin Army, Frost Legion, Pirate Invasion, or Martian Madness. He does not require his own house in order to spawn, and will instead spawn next to NPCs, including town pets, spending the day walking around them.\nOnce the criteria are met, the Traveling Merchant has a random chance of appearing between 4:30\u00A0AM and 12:00\u00A0PM. He leaves the same day at 6:00\u00A0PM, but can only do so once he is off-screen. He despawns if the world is exited.\nIf threatened by enemies, the Traveling Merchant will defend himself with a Revolver. Once Hardmode begins, he upgrades to a Pulse Bow.",
+    "HowToGet": "Traveling Merchant randomly visits for one in-game day when at least two other NPCs are present. He does not require a house and can appear between 4:30 AM and 12:00 PM.",
     "LoveBiomes": [],
     "LoveNeighbors": [],
     "LikeBiomes": [],
@@ -548,7 +548,7 @@
   {
     "Name": "Angler",
     "WikiPage": "Angler",
-    "HowToGet": "The Angler is a unique NPC concerned exclusively with fishing. He does not sell anything, but rather assigns quests to players. Quest objectives generally involve catching him rare fish from particular biomes or layers, for which he offers various rewards. He will move in once the following criteria have been met:\n- There is an available vacant house.\n- He has been rescued as the Sleeping Angler, who can be encountered randomly in the Ocean biome on Sand Blocks or on the surface of the water. Interacting with him in this state with \u26B7 Open / Activate will wake him. If the Sleeping Angler is killed, he will still be able to respawn afterwards; if the Angler NPC is killed, he will move in again after some time as long as there is a vacant house.\nThe Angler will defend himself against nearby enemies by throwing Frost Daggerfish. He deals 10 / 15 / 17 damage at the start of the game, and gains various stat boosts as the player progresses.\nThe Sleeping Angler is one of the few entities that can be detected by the Lifeform Analyzer or its upgrades.",
+    "HowToGet": "Angler will move in when a vacant house is available after rescuing the Sleeping Angler in the Ocean biome.",
     "LoveBiomes": [],
     "LoveNeighbors": [],
     "LikeBiomes": [
@@ -572,7 +572,7 @@
   {
     "Name": "Tax Collector",
     "WikiPage": "Tax_Collector",
-    "HowToGet": "The Tax Collector is a Hardmode NPC who taxes other housed NPCs to earn coins for players. He will move in once the following criteria have been met:\n- There is an available vacant house.\n- Rescuing him by throwing Purification Powder onto a Tortured Soul, a rare enemy that only spawns in The Underworld after the Wall of Flesh has been defeated. After this is done, the Tortured Soul will transform into the Tax Collector. If the Tortured Soul is killed, he will still be able to respawn afterwards; if the Tax Collector NPC is killed, he will move in again after some time as long as there are vacant houses.\nWhen the Tax Collector is present, 50\u00A0Copper will be earned per real-world minute (each in-game hour), for each NPC that has a house (including the Tax Collector himself but excluding the Old Man, Traveling Merchant, Skeleton Merchant, and town pets). The Tax Collector stores these funds, up to 25\u00A0Gold. These stats are doubled in Celebration Mk 10 and Zenith worlds (i.e. 1\u00A0Silver per NPC and 50\u00A0Gold maximum). Speaking to him will reveal the amount stored thus far, and offer the \u201CCollect\u201D option to collect the funds. His tax limit (as well as his current funds and how much he collects per minute) varies depending on his current happiness; thus, how much he earns per minute will be between 33\u00A0Copper and 66\u00A0Copper, while his limit will be between 16\u00A0Gold 66\u00A0Silver 66\u00A0Copper and 33\u00A0Gold 33\u00A0Silver 33\u00A0Copper.\nUnlike other town NPCs, the Tax Collector is immune to lava, due to being spawned from a Tortured Soul.\nThe Tax Collector will attack nearby enemies with his Classy Cane, for which he has a 1/8 (12.5%) chance of dropping upon death.",
+    "HowToGet": "Tax Collector will move in when a vacant house is available after purifying a Tortured Soul in the Underworld after defeating the Wall of Flesh.",
     "LoveBiomes": [],
     "LoveNeighbors": [
       "Merchant"
@@ -599,7 +599,7 @@
   {
     "Name": "Tavernkeep",
     "WikiPage": "Tavernkeep",
-    "HowToGet": "The Tavernkeep is a unique NPC vendor who only accepts Defender Medals as currency for most items instead of coins. He will move in once the following criteria have been met:\n- There is an available vacant house.\n- Rescuing him as the Unconscious Man, who can be encountered in any layer once the Eater of Worlds or Brain of Cthulhu has been defeated. Interacting with him in this state with \u26B7 Open / Activate will wake him. If the Unconscious Man is killed, he will still be able to respawn afterwards; if the Tavernkeep NPC is killed, he will move in again after some time as long as there are vacant houses.\nThe Tavernkeep sells sentry summon weapons which are associated with the Old One\u0027s Army event and can only be used within that event at first. They function elsewhere only after the event is completed once successfully. Each of the Tavernkeep\u0027s sentry summon weapons come in three tiers: rod, cane, and staff, with the staff being the most expensive and the most powerful. The armor he sells also associates each sentry type with a specific class: Ballista for melee or tank-style users, Flameburst for magic users, Explosive Trap for rangers, and Lightning Aura for \u0022speedy melee\u0022 (or summoners).\nWhen the player selects the \u201CEternia Crystal\u201D option for the first time, the Tavernkeep will give the player 10 Defender Medals for free. All future Defender Medals must be earned by either defeating the Old One\u0027s Army outright or by clearing its later waves.\nThe Tavernkeep will defend himself against nearby enemies by throwing mugs of Ale. He deals 24 / 36 / 42 damage at the start of the game, and gains various stat boosts as the player progresses. The Tavernkeep also has a 1/8 (12.5%) chance of dropping the Ale Tosser upon death.\nThe Unconscious Man is one of the few entities that can be detected by the Lifeform Analyzer or its upgrades.",
+    "HowToGet": "Tavernkeep will move in when a vacant house is available after rescuing the Unconscious Man once the Eater of Worlds or Brain of Cthulhu has been defeated.",
     "LoveBiomes": [],
     "LoveNeighbors": [
       "Demolitionist"
@@ -625,7 +625,7 @@
   {
     "Name": "Golfer",
     "WikiPage": "Golfer",
-    "HowToGet": "The Golfer is an NPC vendor who sells golfing-related items. More items will be unlocked as the player\u0027s golf score increases, including clubs, trophies, and paintings. He will move in once the following criteria are met:\n- There is an available vacant house.\n- Rescuing him as the Golfer Rescue, who can be rarely encountered in the Underground Desert. Interacting with him in this state with \u26B7 Open / Activate will free him. If the stationary Golfer is killed, he will still be able to respawn afterwards; if the Golfer NPC is killed, he will move in again after some time as long as there are vacant houses.\nThe Golfer will attack nearby enemies with his golf balls to defend himself.\nHe is one of the few entities that can be detected by the Lifeform Analyzer or its upgrades.",
+    "HowToGet": "Golfer will move in when a vacant house is available after rescuing the Golfer in the Underground Desert.",
     "LoveBiomes": [],
     "LoveNeighbors": [
       "Angler"
@@ -654,7 +654,7 @@
   {
     "Name": "Zoologist",
     "WikiPage": "Zoologist",
-    "HowToGet": "The Zoologist is an NPC vendor who sells animal-related items and vanity. She will move in once the following criteria have been met:\n- There is an available vacant house.\n- The Bestiary has been filled to at least 10% (55 entries).\nShe sells a large variety of vanity items, in addition to many mounts and pets, critter-themed accessories, and the Universal Pylon, depending on the Bestiary\u0027s completion percentage.\nThe Zoologist will transform into a werefox during a full moon or Blood Moon. Apart from having a different sprite and quotes, there is no difference between her normal and transformed state. When transformed, the Zoologist\u0027s minimap icon also does not change, and she will revert to normal at dawn (4:30\u00A0AM).\nThe Zoologist will defend herself against nearby enemies by attacking with her claws, with the color of the claw attack turning from green to red when she is transformed. She deals 15 / 22 / 26 damage at the start of the game, and gains various stat boosts as the player progresses.",
+    "HowToGet": "Zoologist will move in when a vacant house is available and the Bestiary is at least 10% complete.",
     "LoveBiomes": [],
     "LoveNeighbors": [
       "Witch Doctor"
@@ -680,7 +680,7 @@
   {
     "Name": "Princess",
     "WikiPage": "Princess",
-    "HowToGet": "The Princess is a Hardmode, post-Plantera NPC vendor who sells royal-themed vanity items and furniture, and is typically the final town NPC that the player encounters. She will move in once the following criteria have been met:\n- There is an available vacant house.\n- All other town NPCs (not including Santa Claus or town pets) are present, meaning that she can only move in after defeating Plantera (as the Cyborg, the second-to-last NPC unlocked by game progression, can only spawn after defeating her).\nThese requirements only apply to the initial spawning. If the Princess is killed, she will automatically respawn after some time.\nThe Princess will attack nearby enemies with the Resonance Scepter, for which she has a 1/8 (12.5%) chance of dropping upon death if the current world is in Hardmode.",
+    "HowToGet": "Princess will move in when a vacant house is available and every other town NPC except Santa Claus and town pets is present.",
     "LoveBiomes": [],
     "LoveNeighbors": [],
     "LikeBiomes": [],

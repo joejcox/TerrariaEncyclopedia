@@ -205,7 +205,7 @@ public static class Program
                 // rescue-as-Unconscious-Man-after-EoW/BoC) lives only in the unstructured intro
                 // text before any heading — there's no dedicated section for it at all.
                 if (table != null || AcquisitionOnlyNpcs.Contains(name))
-                    info.HowToGet = ExtractLeadParagraph(doc);
+                    info.HowToGet = ExtractAcquisitionGuidance(doc, name);
 
                 int total = info.LoveBiomes.Length + info.LoveNeighbors.Length + info.LikeBiomes.Length
                     + info.LikeNeighbors.Length + info.DislikeBiomes.Length + info.DislikeNeighbors.Length
@@ -391,12 +391,11 @@ public static class Program
     }
 
     /// <summary>
-    /// The unstructured intro text before the first heading — where "how do I get this NPC"
-    /// info actually lives for town NPCs (e.g. Tavernkeep's house/rescue requirements), not
-    /// under any named section at all. Stops at the first heading or the table-of-contents div,
-    /// skipping the infobox/version-notice/quote blocks that precede it.
+    /// The wiki puts town NPC arrival requirements in its unstructured lead, alongside shop,
+    /// combat, drops, and trivia. Retain only the consecutive lead sentences and condition lists
+    /// that describe moving in, rescue, spawning, or visiting.
     /// </summary>
-    private static string? ExtractLeadParagraph(HtmlDocument doc)
+    private static string? ExtractAcquisitionGuidance(HtmlDocument doc, string npcName)
     {
         var root = doc.DocumentNode.SelectSingleNode("//div[contains(@class,'mw-parser-output')]");
         if (root == null) return null;
@@ -407,20 +406,73 @@ public static class Program
             if (node.Name == "h2") break;
             if (node.Name == "div" && node.GetAttributeValue("id", "") == "toc") break;
 
-            if (node.Name == "p")
+            if (node.Name != "p") continue;
+
+            string guidance = ExtractAcquisitionSentences(ExtractCleanText(node), npcName);
+            if (guidance.Length == 0) continue;
+
+            parts.Add(guidance);
+            for (var next = node.NextSibling; next != null; next = next.NextSibling)
             {
-                string text = ExtractCleanText(node);
-                if (text.Length > 0) parts.Add(text);
+                if (next.Name == "ul")
+                {
+                    CollectListItems(next, "", parts);
+                    continue;
+                }
+
+                if (next.Name != "p") continue;
+
+                string continuation = ExtractAcquisitionSentences(ExtractCleanText(next), npcName);
+                if (continuation.Length == 0) break;
+                parts.Add(continuation);
             }
-            else if (node.Name == "ul")
-            {
-                CollectListItems(node, "", parts);
-            }
+
+            break;
             // Anything else (message-box version notice, infobox, quote blockquote) is skipped.
         }
 
         if (parts.Count == 0) return null;
         return JoinAndCleanFootnotes(parts);
+    }
+
+    private static string ExtractAcquisitionSentences(string text, string npcName)
+    {
+        var sentences = text.Split(new[] { ". ", "! ", "? " }, StringSplitOptions.None);
+        var matches = new List<string>();
+        foreach (string sentence in sentences)
+        {
+            string trimmed = sentence.Trim();
+            if (!ContainsAcquisitionCue(trimmed) || !IsAboutNpc(trimmed, npcName)) continue;
+
+            int moveIn = trimmed.IndexOf("will move in", StringComparison.OrdinalIgnoreCase);
+            matches.Add(moveIn >= 0
+                ? $"{npcName} {trimmed.Substring(moveIn)}"
+                : trimmed);
+        }
+
+        return string.Join(" ", matches);
+    }
+
+    private static bool IsAboutNpc(string text, string npcName)
+    {
+        return text.IndexOf(npcName, StringComparison.OrdinalIgnoreCase) >= 0
+            || text.StartsWith("He ", StringComparison.OrdinalIgnoreCase)
+            || text.StartsWith("She ", StringComparison.OrdinalIgnoreCase)
+            || text.StartsWith("It ", StringComparison.OrdinalIgnoreCase)
+            || text.StartsWith("They ", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool ContainsAcquisitionCue(string text)
+    {
+        string[] cues =
+        {
+            "will move in", "move into", "can arrive", "will arrive", "spawn", "rescu",
+            "encountered", "can be found", "randomly visits",
+            "random chance of appearing", "vacant house", "does not require his own house",
+        };
+
+        return text.IndexOf("respawn", StringComparison.OrdinalIgnoreCase) < 0
+            && cues.Any(cue => text.IndexOf(cue, StringComparison.OrdinalIgnoreCase) >= 0);
     }
 
     private static string ExtractCleanText(HtmlNode node)

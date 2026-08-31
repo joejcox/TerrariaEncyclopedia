@@ -275,11 +275,21 @@ namespace TerrariaEncyclopedia.Tests
                 Assert.True(text.IndexOf("[edit]", StringComparison.OrdinalIgnoreCase) < 0);
                 Assert.DoesNotMatch(@"\[\d+\]", text);
                 Assert.DoesNotContain("harmless critter", text, StringComparison.OrdinalIgnoreCase);
+                Assert.DoesNotContain("vendor", text, StringComparison.OrdinalIgnoreCase);
+                Assert.DoesNotContain("sells", text, StringComparison.OrdinalIgnoreCase);
+                Assert.DoesNotContain("defend", text, StringComparison.OrdinalIgnoreCase);
+                Assert.DoesNotContain("dropping", text, StringComparison.OrdinalIgnoreCase);
             }
 
-            Assert.Contains("vacant house", GuidanceFor(entries, "Merchant"), StringComparison.OrdinalIgnoreCase);
-            Assert.Contains("Unconscious Man", GuidanceFor(entries, "Tavernkeep"), StringComparison.OrdinalIgnoreCase);
-            Assert.Contains("randomly visits", GuidanceFor(entries, "Traveling Merchant"), StringComparison.OrdinalIgnoreCase);
+            Assert.Equal(
+                "Merchant will move in when a vacant house is available and all players have more than 50 Silver in their inventories.",
+                GuidanceFor(entries, "Merchant"));
+            Assert.Equal(
+                "Tavernkeep will move in when a vacant house is available after rescuing the Unconscious Man once the Eater of Worlds or Brain of Cthulhu has been defeated.",
+                GuidanceFor(entries, "Tavernkeep"));
+            Assert.Equal(
+                "Traveling Merchant randomly visits for one in-game day when at least two other NPCs are present. He does not require a house and can appear between 4:30 AM and 12:00 PM.",
+                GuidanceFor(entries, "Traveling Merchant"));
         }
 
         [Theory]
