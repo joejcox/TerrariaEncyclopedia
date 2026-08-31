@@ -18,6 +18,21 @@ namespace TerrariaEncyclopedia.UI
     {
         private enum ViewMode { Grid, Detail }
 
+        private enum SortMode { NameAsc, NameDesc, RarityAsc, RarityDesc, Oldest, Newest, SetGrouped }
+
+        private static readonly (SortMode Mode, string Label)[] SortModes =
+        {
+            (SortMode.NameAsc, "A-Z"),
+            (SortMode.NameDesc, "Z-A"),
+            (SortMode.RarityAsc, "Rarity: Low-High"),
+            (SortMode.RarityDesc, "Rarity: High-Low"),
+            // "Oldest"/"Newest" approximate release order using item ID — Terraria assigns IDs
+            // roughly in the order items were added, though old removed/reused IDs mean it's not exact.
+            (SortMode.Oldest, "Oldest First"),
+            (SortMode.Newest, "Newest First"),
+            (SortMode.SetGrouped, "By Set"),
+        };
+
         private const int SlotSize = 44;
         private const int SlotOuter = SlotSize - 2;
         private const int IconPad = 4;
@@ -47,6 +62,9 @@ namespace TerrariaEncyclopedia.UI
         private Dictionary<int, ItemEntry> _byId = new Dictionary<int, ItemEntry>();
         private List<ItemEntry> _filtered = new List<ItemEntry>();
         private int _activeTab;
+        private int _sortModeIndex;
+        private bool _sortDropdownOpen;
+        private int _sortButtonX, _sortButtonY, _sortButtonWidth;
 
         private ViewMode _view = ViewMode.Grid;
         private ItemEntry _detailItem;
@@ -114,9 +132,24 @@ namespace TerrariaEncyclopedia.UI
                 source = source.Where(e => (isIdSearch && e.Id == searchId) || e.Name.ToLowerInvariant().Contains(lower));
             }
 
-            _filtered = source.ToList();
+            _filtered = ApplySort(source).ToList();
             _scroll.ResetScroll();
             _panel.Title = $"Terraria Encyclopedia ({_filtered.Count}/{_all.Count})";
+        }
+
+        private IEnumerable<ItemEntry> ApplySort(IEnumerable<ItemEntry> source)
+        {
+            switch (SortModes[_sortModeIndex].Mode)
+            {
+                case SortMode.NameDesc: return source.OrderByDescending(e => e.Name);
+                case SortMode.RarityAsc: return source.OrderBy(e => e.Rarity).ThenBy(e => e.Name);
+                case SortMode.RarityDesc: return source.OrderByDescending(e => e.Rarity).ThenBy(e => e.Name);
+                case SortMode.Oldest: return source.OrderBy(e => e.Id);
+                case SortMode.Newest: return source.OrderByDescending(e => e.Id);
+                case SortMode.SetGrouped:
+                    return source.OrderBy(e => ItemCatalogue.TierIndex(e.Set)).ThenBy(e => e.Set).ThenBy(e => e.Name);
+                default: return source.OrderBy(e => e.Name); // NameAsc
+            }
         }
 
         private void GoHome()
@@ -173,8 +206,14 @@ namespace TerrariaEncyclopedia.UI
             _search.Draw(s.X, searchY, 220, 26);
             if (_search.HasChanged) Filter();
 
+            DrawSortButton(s.X + 230, searchY - 1, s.Width - 230);
+
             int tabsY = s.Advance(34);
-            DrawCategoryTabs(s.X, tabsY, s.Width);
+            // While the sort dropdown is open, everything below it must ignore hover/click —
+            // otherwise a click meant to close/select in the dropdown could fall through onto
+            // whatever grid item or tab happens to be underneath it.
+            bool interactive = !_sortDropdownOpen;
+            DrawCategoryTabs(s.X, tabsY, s.Width, interactive);
 
             s.Advance(6);
 
@@ -183,10 +222,77 @@ namespace TerrariaEncyclopedia.UI
             int gridWidth = s.Width;
             int gridHeight = _panel.ContentHeight - s.TotalHeight;
 
-            DrawGrid(gridX, gridY, gridWidth, gridHeight);
+            DrawGrid(gridX, gridY, gridWidth, gridHeight, interactive);
+
+            // Drawn last so it renders on top of the grid/tabs.
+            if (_sortDropdownOpen) DrawSortDropdown();
         }
 
-        private void DrawCategoryTabs(int x, int y, int width)
+        private void DrawSortButton(int x, int y, int width)
+        {
+            _sortButtonX = x;
+            _sortButtonY = y;
+            _sortButtonWidth = width;
+
+            string label = "Sort: " + SortModes[_sortModeIndex].Label + (_sortDropdownOpen ? "  ^" : "  v");
+            bool isHover = WidgetInput.IsMouseOver(x, y, width, 28);
+
+            UIRenderer.DrawRect(x, y, width, 28, isHover || _sortDropdownOpen ? UIColors.SectionBg : UIColors.InputBg);
+            UIRenderer.DrawText(label, x + 6, y + 6, UIColors.Text);
+
+            if (isHover)
+            {
+                Tooltip.Set("Choose a sort order");
+                if (WidgetInput.MouseLeftClick)
+                {
+                    WidgetInput.ConsumeClick();
+                    _sortDropdownOpen = !_sortDropdownOpen;
+                }
+            }
+        }
+
+        private void DrawSortDropdown()
+        {
+            int rowHeight = 26;
+            int listY = _sortButtonY + 28;
+            int listHeight = SortModes.Length * rowHeight;
+
+            UIRenderer.DrawRect(_sortButtonX, listY, _sortButtonWidth, listHeight, UIColors.PanelBg);
+            UIRenderer.DrawRectOutline(_sortButtonX, listY, _sortButtonWidth, listHeight, UIColors.Border);
+
+            for (int i = 0; i < SortModes.Length; i++)
+            {
+                int rowY = listY + i * rowHeight;
+                bool isActive = i == _sortModeIndex;
+                bool isHover = WidgetInput.IsMouseOver(_sortButtonX, rowY, _sortButtonWidth, rowHeight);
+
+                if (isActive || isHover)
+                    UIRenderer.DrawRect(_sortButtonX, rowY, _sortButtonWidth, rowHeight,
+                        isActive ? UIColors.ItemActiveBg : UIColors.SectionBg);
+
+                UIRenderer.DrawText(SortModes[i].Label, _sortButtonX + 6, rowY + 5,
+                    isActive ? UIColors.AccentText : UIColors.Text);
+
+                if (isHover && WidgetInput.MouseLeftClick)
+                {
+                    WidgetInput.ConsumeClick();
+                    _sortModeIndex = i;
+                    _sortDropdownOpen = false;
+                    Filter();
+                }
+            }
+
+            // Click anywhere outside the button or the list closes it without changing anything.
+            bool overButton = WidgetInput.IsMouseOver(_sortButtonX, _sortButtonY, _sortButtonWidth, 28);
+            bool overList = WidgetInput.IsMouseOver(_sortButtonX, listY, _sortButtonWidth, listHeight);
+            if (!overButton && !overList && WidgetInput.MouseLeftClick)
+            {
+                WidgetInput.ConsumeClick();
+                _sortDropdownOpen = false;
+            }
+        }
+
+        private void DrawCategoryTabs(int x, int y, int width, bool interactive)
         {
             int tabWidth = width / Tabs.Length;
 
@@ -195,7 +301,7 @@ namespace TerrariaEncyclopedia.UI
                 int tabX = x + i * tabWidth;
                 int tabW = (i == Tabs.Length - 1) ? (width - i * tabWidth) : tabWidth - 2;
                 bool isActive = _activeTab == i;
-                bool isHover = WidgetInput.IsMouseOver(tabX, y, tabW, 30);
+                bool isHover = interactive && WidgetInput.IsMouseOver(tabX, y, tabW, 30);
 
                 UIRenderer.DrawRect(tabX, y, tabW, 30,
                     isActive ? UIColors.ItemActiveBg : (isHover ? UIColors.SectionBg : UIColors.InputBg));
@@ -230,7 +336,7 @@ namespace TerrariaEncyclopedia.UI
             }
         }
 
-        private void DrawGrid(int gridX, int gridY, int gridWidth, int gridHeight)
+        private void DrawGrid(int gridX, int gridY, int gridWidth, int gridHeight, bool interactive)
         {
             int gridColumns = Math.Max(1, _scroll.ContentWidth > 0 ? _scroll.ContentWidth / SlotSize : gridWidth / SlotSize);
             int totalRows = (_filtered.Count + gridColumns - 1) / gridColumns;
@@ -258,7 +364,7 @@ namespace TerrariaEncyclopedia.UI
                 int slotY = _scroll.ContentY + itemContentY;
 
                 var entry = _filtered[itemIdx];
-                bool inScrollBounds = WidgetInput.IsMouseOver(gridX, gridY, gridWidth, gridHeight);
+                bool inScrollBounds = interactive && WidgetInput.IsMouseOver(gridX, gridY, gridWidth, gridHeight);
                 bool isHover = inScrollBounds && WidgetInput.IsMouseOver(slotX, slotY, SlotOuter, SlotOuter);
 
                 UIRenderer.DrawRect(slotX, slotY, SlotOuter, SlotOuter, isHover ? UIColors.InputFocusBg : UIColors.ItemBg);

@@ -26,6 +26,7 @@ namespace TerrariaEncyclopedia.Content
         public int Damage;
         public int Defense;
         public ItemCategory Category;
+        public string Set; // material tier, e.g. "Gold" — null if not part of a recognized set
     }
 
     /// <summary>
@@ -35,6 +36,36 @@ namespace TerrariaEncyclopedia.Content
     /// </summary>
     public static class ItemCatalogue
     {
+        // ponytail: Terraria has no "set" field on Item — this is a curated, ordered guess at
+        // the material-tier progression (used both to detect a set from the item's first name
+        // word, and to sort sets in roughly the order you'd unlock them in-game). It will miss
+        // anything not in this list and can't distinguish e.g. "Necro" (armor-only, no ore) from
+        // a real ore tier. Refine this list based on what's missing/wrong once it's actually used.
+        private static readonly string[] TierOrder =
+        {
+            "Wood", "Copper", "Tin", "Iron", "Lead", "Silver", "Tungsten", "Gold", "Platinum",
+            "Meteor", "Shadow", "Necro", "Crimson", "Demonite", "Molten",
+            "Cobalt", "Palladium", "Mythril", "Orichalcum", "Adamantite", "Titanium",
+            "Hallowed", "Chlorophyte", "Turtle", "Beetle", "Spectre", "Shroomite",
+            "Solar", "Vortex", "Nebula", "Stardust",
+        };
+
+        private static readonly HashSet<string> KnownSets = new HashSet<string>(TierOrder);
+
+        /// <summary>Sort key for a set name — earlier tiers first, unrecognized/no set sorts last.</summary>
+        public static int TierIndex(string set)
+        {
+            if (set == null) return int.MaxValue;
+            int idx = Array.IndexOf(TierOrder, set);
+            return idx >= 0 ? idx : int.MaxValue - 1;
+        }
+
+        private static string DetectSet(string name)
+        {
+            string first = name.Split(' ')[0];
+            return KnownSets.Contains(first) ? first : null;
+        }
+
         public static List<ItemEntry> Build()
         {
             var list = new List<ItemEntry>();
@@ -57,7 +88,8 @@ namespace TerrariaEncyclopedia.Content
                         Rarity = item.rare,
                         Damage = item.damage,
                         Defense = item.defense,
-                        Category = Classify(item)
+                        Category = Classify(item),
+                        Set = DetectSet(name)
                     });
                 }
                 catch
@@ -66,7 +98,8 @@ namespace TerrariaEncyclopedia.Content
                 }
             }
 
-            return list.OrderBy(e => e.Name).ToList();
+            // Natural order here is by ID; ItemBrowserPanel re-sorts per the user's chosen SortMode.
+            return list;
         }
 
         private static ItemCategory Classify(Item item)
