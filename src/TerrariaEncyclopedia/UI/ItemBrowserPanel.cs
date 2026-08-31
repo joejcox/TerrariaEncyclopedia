@@ -88,6 +88,7 @@ namespace TerrariaEncyclopedia.UI
         private readonly TextInput _npcSearch;
         private readonly ScrollView _npcScroll = new ScrollView();
         private readonly ScrollView _npcDetailScroll = new ScrollView();
+        private readonly ScrollView _bossChecklistScroll = new ScrollView();
         private int _npcActiveTab;
         private bool _npcHardmodeOnly;
         private int _npcSortModeIndex;
@@ -96,37 +97,22 @@ namespace TerrariaEncyclopedia.UI
         private ViewMode _npcView = ViewMode.Grid;
         private NpcEntry _npcDetailItem;
 
-        // ── Events section state ──
-        // Events have no live base data at all (see WikiEnrichment/EventWikiInfo) — the wiki
-        // entry itself is the display entry, no separate catalogue+enrichment merge needed.
-        private List<EventWikiInfo> _events = new List<EventWikiInfo>();
-        private List<EventWikiInfo> _filteredEvents = new List<EventWikiInfo>();
-        private readonly TextInput _eventSearch;
-        private readonly ScrollView _eventScroll = new ScrollView();
-        private readonly ScrollView _eventDetailScroll = new ScrollView();
-        private ViewMode _eventView = ViewMode.Grid;
-        private EventWikiInfo _eventDetailItem;
-
         public ItemBrowserPanel(IEncyclopediaDataSource data)
         {
             _data = data ?? throw new ArgumentNullException(nameof(data));
             _search = new TextInput("terraria-encyclopedia-items", "Search items...", 200);
             _npcSearch = new TextInput("terraria-encyclopedia-npcs", "Search NPCs...", 200);
-            _eventSearch = new TextInput("terraria-encyclopedia-events", "Search events...", 200);
-            _section = new EncyclopediaSectionSelection(
-                _search.Unfocus,
-                _npcSearch.Unfocus,
-                _eventSearch.Unfocus);
+            _section = new EncyclopediaSectionSelection(_search.Unfocus, _npcSearch.Unfocus);
             _panel = new DraggablePanel("terraria-encyclopedia", "Terraria Encyclopedia", 1200, 750);
             // Same UIScale/scissor-rect mismatch found in Phase 1 — see Mod.cs history.
             _panel.ClipContent = false;
             _panel.RegisterDrawCallback(OnDraw);
-            _panel.OnClose = () => { _search.Unfocus(); _npcSearch.Unfocus(); _eventSearch.Unfocus(); };
+            _panel.OnClose = () => { _search.Unfocus(); _npcSearch.Unfocus(); };
         }
 
         public bool IsOpen => _panel.IsOpen;
 
-        public bool IsTextEntryFocused => _search.IsFocused || _npcSearch.IsFocused || _eventSearch.IsFocused;
+        public bool IsTextEntryFocused => _search.IsFocused || _npcSearch.IsFocused;
 
         public int LoadedItemCount => _all.Count;
 
@@ -139,8 +125,6 @@ namespace TerrariaEncyclopedia.UI
                 _panel.Close();
                 return;
             }
-
-            _data.BeginBrowseSession();
 
             if (_all.Count == 0)
             {
@@ -155,12 +139,6 @@ namespace TerrariaEncyclopedia.UI
                 FilterNpcs();
             }
 
-            if (_events.Count == 0)
-            {
-                _events = _data.LoadEvents().ToList();
-                FilterEvents();
-            }
-
             GoHome();
             _panel.Open();
         }
@@ -173,7 +151,6 @@ namespace TerrariaEncyclopedia.UI
             if (!_panel.IsOpen) return;
             _search.Update();
             _npcSearch.Update();
-            _eventSearch.Update();
         }
 
         public void Render() => _panel.Draw();
@@ -183,7 +160,6 @@ namespace TerrariaEncyclopedia.UI
             _panel.UnregisterDrawCallback();
             _search.Unfocus();
             _npcSearch.Unfocus();
-            _eventSearch.Unfocus();
         }
 
         private void Filter()
@@ -209,8 +185,6 @@ namespace TerrariaEncyclopedia.UI
             _view = ViewMode.Grid;
             _npcDetailItem = null;
             _npcView = ViewMode.Grid;
-            _eventDetailItem = null;
-            _eventView = ViewMode.Grid;
         }
 
         private void OpenDetail(ItemEntry entry)
@@ -252,8 +226,7 @@ namespace TerrariaEncyclopedia.UI
                 }
                 else
                 {
-                    if (_eventView == ViewMode.Grid) DrawEventListView();
-                    else DrawEventDetailView();
+                    DrawBossChecklistView();
                 }
             }
             finally
@@ -264,15 +237,12 @@ namespace TerrariaEncyclopedia.UI
 
         private void DrawSectionToggle(int x, int y, int width)
         {
-            int thirdWidth = width / 3;
-            DrawSectionButton(x, y, thirdWidth - 2, "Items", EncyclopediaSection.Items);
-            DrawSectionButton(x + thirdWidth + 2, y, thirdWidth - 2, "NPCs", EncyclopediaSection.Npcs);
-            DrawSectionButton(
-                x + thirdWidth * 2 + 4,
-                y,
-                width - thirdWidth * 2 - 4,
-                "Events",
-                EncyclopediaSection.Events);
+            const int gap = 2;
+            int buttonWidth = (width - gap * 2) / 3;
+            DrawSectionButton(x, y, buttonWidth, "Items", EncyclopediaSection.Items);
+            DrawSectionButton(x + buttonWidth + gap, y, buttonWidth, "NPCs", EncyclopediaSection.Npcs);
+            int checklistX = x + (buttonWidth + gap) * 2;
+            DrawSectionButton(checklistX, y, width - (checklistX - x), "Boss Checklist", EncyclopediaSection.BossChecklist);
         }
 
         private void DrawSectionButton(int x, int y, int width, string label, EncyclopediaSection section)
@@ -592,22 +562,6 @@ namespace TerrariaEncyclopedia.UI
         private const int CoinIconSize = 18;
         private static readonly int[] CoinIconIds = { ItemID.PlatinumCoin, ItemID.GoldCoin, ItemID.SilverCoin, ItemID.CopperCoin };
 
-        /// <summary>Plain-text "15g 3s" style coin formatting, for plain-text row contexts that can't draw inline icons (unlike DrawCoinValue).</summary>
-        private static string FormatCoinsText(int copper)
-        {
-            int platinum = copper / 1000000;
-            int gold = copper / 10000 % 100;
-            int silver = copper / 100 % 100;
-            int c = copper % 100;
-
-            var parts = new List<string>();
-            if (platinum > 0) parts.Add($"{platinum}p");
-            if (gold > 0) parts.Add($"{gold}g");
-            if (silver > 0) parts.Add($"{silver}s");
-            if (c > 0 || parts.Count == 0) parts.Add($"{c}c");
-            return string.Join(" ", parts);
-        }
-
         /// <summary>Draws "&lt;n&gt;[coin icon]" per nonzero denomination, highest first — matches the game's own coin display instead of a "15g" letter suffix. Returns width used.</summary>
         private static int DrawCoinValue(int x, int y, int copper)
         {
@@ -667,22 +621,20 @@ namespace TerrariaEncyclopedia.UI
 
         private void DrawRecipeSection(int x, int y, int width, int height, ItemEntry entry)
         {
-            var acquisition = EncyclopediaQueries.ComposeItemAcquisition(
-                _data.RecipesFor(entry.Id),
-                _data.SourcesFor(entry.Id),
-                _data.SellersOf(entry.Id));
+            var recipes = _data.RecipesFor(entry.Id);
             var usedIn = _data.UsedIn(entry.Id);
 
             // Build a flat list of rows to render inside one scroll area: section headers + item rows.
             var rows = new List<(string Header, ItemEntry Item, string Suffix, int IndentX)>();
 
-            if (acquisition.Recipes.Count == 0)
+            if (recipes.Count == 0)
             {
                 rows.Add(("Crafting", null, null, 0));
+                rows.Add((null, null, "Not craftable — found some other way (drop, purchase, world gen).", 0));
             }
             else
             {
-                foreach (var recipe in acquisition.Recipes)
+                foreach (var recipe in recipes)
                 {
                     rows.Add(("Crafting", null, null, 0));
                     if (recipe.StationTileIds.Count > 0)
@@ -697,30 +649,6 @@ namespace TerrariaEncyclopedia.UI
                     }
                 }
             }
-
-            // Reuses the same live NPC drop-rule data (Main.ItemDropsDB) the NPC pages
-            // already show — condition text here is exact (e.g. "In Master Mode", not
-            // "Hardmode") since it comes from the real drop rule, not a guess. Acquisition
-            // rows are independent of craftability because an item can have several sources.
-            foreach (var drop in acquisition.Drops)
-            {
-                var dropNpc = _allNpcs.FirstOrDefault(n => n.Id == drop.NpcId);
-                if (dropNpc == null) continue;
-
-                string chance = $"{drop.Chance * 100:0.##}%";
-                string conditions = drop.Conditions.Count == 0 ? "" : $" ({string.Join(", ", drop.Conditions)})";
-                rows.Add((null, null, $"Dropped by {dropNpc.Name} — {chance}{conditions}", 0));
-            }
-
-            foreach (var seller in acquisition.Sellers)
-            {
-                var sellerNpc = _allNpcs.FirstOrDefault(n => n.Id == seller.NpcId);
-                if (sellerNpc == null) continue;
-                rows.Add((null, null, $"Sold by {sellerNpc.Name} — {FormatCoinsText(seller.Cost)}", 0));
-            }
-
-            if (acquisition.NeedsUnknownSourceFallback)
-                rows.Add((null, null, "Not craftable — found some other way (drop, purchase, world gen).", 0));
 
             rows.Add(("Used to make", null, null, 0));
             if (usedIn.Count == 0)
@@ -837,17 +765,16 @@ namespace TerrariaEncyclopedia.UI
         }
 
         private static readonly string[] DefaultCollapsedSections =
-            { "Drops", "Items Sold", "Living Preferences", "Summoning & Spawning", "Expert Mode", "Aftermath", "Tips" };
+            { "Drops", "Summoning & Spawning", "Expert Mode", "Aftermath", "Tips" };
 
         private void OpenNpcDetail(NpcEntry entry)
         {
-            _data.RefreshShopFor(entry.Id);
             _npcDetailItem = entry;
             _npcView = ViewMode.Detail;
             _npcDetailScroll.ResetScroll();
 
-            _npcCollapsedSections.Clear();
-            foreach (var key in DefaultCollapsedSections) _npcCollapsedSections.Add(key);
+            _collapsedSections.Clear();
+            foreach (var key in DefaultCollapsedSections) _collapsedSections.Add(key);
         }
 
         private void DrawNpcGridView()
@@ -880,6 +807,74 @@ namespace TerrariaEncyclopedia.UI
             DrawNpcGrid(gridX, gridY, gridWidth, gridHeight, interactive);
 
             if (_npcSortDropdownOpen) DrawNpcSortDropdown();
+        }
+
+        // ── Boss checklist ──────────────────────────────────────────────────
+
+        private void DrawBossChecklistView()
+        {
+            int x = _panel.ContentX;
+            int y = _panel.ContentY + SectionToggleHeight;
+            int width = _panel.ContentWidth;
+            int height = _panel.ContentHeight - SectionToggleHeight;
+            var bosses = _data.GetBossChecklist();
+            int defeated = bosses.Count(entry => entry.Defeated);
+            BossChecklistEntry next = bosses.FirstOrDefault(entry => !entry.Defeated);
+
+            UIRenderer.DrawText("Vanilla Boss Progress", x, y, UIColors.TextTitle);
+            string progress = bosses.Count == 0
+                ? "No boss data is available. Enter a world to view its progression."
+                : $"{defeated}/{bosses.Count} defeated";
+            UIRenderer.DrawText(progress, x, y + 24, UIColors.TextDim);
+
+            if (next != null)
+                UIRenderer.DrawText("Next: " + next.Name, x + 180, y + 24, UIColors.AccentText);
+            else if (bosses.Count > 0)
+                UIRenderer.DrawText("All listed bosses defeated", x + 180, y + 24, UIColors.AccentText);
+
+            const int rowHeight = 48;
+            int listY = y + 54;
+            int listHeight = Math.Max(0, height - 54);
+            _bossChecklistScroll.Begin(x, listY, width, listHeight, bosses.Count * rowHeight);
+
+            for (int i = 0; i < bosses.Count; i++)
+            {
+                int contentY = i * rowHeight;
+                if (!_bossChecklistScroll.IsVisible(contentY, rowHeight)) continue;
+
+                int rowY = _bossChecklistScroll.ContentY + contentY;
+                DrawBossChecklistRow(x, rowY, width, rowHeight, bosses[i], next == bosses[i]);
+            }
+
+            _bossChecklistScroll.End();
+        }
+
+        private void DrawBossChecklistRow(int x, int y, int width, int height, BossChecklistEntry entry, bool isNext)
+        {
+            bool hover = WidgetInput.IsMouseOver(x, y, width, height - 2);
+            Color4 background = entry.Defeated ? UIColors.ItemActiveBg : (hover ? UIColors.SectionBg : UIColors.ItemBg);
+            UIRenderer.DrawRect(x, y, width, height - 2, background);
+            if (hover || isNext)
+                UIRenderer.DrawRectOutline(x, y, width, height - 2, isNext ? UIColors.Accent : UIColors.Border);
+
+            UIRenderer.DrawNPC(entry.Npc.Id, x + 6, y + 6, 34, 34);
+            UIRenderer.DrawText(entry.Name, x + 50, y + 7, hover ? UIColors.AccentText : UIColors.Text);
+            string status = entry.Defeated ? "DEFEATED" : (isNext ? "NEXT BOSS" : "REMAINING");
+            Color4 statusColour = entry.Defeated ? LabelGreen : (isNext ? UIColors.AccentText : UIColors.TextDim);
+            int statusWidth = TextUtil.MeasureWidth(status);
+            UIRenderer.DrawText(status, x + width - statusWidth - 10, y + 7, statusColour);
+            UIRenderer.DrawText("Open boss details, summoning and drops", x + 50, y + 26, UIColors.TextDim);
+
+            if (hover)
+            {
+                Tooltip.Set(entry.Name, entry.Defeated ? "Defeated — open details" : "Open details");
+                if (WidgetInput.MouseLeftClick)
+                {
+                    WidgetInput.ConsumeClick();
+                    _section.SwitchTo(EncyclopediaSection.Npcs);
+                    OpenNpcDetail(entry.Npc);
+                }
+            }
         }
 
         private void DrawNpcTabs(int x, int y, int width, bool interactive)
@@ -1203,13 +1198,9 @@ namespace TerrariaEncyclopedia.UI
             public string Suffix;
             public int IndentX;
             public int Height;
-            public int? ShopCost; // non-null (with Item also set) => draw as an icon+name+coin-cost shop row
-            public NpcPersonalityEntry PersonalityTable; // non-null => draw the Living Preferences table
-            public HashSet<string> CollapseState;
         }
 
-        private readonly HashSet<string> _npcCollapsedSections = new HashSet<string>();
-        private readonly HashSet<string> _eventCollapsedSections = new HashSet<string>();
+        private readonly HashSet<string> _collapsedSections = new HashSet<string>();
 
         private void AddWrappedRows(List<BodyRow> rows, string text, int width)
         {
@@ -1218,20 +1209,10 @@ namespace TerrariaEncyclopedia.UI
         }
 
         /// <summary>Adds a clickable, collapsible section header, then the body rows (via addBody) unless collapsed.</summary>
-        private static void AddSection(
-            List<BodyRow> rows,
-            HashSet<string> collapseState,
-            string key,
-            Action addBody)
+        private void AddSection(List<BodyRow> rows, string key, Action addBody)
         {
-            rows.Add(new BodyRow
-            {
-                Header = key,
-                SectionKey = key,
-                Height = RowHeight,
-                CollapseState = collapseState
-            });
-            if (!collapseState.Contains(key)) addBody();
+            rows.Add(new BodyRow { Header = key, SectionKey = key, Height = RowHeight });
+            if (!_collapsedSections.Contains(key)) addBody();
         }
 
         private void DrawNpcBody(int x, int y, int width, int height, NpcEntry entry)
@@ -1246,18 +1227,8 @@ namespace TerrariaEncyclopedia.UI
                 rows.Add(new BodyRow { Suffix = "", Height = 8 }); // spacer
             }
 
-            string howToGet = entry.IsTownNpc ? _data.GetNpcHowToGet(entry.Name) : null;
-            if (!string.IsNullOrWhiteSpace(howToGet))
-            {
-                rows.Add(new BodyRow { Header = "How to Get", Height = RowHeight });
-                AddWrappedRows(rows, howToGet, width);
-                rows.Add(new BodyRow { Suffix = "", Height = 8 });
-            }
-
-            // Terraria's live rules include legitimate drops for some town NPCs, so query every
-            // NPC rather than discarding those rules based on the catalogue's town flag.
             var drops = _data.DropsFor(entry.Id).OrderByDescending(d => d.Chance).ToList();
-            AddSection(rows, _npcCollapsedSections, "Drops", () =>
+            AddSection(rows, "Drops", () =>
             {
                 if (drops.Count == 0)
                 {
@@ -1279,38 +1250,6 @@ namespace TerrariaEncyclopedia.UI
                 }
             });
 
-            var shop = _data.ShopFor(entry.Id);
-            if (shop.Count > 0)
-            {
-                AddSection(rows, _npcCollapsedSections, "Items Sold", () =>
-                {
-                    foreach (var shopItem in shop)
-                    {
-                        if (_byId.TryGetValue(shopItem.ItemId, out var itemEntry))
-                            rows.Add(new BodyRow { Item = itemEntry, ShopCost = shopItem.Cost, Height = RowHeight });
-                    }
-                });
-            }
-
-            // The data source resolves the complete wiki table over the live fallback while
-            // retaining Terraria's unique-behaviour marker for NPCs such as the Princess.
-            var displayPersonality = _data.GetNpcPersonality(entry.Id, entry.Name);
-            bool hasUniqueBehavior = displayPersonality?.HasUniqueBehavior ?? false;
-
-            if (displayPersonality != null || hasUniqueBehavior)
-            {
-                AddSection(rows, _npcCollapsedSections, "Living Preferences", () =>
-                {
-                    if (displayPersonality != null)
-                        rows.Add(new BodyRow { PersonalityTable = displayPersonality, Height = PrefTableHeight });
-                    if (hasUniqueBehavior)
-                    {
-                        AddWrappedRows(rows, "Also has unique living-preference behavior beyond simple "
-                            + "biome/neighbor rules (e.g. Princess-style NPCs) — not fully captured here.", width);
-                    }
-                });
-            }
-
             if (entry.IsBoss)
             {
                 var wiki = _data.GetBossInfo(entry.Name);
@@ -1320,25 +1259,25 @@ namespace TerrariaEncyclopedia.UI
 
                     if (!string.IsNullOrEmpty(wiki.Summoning))
                     {
-                        AddSection(rows, _npcCollapsedSections, "Summoning & Spawning", () => AddWrappedRows(rows, wiki.Summoning, width));
+                        AddSection(rows, "Summoning & Spawning", () => AddWrappedRows(rows, wiki.Summoning, width));
                         rows.Add(new BodyRow { Suffix = "", Height = 6 });
                     }
 
                     if (!string.IsNullOrEmpty(wiki.ExpertMode))
                     {
-                        AddSection(rows, _npcCollapsedSections, "Expert Mode", () => AddWrappedRows(rows, wiki.ExpertMode, width));
+                        AddSection(rows, "Expert Mode", () => AddWrappedRows(rows, wiki.ExpertMode, width));
                         rows.Add(new BodyRow { Suffix = "", Height = 6 });
                     }
 
                     if (!string.IsNullOrEmpty(wiki.Aftermath))
                     {
-                        AddSection(rows, _npcCollapsedSections, "Aftermath", () => AddWrappedRows(rows, wiki.Aftermath, width));
+                        AddSection(rows, "Aftermath", () => AddWrappedRows(rows, wiki.Aftermath, width));
                         rows.Add(new BodyRow { Suffix = "", Height = 6 });
                     }
 
                     if (!string.IsNullOrEmpty(wiki.Tips))
                     {
-                        AddSection(rows, _npcCollapsedSections, "Tips", () => AddWrappedRows(rows, wiki.Tips, width));
+                        AddSection(rows, "Tips", () => AddWrappedRows(rows, wiki.Tips, width));
                         rows.Add(new BodyRow { Suffix = "", Height = 6 });
                     }
                 }
@@ -1361,120 +1300,11 @@ namespace TerrariaEncyclopedia.UI
             _npcDetailScroll.End();
         }
 
-        private const int PrefTableHeaderHeight = 20;
-        private const int PrefTableRowPadding = 8; // top+bottom padding around each row's text
-
-        // Computed properties, not static fields — both depend on UIRenderer.TextLineHeight,
-        // which reads real font measurement, so they need to stay live rather than get baked in
-        // once at class-load time (also sidesteps the static-init ordering class of bug entirely).
-        private static int PrefTableRowHeight => UIRenderer.TextLineHeight + PrefTableRowPadding * 2;
-        private static int PrefTableHeight => PrefTableHeaderHeight + PrefTableRows.Length * PrefTableRowHeight;
-
-        private static readonly (string Label, Affection Level, Color4 Bg)[] PrefTableRows =
-        {
-            (Affection.Love.ToString() + "s", Affection.Love, new Color4(45, 80, 45)),
-            (Affection.Like.ToString() + "s", Affection.Like, new Color4(80, 80, 45)),
-            (Affection.Dislike.ToString() + "s", Affection.Dislike, new Color4(90, 65, 35)),
-            (Affection.Hate.ToString() + "s", Affection.Hate, new Color4(90, 45, 45)),
-        };
-
-        /// <summary>Loves/Likes/Dislikes/Hates x Biome/Neighbor, matching the wiki's own Living Preferences table layout. Neighbor names are clickable, navigating to that NPC's own page.</summary>
-        private void DrawPreferenceTable(int x, int y, int width, NpcPersonalityEntry personality)
-        {
-            int col2 = x + width / 2;
-
-            UIRenderer.DrawText("Biome", x + 4, y, UIColors.TextDim);
-            UIRenderer.DrawText("Neighbor", col2 + 4, y, UIColors.TextDim);
-
-            int rowY = y + PrefTableHeaderHeight;
-            foreach (var row in PrefTableRows)
-            {
-                UIRenderer.DrawRect(x, rowY, width, PrefTableRowHeight - 2, row.Bg);
-                int textY = rowY + PrefTableRowPadding;
-                UIRenderer.DrawText(row.Label, x + 4, textY, UIColors.TextTitle);
-
-                string biomeText = string.Join(", ", personality.Biomes.Where(p => p.Level == row.Level).Select(p => p.Label));
-                UIRenderer.DrawText(string.IsNullOrEmpty(biomeText) ? "n/a" : biomeText, x + 70, textY, UIColors.Text);
-
-                var neighborNames = personality.Neighbors.Where(p => p.Level == row.Level).Select(p => p.Label).ToList();
-                if (neighborNames.Count == 0)
-                    UIRenderer.DrawText("n/a", col2 + 4, textY, UIColors.Text);
-                else
-                    DrawClickableNameList(neighborNames, col2 + 4, textY);
-
-                rowY += PrefTableRowHeight;
-            }
-        }
-
-        /// <summary>Draws a comma-separated list of NPC names, each individually clickable to jump to that NPC's own page (plain text if the name doesn't match a known NPC).</summary>
-        private void DrawClickableNameList(List<string> names, int x, int y)
-        {
-            int curX = x;
-            for (int i = 0; i < names.Count; i++)
-            {
-                string suffix = i < names.Count - 1 ? ", " : "";
-                int nameWidth = TextUtil.MeasureWidth(names[i]);
-
-                var target = _allNpcs.FirstOrDefault(n => n.Name == names[i]);
-                bool isHover = target != null && WidgetInput.IsMouseOver(curX, y - 2, nameWidth, PrefTableRowHeight - 4);
-
-                UIRenderer.DrawText(names[i], curX, y, isHover ? UIColors.AccentText : UIColors.Text);
-                curX += nameWidth;
-
-                if (isHover)
-                {
-                    Tooltip.Set("View " + names[i]);
-                    if (WidgetInput.MouseLeftClick)
-                    {
-                        OpenNpcDetail(target);
-                        WidgetInput.ConsumeClick();
-                    }
-                }
-
-                if (suffix.Length > 0)
-                {
-                    UIRenderer.DrawText(suffix, curX, y, UIColors.Text);
-                    curX += TextUtil.MeasureWidth(suffix);
-                }
-            }
-        }
-
         private void DrawNpcBodyRow(int x, int y, int width, BodyRow row)
         {
-            if (row.PersonalityTable != null)
-            {
-                DrawPreferenceTable(x, y, width, row.PersonalityTable);
-                return;
-            }
-
-            if (row.Item != null && row.ShopCost.HasValue)
-            {
-                bool isShopRowHover = WidgetInput.IsMouseOver(x, y, width, RowHeight - 4);
-                if (isShopRowHover)
-                    UIRenderer.DrawRect(x, y, width, RowHeight - 4, UIColors.InputFocusBg);
-
-                UIRenderer.DrawItem(row.Item.Id, x, y, 28, 28);
-                UIRenderer.DrawText(row.Item.Name, x + 34, y + 8, isShopRowHover ? UIColors.AccentText : UIColors.Text);
-                int shopNameWidth = TextUtil.MeasureWidth(row.Item.Name);
-                DrawCoinValue(x + 34 + shopNameWidth + 16, y + 5, row.ShopCost.Value);
-
-                if (isShopRowHover)
-                {
-                    ItemTooltip.Set(row.Item.Id);
-                    if (WidgetInput.MouseLeftClick)
-                    {
-                        _section.SwitchTo(EncyclopediaSection.Items);
-                        _navigation.Home();
-                        OpenDetail(row.Item);
-                        WidgetInput.ConsumeClick();
-                    }
-                }
-                return;
-            }
-
             if (row.SectionKey != null)
             {
-                bool collapsed = row.CollapseState.Contains(row.SectionKey);
+                bool collapsed = _collapsedSections.Contains(row.SectionKey);
                 bool isHover = WidgetInput.IsMouseOver(x, y, width, RowHeight);
                 if (isHover) UIRenderer.DrawRect(x, y, width, RowHeight, UIColors.SectionBg);
 
@@ -1484,8 +1314,8 @@ namespace TerrariaEncyclopedia.UI
                 if (isHover && WidgetInput.MouseLeftClick)
                 {
                     WidgetInput.ConsumeClick();
-                    if (collapsed) row.CollapseState.Remove(row.SectionKey);
-                    else row.CollapseState.Add(row.SectionKey);
+                    if (collapsed) _collapsedSections.Remove(row.SectionKey);
+                    else _collapsedSections.Add(row.SectionKey);
                 }
                 return;
             }
@@ -1524,147 +1354,6 @@ namespace TerrariaEncyclopedia.UI
                     WidgetInput.ConsumeClick();
                 }
             }
-        }
-
-        // ── Events section ───────────────────────────────────────────────────
-        // No live base data exists for events at all (confirmed via reflection — only Old One's
-        // Army has a dedicated NPCID.Sets array; every other event's enemy roster and triggers
-        // are imperative spawn logic, same pattern as shop contents and neighbor preferences), so
-        // this section is wiki-sourced end to end rather than a live-catalogue-plus-enrichment
-        // merge like Items/NPCs.
-
-        private void FilterEvents()
-        {
-            _filteredEvents = EncyclopediaQueries.FilterEvents(_events, _eventSearch.Text).ToList();
-            _eventScroll.ResetScroll();
-        }
-
-        private static readonly string[] DefaultCollapsedEventSections = { "Completing", "Notes", "Tips" };
-
-        private void OpenEventDetail(EventWikiInfo evt)
-        {
-            _eventDetailItem = evt;
-            _eventView = ViewMode.Detail;
-            _eventDetailScroll.ResetScroll();
-
-            _eventCollapsedSections.Clear();
-            foreach (var key in DefaultCollapsedEventSections) _eventCollapsedSections.Add(key);
-        }
-
-        private const int EventRowHeight = 36;
-
-        private void DrawEventListView()
-        {
-            var s = new StackLayout(_panel.ContentX, _panel.ContentY + SectionToggleHeight, _panel.ContentWidth);
-
-            int searchY = s.Advance(28);
-            _eventSearch.Draw(s.X, searchY, 200, 26);
-            if (_eventSearch.HasChanged) FilterEvents();
-            s.Advance(10);
-
-            int listX = s.X;
-            int listY = s.CurrentY;
-            int listWidth = s.Width;
-            int listHeight = _panel.ContentHeight - SectionToggleHeight - s.TotalHeight;
-
-            int contentHeight = _filteredEvents.Count * EventRowHeight;
-            _eventScroll.Begin(listX, listY, listWidth, listHeight, contentHeight);
-
-            int rowY = 0;
-            foreach (var evt in _filteredEvents)
-            {
-                if (_eventScroll.IsVisible(rowY, EventRowHeight))
-                {
-                    int drawY = _eventScroll.ContentY + rowY;
-                    bool isHover = WidgetInput.IsMouseOver(listX, drawY, listWidth, EventRowHeight - 4);
-                    if (isHover)
-                        UIRenderer.DrawRect(listX, drawY, listWidth, EventRowHeight - 4, UIColors.InputFocusBg);
-
-                    UIRenderer.DrawText(evt.Name, listX + 8, drawY + 8, isHover ? UIColors.AccentText : UIColors.Text);
-
-                    if (isHover && WidgetInput.MouseLeftClick)
-                    {
-                        OpenEventDetail(evt);
-                        WidgetInput.ConsumeClick();
-                    }
-                }
-                rowY += EventRowHeight;
-            }
-
-            _eventScroll.End();
-
-            if (_filteredEvents.Count == 0)
-                UIRenderer.DrawText("No events found", listX + 5, listY + 10, UIColors.Warning);
-        }
-
-        private void DrawEventDetailView()
-        {
-            var evt = _eventDetailItem;
-            if (evt == null) { GoHome(); return; }
-
-            int x = _panel.ContentX + DetailPadX;
-            int y = _panel.ContentY + SectionToggleHeight;
-            int width = _panel.ContentWidth - DetailPadX * 2;
-
-            DrawNavBar(x, y, width, GoHome, GoHome, false); // events don't cross-navigate to each other
-            y += NavBarHeight + 6;
-
-            UIRenderer.DrawText(evt.Name, x, y, UIColors.TextTitle);
-            y += 32;
-
-            int bodyHeight = _panel.ContentHeight - (y - _panel.ContentY);
-            DrawEventBody(x, y, width, bodyHeight, evt);
-        }
-
-        private void DrawEventBody(int x, int y, int width, int height, EventWikiInfo evt)
-        {
-            var rows = new List<BodyRow>();
-
-            // Summoning is a plain non-collapsible heading, like NPC Description — it's the
-            // single most useful field on a first read ("how do I actually start this").
-            if (!string.IsNullOrEmpty(evt.Summoning))
-            {
-                rows.Add(new BodyRow { Header = "Summoning", Height = RowHeight });
-                AddWrappedRows(rows, evt.Summoning, width);
-                rows.Add(new BodyRow { Suffix = "", Height = 8 });
-            }
-
-            if (!string.IsNullOrEmpty(evt.Completing))
-            {
-                AddSection(rows, _eventCollapsedSections, "Completing", () => AddWrappedRows(rows, evt.Completing, width));
-                rows.Add(new BodyRow { Suffix = "", Height = 6 });
-            }
-
-            if (!string.IsNullOrEmpty(evt.Notes))
-            {
-                AddSection(rows, _eventCollapsedSections, "Notes", () => AddWrappedRows(rows, evt.Notes, width));
-                rows.Add(new BodyRow { Suffix = "", Height = 6 });
-            }
-
-            if (!string.IsNullOrEmpty(evt.Tips))
-            {
-                AddSection(rows, _eventCollapsedSections, "Tips", () => AddWrappedRows(rows, evt.Tips, width));
-                rows.Add(new BodyRow { Suffix = "", Height = 6 });
-            }
-
-            if (rows.Count == 0)
-                rows.Add(new BodyRow { Suffix = "No wiki data available for this event.", Height = RowHeight });
-
-            int contentHeight = rows.Sum(r => r.Height);
-            _eventDetailScroll.Begin(x, y, width, height, contentHeight);
-
-            int rowY = 0;
-            foreach (var row in rows)
-            {
-                if (_eventDetailScroll.IsVisible(rowY, row.Height))
-                {
-                    int drawY = _eventDetailScroll.ContentY + rowY;
-                    DrawNpcBodyRow(x, drawY, width, row);
-                }
-                rowY += row.Height;
-            }
-
-            _eventDetailScroll.End();
         }
     }
 }

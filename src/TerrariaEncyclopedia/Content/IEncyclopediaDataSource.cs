@@ -37,5 +37,7 @@ namespace TerrariaEncyclopedia.Content
         bool IsHardmodeNpc(string npcName);
 
         BossWikiInfo GetBossInfo(string npcName);
+
+        IReadOnlyList<BossChecklistEntry> GetBossChecklist();
     }
 }

@@ -1,8 +1,5 @@
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text.Json;
 using TerrariaEncyclopedia.Content;
 using Xunit;
 
@@ -24,13 +21,6 @@ namespace TerrariaEncyclopedia.Tests
             Npc(50, "Zombie", 45),
             Npc(13, "Eye of Cthulhu", 2800, boss: true),
             Npc(125, "Retinazer", 20000, boss: true)
-        };
-
-        private static readonly EventWikiInfo[] Events =
-        {
-            new EventWikiInfo { Name = "Goblin Army", Summoning = "Use a Goblin Battle Standard." },
-            new EventWikiInfo { Name = "Blood Moon", Summoning = "May begin at night." },
-            new EventWikiInfo { Name = "Frost Moon", Summoning = "Use a Naughty Present." }
         };
 
         [Fact]
@@ -93,17 +83,6 @@ namespace TerrariaEncyclopedia.Tests
         }
 
         [Fact]
-        public void EventSearchIsCaseInsensitiveAndAlwaysAlphabetical()
-        {
-            Assert.Equal(
-                new[] { "Blood Moon", "Frost Moon" },
-                EncyclopediaQueries.FilterEvents(Events, "mOoN").Select(item => item.Name));
-            Assert.Equal(
-                new[] { "Blood Moon", "Frost Moon", "Goblin Army" },
-                EncyclopediaQueries.FilterEvents(Events, null).Select(item => item.Name));
-        }
-
-        [Fact]
         public void NavigationSupportsLinkedEntriesBackAndHome()
         {
             var navigation = new EntryNavigation();
@@ -128,205 +107,55 @@ namespace TerrariaEncyclopedia.Tests
             Assert.Equal(30, source.LoadItems().Single(item => item.Id == 99).ResearchCount);
             Assert.Equal(42, source.RecipesFor(99).Single().Ingredients.Single().ItemId);
             Assert.Equal(99, source.DropsFor(13).Single().ItemId);
-            Assert.Equal("Blood Moon", source.LoadEvents().Single().Name);
-            Assert.Equal(99, source.ShopFor(1).Single().ItemId);
-            Assert.Equal(1, source.SellersOf(99).Single().NpcId);
-            Assert.True(source.GetNpcPersonality(1, "Guide").HasUniqueBehavior);
-            Assert.Contains("vacant house", source.GetNpcHowToGet("Guide"));
-            Assert.Null(source.GetNpcHowToGet("Zombie"));
             Assert.Equal("Demon Altar", source.StationName(26));
             Assert.Equal("Expert tactics", source.GetBossInfo("Eye of Cthulhu").ExpertMode);
         }
 
         [Fact]
-        public void MixedAcquisitionRetainsCraftingDropsAndSellers()
+        public void BossChecklistUsesVanillaOrderCurrentWorldFlagsAndDetailNpc()
         {
-            var recipe = new RecipeInfo { ResultItemId = 99 };
-            var drop = new DropEntry { NpcId = 13, ItemId = 99, Chance = 0.25f };
-            var seller = new ShopSellerEntry { NpcId = 1, Cost = 100 };
+            var bosses = new[]
+            {
+                "King Slime", "Eye of Cthulhu", "Eater of Worlds", "Queen Bee", "Skeletron", "Deerclops",
+                "Wall of Flesh", "Queen Slime", "The Destroyer", "Retinazer", "Skeletron Prime", "Plantera",
+                "Golem", "Duke Fishron", "Empress of Light", "Lunatic Cultist", "Moon Lord"
+            }.Select((name, id) => Npc(500 + id, name, 1, boss: true)).ToArray();
 
-            ItemAcquisitionDetails acquisition = EncyclopediaQueries.ComposeItemAcquisition(
-                new[] { recipe },
-                new[] { drop },
-                new[] { seller });
+            var checklist = BossChecklistCatalogue.Build(bosses, new BossProgressSnapshot
+            {
+                HasWorld = true,
+                KingSlime = true,
+                EvilBoss = true,
+                Twins = true,
+                MoonLord = true
+            });
 
-            Assert.Same(recipe, acquisition.Recipes.Single());
-            Assert.Same(drop, acquisition.Drops.Single());
-            Assert.Same(seller, acquisition.Sellers.Single());
-            Assert.False(acquisition.NeedsUnknownSourceFallback);
+            Assert.Equal(new[]
+            {
+                "King Slime", "Eye of Cthulhu", "Eater of Worlds / Brain of Cthulhu", "Queen Bee", "Skeletron",
+                "Deerclops", "Wall of Flesh", "Queen Slime", "The Destroyer", "The Twins", "Skeletron Prime",
+                "Plantera", "Golem", "Duke Fishron", "Empress of Light", "Lunatic Cultist", "Moon Lord"
+            }, checklist.Select(entry => entry.Name));
+            Assert.Equal(new[] { "King Slime", "Eater of Worlds / Brain of Cthulhu", "The Twins", "Moon Lord" },
+                checklist.Where(entry => entry.Defeated).Select(entry => entry.Name));
+            Assert.Equal("Retinazer", checklist.Single(entry => entry.Name == "The Twins").Npc.Name);
         }
 
         [Fact]
-        public void ShopSnapshotResetDiscardsConditionalInventoryAndSellerIndex()
+        public void BossChecklistDoesNotReportProgressWithoutAnActiveWorld()
         {
-            var snapshot = new ShopCatalogueSnapshot();
-            snapshot.StoreShop(1, new List<ShopItemEntry>
-            {
-                new ShopItemEntry { ItemId = 99, Cost = 100 }
-            });
-            snapshot.BuildSellerIndex(new[] { 1 });
+            var checklist = BossChecklistCatalogue.Build(
+                new[] { Npc(50, "King Slime", 2000, boss: true) },
+                new BossProgressSnapshot { KingSlime = true });
 
-            Assert.True(snapshot.TryGetShop(1, out _));
-            Assert.Equal(1, snapshot.SellersOf(99).Single().NpcId);
-
-            snapshot.Reset();
-
-            Assert.False(snapshot.TryGetShop(1, out _));
-            Assert.False(snapshot.HasSellerIndex);
-            snapshot.StoreShop(1, new List<ShopItemEntry>
-            {
-                new ShopItemEntry { ItemId = 42, Cost = 250 }
-            });
-            snapshot.BuildSellerIndex(new[] { 1 });
-            Assert.Empty(snapshot.SellersOf(99));
-            Assert.Equal(1, snapshot.SellersOf(42).Single().NpcId);
-        }
-
-        [Fact]
-        public void ShopSnapshotInvalidationRefreshesOneShopAndSellerIndex()
-        {
-            var snapshot = new ShopCatalogueSnapshot();
-            snapshot.StoreShop(1, new List<ShopItemEntry>
-            {
-                new ShopItemEntry { ItemId = 99, Cost = 100 }
-            });
-            snapshot.StoreShop(2, new List<ShopItemEntry>
-            {
-                new ShopItemEntry { ItemId = 7, Cost = 200 }
-            });
-            snapshot.BuildSellerIndex(new[] { 1, 2 });
-
-            snapshot.InvalidateShop(1);
-
-            Assert.False(snapshot.TryGetShop(1, out _));
-            Assert.True(snapshot.TryGetShop(2, out _));
-            Assert.False(snapshot.HasSellerIndex);
-
-            snapshot.StoreShop(1, new List<ShopItemEntry>
-            {
-                new ShopItemEntry { ItemId = 42, Cost = 250 }
-            });
-            snapshot.BuildSellerIndex(new[] { 1, 2 });
-
-            Assert.Empty(snapshot.SellersOf(99));
-            Assert.Equal(1, snapshot.SellersOf(42).Single().NpcId);
-            Assert.Equal(2, snapshot.SellersOf(7).Single().NpcId);
-        }
-
-        [Fact]
-        public void WikiPreferencesTakePrecedenceAndRetainLiveUniqueBehaviour()
-        {
-            var live = new NpcPersonalityEntry { HasUniqueBehavior = true };
-            live.Biomes.Add(new PersonalityPreference { Level = Affection.Hate, Label = "Live biome" });
-            var wiki = new NpcPreferencesWikiInfo
-            {
-                LikeBiomes = new[] { "Forest" },
-                LoveNeighbors = new[] { "Wizard" }
-            };
-
-            NpcPersonalityEntry resolved = NpcPreferenceResolver.Resolve(wiki, live);
-
-            Assert.True(resolved.HasUniqueBehavior);
-            Assert.Equal("Forest", resolved.Biomes.Single().Label);
-            Assert.Equal(Affection.Love, resolved.Neighbors.Single().Level);
-            Assert.DoesNotContain(resolved.Biomes, item => item.Label == "Live biome");
-            Assert.Same(live, NpcPreferenceResolver.Resolve(null, live));
-        }
-
-        [Fact]
-        public void AcquisitionOnlyWikiEntryFallsBackToLivePreferences()
-        {
-            var live = new NpcPersonalityEntry { HasUniqueBehavior = true };
-            live.Biomes.Add(new PersonalityPreference { Level = Affection.Like, Label = "Forest" });
-            var acquisitionOnly = new NpcPreferencesWikiInfo
-            {
-                HowToGet = "Arrives after a vacant house becomes available."
-            };
-
-            Assert.Same(live, NpcPreferenceResolver.Resolve(acquisitionOnly, live));
-            Assert.Null(NpcPreferenceResolver.Resolve(acquisitionOnly, null));
-        }
-
-        [Fact]
-        public void NpcPreferenceJsonContainsCleanAcquisitionGuidance()
-        {
-            string path = Path.GetFullPath(Path.Combine(
-                AppContext.BaseDirectory,
-                "..", "..", "..", "..", "..",
-                "src", "TerrariaEncyclopedia", "WikiData", "npc-preferences.json"));
-            using var document = JsonDocument.Parse(File.ReadAllText(path));
-            JsonElement[] entries = document.RootElement.EnumerateArray().ToArray();
-
-            string[] names = entries.Select(entry => entry.GetProperty("Name").GetString()).ToArray();
-            Assert.All(names, name => Assert.False(string.IsNullOrWhiteSpace(name)));
-            Assert.Equal(names.Length, names.Distinct().Count());
-            Assert.DoesNotContain(entries, entry => entry.GetProperty("WikiPage").GetString() == "Bunny");
-
-            foreach (JsonElement entry in entries)
-            {
-                if (!entry.TryGetProperty("HowToGet", out JsonElement guidance))
-                    continue;
-
-                string text = guidance.GetString();
-                Assert.False(string.IsNullOrWhiteSpace(text));
-                Assert.True(
-                    text.IndexOf("Verify", StringComparison.OrdinalIgnoreCase) < 0,
-                    $"{entry.GetProperty("Name").GetString()} contains a verification artefact.");
-                Assert.True(text.IndexOf("[edit]", StringComparison.OrdinalIgnoreCase) < 0);
-                Assert.DoesNotMatch(@"\[\d+\]", text);
-                Assert.DoesNotContain("harmless critter", text, StringComparison.OrdinalIgnoreCase);
-                Assert.DoesNotContain("vendor", text, StringComparison.OrdinalIgnoreCase);
-                Assert.DoesNotContain("sells", text, StringComparison.OrdinalIgnoreCase);
-                Assert.DoesNotContain("shop", text, StringComparison.OrdinalIgnoreCase);
-                Assert.DoesNotContain("defend", text, StringComparison.OrdinalIgnoreCase);
-                Assert.DoesNotContain("attack", text, StringComparison.OrdinalIgnoreCase);
-                Assert.DoesNotContain("dropping", text, StringComparison.OrdinalIgnoreCase);
-                Assert.DoesNotContain("loot", text, StringComparison.OrdinalIgnoreCase);
-            }
-
-            Assert.Equal(
-                "Merchant will move in when a vacant house is available and all players have more than 50 Silver in their inventories.",
-                GuidanceFor(entries, "Merchant"));
-            Assert.Equal(
-                "Tavernkeep will move in when a vacant house is available after rescuing the Unconscious Man once the Eater of Worlds or Brain of Cthulhu has been defeated.",
-                GuidanceFor(entries, "Tavernkeep"));
-            Assert.Equal(
-                "Traveling Merchant randomly visits for one in-game day when at least two other NPCs are present. He does not require a house and can appear between 4:30 AM and 12:00 PM.",
-                GuidanceFor(entries, "Traveling Merchant"));
-        }
-
-        [Theory]
-        [InlineData(0, true, false, false, false, 4)]
-        [InlineData(2, false, true, false, false, 6)]
-        [InlineData(2, false, false, true, false, 6)]
-        [InlineData(2, false, false, false, true, 2)]
-        public void DisplayedCritAddsPlayerBaseOnlyToStandardCritClasses(
-            int itemCriticalChance,
-            bool melee,
-            bool ranged,
-            bool magic,
-            bool summon,
-            int expected)
-        {
-            Assert.Equal(
-                expected,
-                EncyclopediaQueries.DisplayedCriticalChance(
-                    itemCriticalChance,
-                    melee,
-                    ranged,
-                    magic,
-                    summon));
+            Assert.Single(checklist);
+            Assert.False(checklist[0].Defeated);
         }
 
         private static int FirstItem(ItemSortMode mode)
         {
             return EncyclopediaQueries.FilterItems(Items, null, false, null, mode, _ => false)[0].Id;
         }
-
-        private static string GuidanceFor(IEnumerable<JsonElement> entries, string name) =>
-            entries.Single(entry => entry.GetProperty("Name").GetString() == name)
-                .GetProperty("HowToGet")
-                .GetString();
 
         private static IReadOnlyList<NpcEntry> QueryNpcs(
             NpcFilter filter,
@@ -361,14 +190,8 @@ namespace TerrariaEncyclopedia.Tests
 
         private sealed class FakeDataSource : IEncyclopediaDataSource
         {
-            public void BeginBrowseSession() { }
-            public void RefreshShopFor(int npcId) { }
             public IReadOnlyList<ItemEntry> LoadItems() => Items;
             public IReadOnlyList<NpcEntry> LoadNpcs() => Npcs;
-            public IReadOnlyList<EventWikiInfo> LoadEvents() => new[]
-            {
-                new EventWikiInfo { Name = "Blood Moon" }
-            };
             public IReadOnlyList<RecipeInfo> RecipesFor(int itemId) => itemId == 99
                 ? new[]
                 {
@@ -384,17 +207,6 @@ namespace TerrariaEncyclopedia.Tests
                 ? new[] { new DropEntry { NpcId = 13, ItemId = 99, Chance = 0.25f, StackMin = 1, StackMax = 2 } }
                 : new DropEntry[0];
             public IReadOnlyList<DropEntry> SourcesFor(int itemId) => new DropEntry[0];
-            public IReadOnlyList<ShopItemEntry> ShopFor(int npcId) => npcId == 1
-                ? new[] { new ShopItemEntry { ItemId = 99, Cost = 100 } }
-                : new ShopItemEntry[0];
-            public IReadOnlyList<ShopSellerEntry> SellersOf(int itemId) => itemId == 99
-                ? new[] { new ShopSellerEntry { NpcId = 1, Cost = 100 } }
-                : new ShopSellerEntry[0];
-            public NpcPersonalityEntry GetNpcPersonality(int npcId, string npcName) =>
-                new NpcPersonalityEntry { HasUniqueBehavior = npcId == 1 };
-            public string GetNpcHowToGet(string npcName) => npcName == "Guide"
-                ? "Moves in when a vacant house is available."
-                : null;
             public string StationName(int tileId) => tileId == 26 ? "Demon Altar" : "Unknown";
             public bool IsHardmodeItem(string itemName) => itemName == "Nebula Blaze";
             public bool IsHardmodeNpc(string npcName) => npcName == "Retinazer";
@@ -403,6 +215,7 @@ namespace TerrariaEncyclopedia.Tests
                 Name = npcName,
                 ExpertMode = "Expert tactics"
             };
+            public IReadOnlyList<BossChecklistEntry> GetBossChecklist() => new BossChecklistEntry[0];
         }
     }
 }
