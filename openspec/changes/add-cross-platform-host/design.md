@@ -55,6 +55,8 @@ The existing panel depends on TerrariaModder's renderer, draggable panel, scroll
 
 The host owns lifecycle and presentation facilities but does not model Terraria content. The Encyclopedia continues to read live game state through its feature implementation. A future Boss Checklist feature will likewise read current world progression through its own adapter, avoiding a prematurely broad game-data interface.
 
+Current Encyclopedia additions from the active upstream branch are reconciled through `IEncyclopediaDataSource` and repository-owned content models before they reach the migrated panel. Event wiki data, NPC personalities and shops, item sellers and drop sources therefore remain testable feature data instead of reintroducing direct static catalogue access into the UI. Terraria-dependent catalogue implementations are excluded from the testable `netstandard2.0` target alongside the existing live catalogues. The three top-level section searches share one selection object that unfocuses the section being left, preserving exclusive text entry as Events is added.
+
 ### Use Terraria's stable UI coordinate sources at every callback
 
 Terraria changes `Main.mouseX`, `Main.mouseY`, `Main.screenWidth`, and `Main.screenHeight` between unscaled, world-scaled, and UI-scaled modes during update and draw. The host therefore derives feature input and viewport bounds from `PlayerInput`'s cached, Terraria-normalised coordinates and dimensions, then converts them once into logical UI units. It does not use raw FNA mouse coordinates or divide callback-dependent `Main` dimensions.

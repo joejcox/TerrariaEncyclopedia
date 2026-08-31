@@ -55,8 +55,17 @@
   - Verify changed: dotnet test tests/TerrariaEncyclopedia.Tests/TerrariaEncyclopedia.Tests.csproj --filter FullyQualifiedName~TerrariaUiCoordinateSpaceTests
   - Verify: dotnet test tests/TerrariaEncyclopedia.Tests/TerrariaEncyclopedia.Tests.csproj && dotnet build src/TerrariaEncyclopedia.Host.Mono/TerrariaEncyclopedia.Host.Mono.csproj -c Release -p:TerrariaReferencePath="/Users/josephanson/Library/Application Support/Steam/steamapps/common/Terraria/Terraria.app/Contents/Resources/Terraria.exe" -p:FnaReferencePath="/Users/josephanson/Library/Application Support/Steam/steamapps/common/Terraria/Terraria.app/Contents/Resources/FNA.dll"
 
-- [ ] T08 Add macOS release assembly, manifests, licence checks, and updated build/release documentation
+- [ ] T11 Integrate current Encyclopedia content without regressing the macOS host
   - Depends on: T10
+  - Writes: CHANGELOG.md, README.md, docs/RELEASING.md, docs/framework-patches.md, tools/WikiScraper/Program.cs, src/TerrariaEncyclopedia.Host.Mono/GameHost.cs, src/TerrariaEncyclopedia/Content/**, src/TerrariaEncyclopedia/TerrariaEncyclopedia.csproj, src/TerrariaEncyclopedia/UI/EncyclopediaSectionSelection.cs, src/TerrariaEncyclopedia/UI/ItemBrowserPanel.cs, src/TerrariaEncyclopedia/WikiData/**, tests/TerrariaEncyclopedia.Tests/**
+  - Locks: dependency-manifest, macos-terraria-process
+  - Estimate: large
+  - Acceptance: The migrated macOS Encyclopedia retains the current Events section, all 33 wiki-recognised bosses, NPC living preferences and shop inventories, item acquisition sources, projectile-name and critical-chance corrections, documentation, scraper support, and wiki data while preserving scaled pointer alignment, tab feedback, exclusive text entry, and repository-owned data access.
+  - Verify changed: dotnet test tests/TerrariaEncyclopedia.Tests/TerrariaEncyclopedia.Tests.csproj --filter FullyQualifiedName~EncyclopediaBehaviourTests
+  - Verify: dotnet test tests/TerrariaEncyclopedia.Tests/TerrariaEncyclopedia.Tests.csproj && dotnet test tests/TerrariaEncyclopedia.Runtime.Tests/TerrariaEncyclopedia.Runtime.Tests.csproj && dotnet build src/TerrariaEncyclopedia.Host.Mono/TerrariaEncyclopedia.Host.Mono.csproj -c Release -p:TerrariaReferencePath="/Users/josephanson/Library/Application Support/Steam/steamapps/common/Terraria/Terraria.app/Contents/Resources/Terraria.exe" -p:FnaReferencePath="/Users/josephanson/Library/Application Support/Steam/steamapps/common/Terraria/Terraria.app/Contents/Resources/FNA.dll" && tests/smoke/macos-encyclopedia.sh --terraria-path "/Users/josephanson/Library/Application Support/Steam/steamapps/common/Terraria"
+
+- [ ] T08 Add macOS release assembly, manifests, licence checks, and updated build/release documentation
+  - Depends on: T11
   - Writes: tools/Packager/**, docs/BUILDING.md, docs/RELEASING.md, README.md, tests/TerrariaEncyclopedia.Packager.Tests/**
   - Locks: dependency-manifest, release-layout
   - Estimate: medium
