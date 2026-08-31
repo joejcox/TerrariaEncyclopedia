@@ -64,7 +64,7 @@
   - Verify changed: dotnet test tests/TerrariaEncyclopedia.Tests/TerrariaEncyclopedia.Tests.csproj --filter FullyQualifiedName~EncyclopediaBehaviourTests
   - Verify: dotnet test tests/TerrariaEncyclopedia.Tests/TerrariaEncyclopedia.Tests.csproj && dotnet test tests/TerrariaEncyclopedia.Runtime.Tests/TerrariaEncyclopedia.Runtime.Tests.csproj && dotnet build src/TerrariaEncyclopedia.Host.Mono/TerrariaEncyclopedia.Host.Mono.csproj -c Release -p:TerrariaReferencePath="/Users/josephanson/Library/Application Support/Steam/steamapps/common/Terraria/Terraria.app/Contents/Resources/Terraria.exe" -p:FnaReferencePath="/Users/josephanson/Library/Application Support/Steam/steamapps/common/Terraria/Terraria.app/Contents/Resources/FNA.dll" && tests/smoke/macos-encyclopedia.sh --terraria-path "/Users/josephanson/Library/Application Support/Steam/steamapps/common/Terraria"
 
-- [ ] T12 Reconcile post-review town NPC acquisition guidance
+- [x] T12 Reconcile post-review town NPC acquisition guidance
   - Depends on: T11
   - Writes: CHANGELOG.md, tools/WikiScraper/Program.cs, src/TerrariaEncyclopedia/Content/IEncyclopediaDataSource.cs, src/TerrariaEncyclopedia/Content/Models.cs, src/TerrariaEncyclopedia/Content/NpcPreferenceResolver.cs, src/TerrariaEncyclopedia/Content/TerrariaEncyclopediaDataSource.cs, src/TerrariaEncyclopedia/Content/WikiEnrichment.cs, src/TerrariaEncyclopedia/UI/ItemBrowserPanel.cs, src/TerrariaEncyclopedia/WikiData/npc-preferences.json, tests/TerrariaEncyclopedia.Tests/**
   - Locks: macos-terraria-process
