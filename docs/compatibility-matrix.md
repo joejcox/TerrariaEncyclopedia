@@ -21,8 +21,9 @@ both before and after the checks.
 
 A separate normal launch was then started through Steam's `steam://run/105600`
 route with no `MONO_BUNDLED_OPTIONS` environment value. The stock
-`Terraria.bin.osx` process started successfully, was terminated as the bounded
-test process, and the same managed-assembly digest was confirmed afterwards.
+`Terraria.bin.osx` process started successfully, remained running through a
+main-menu idle period, then quit through the application's normal quit command.
+The same managed-assembly digest was confirmed afterwards.
 
 The release packager's five focused tests and installed-path verification
 passed. A freshly assembled archive was inspected: it contained exactly the
