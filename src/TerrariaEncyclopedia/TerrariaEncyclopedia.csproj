@@ -23,13 +23,17 @@
     <ProjectReference Include="..\TerrariaEncyclopedia.Runtime\TerrariaEncyclopedia.Runtime.csproj" />
     <Compile Remove="Compatibility\**\*.cs" />
     <Compile Remove="EncyclopediaFeature.cs" />
-    <Compile Remove="UI\**\*.cs" />
+    <Compile Remove="UI\ItemBrowserPanel.cs" />
     <Compile Remove="Content\DropCatalogue.cs" />
     <Compile Remove="Content\ItemCatalogue.cs" />
     <Compile Remove="Content\NpcCatalogue.cs" />
     <Compile Remove="Content\RecipeCatalogue.cs" />
     <Compile Remove="Content\TerrariaEncyclopediaDataSource.cs" />
     <Compile Remove="Content\WikiEnrichment.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="TerrariaEncyclopedia.Tests" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net48' and '$(GameFramework)' == 'FNA'">

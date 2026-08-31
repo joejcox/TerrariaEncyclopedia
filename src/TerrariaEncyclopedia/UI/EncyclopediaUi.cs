@@ -1,5 +1,6 @@
 using System;
 using TerrariaEncyclopedia.Runtime;
+using TerrariaEncyclopedia.Runtime.UI.Input;
 using RuntimeInput = TerrariaEncyclopedia.Runtime.UI.Input.WidgetInput;
 using RuntimeCheckbox = TerrariaEncyclopedia.Runtime.UI.Widgets.Checkbox;
 using RuntimeDraggablePanel = TerrariaEncyclopedia.Runtime.UI.Widgets.DraggablePanel;
@@ -16,12 +17,15 @@ namespace TerrariaEncyclopedia.UI
         {
             Renderer = renderer ?? throw new ArgumentNullException(nameof(renderer));
             Input = new RuntimeInput(input ?? throw new ArgumentNullException(nameof(input)));
+            TextEntry = new ExclusiveTextEntrySession(renderer.TextEntry);
             Tooltips = new TooltipService(renderer.ItemTooltips);
         }
 
         public IEncyclopediaFeatureRenderer Renderer { get; }
 
         public RuntimeInput Input { get; }
+
+        internal ExclusiveTextEntrySession TextEntry { get; }
 
         public TooltipService Tooltips { get; }
 
@@ -34,6 +38,53 @@ namespace TerrariaEncyclopedia.UI
         public void DrawDeferredTooltips()
         {
             Tooltips.DrawDeferred(Renderer, Input, Renderer.Viewport, Palette);
+        }
+    }
+
+    internal sealed class ExclusiveTextEntrySession : ITextEntrySession
+    {
+        private readonly ITextEntrySession session;
+        private string ownerId;
+
+        public ExclusiveTextEntrySession(ITextEntrySession session)
+        {
+            this.session = session ?? NullTextEntrySession.Instance;
+        }
+
+        public void Begin(string nextOwnerId)
+        {
+            if (string.Equals(ownerId, nextOwnerId, StringComparison.Ordinal))
+                return;
+
+            if (ownerId != null)
+            {
+                session.End(ownerId);
+                ownerId = null;
+            }
+
+            session.Begin(nextOwnerId);
+            ownerId = nextOwnerId;
+        }
+
+        public string Read(string currentText, int maxLength)
+        {
+            return ownerId == null
+                ? currentText ?? string.Empty
+                : session.Read(currentText, maxLength);
+        }
+
+        public void End(string endingOwnerId)
+        {
+            if (!IsOwner(endingOwnerId))
+                return;
+
+            session.End(endingOwnerId);
+            ownerId = null;
+        }
+
+        public bool IsOwner(string candidateOwnerId)
+        {
+            return string.Equals(ownerId, candidateOwnerId, StringComparison.Ordinal);
         }
     }
 
@@ -269,20 +320,24 @@ namespace TerrariaEncyclopedia.UI
 
     internal sealed class TextInput
     {
+        private readonly string ownerId;
+        private readonly ExclusiveTextEntrySession textEntry;
         private readonly RuntimeTextInput input;
 
         public TextInput(string ownerId, string placeholder, int maxLength)
         {
+            this.ownerId = ownerId;
+            textEntry = EncyclopediaUiContext.Current.TextEntry;
             input = new RuntimeTextInput(
                 ownerId,
                 placeholder,
                 maxLength,
-                EncyclopediaUiContext.Current.Renderer.TextEntry);
+                textEntry);
         }
 
         public string Text { get => input.Text; set => input.Text = value; }
         public bool HasChanged => input.HasChanged;
-        public bool IsFocused => input.IsFocused;
+        public bool IsFocused => input.IsFocused && textEntry.IsOwner(ownerId);
 
         public void Update()
         {
@@ -293,6 +348,8 @@ namespace TerrariaEncyclopedia.UI
         {
             EncyclopediaUi ui = EncyclopediaUiContext.Current;
             var bounds = new RenderRectangle(x, y, width, height);
+            if (input.IsFocused && !textEntry.IsOwner(ownerId))
+                input.Unfocus();
             input.Update(ui.Input, bounds);
             input.Draw(ui.Renderer, bounds, ui.Palette);
         }

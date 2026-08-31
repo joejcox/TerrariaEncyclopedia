@@ -255,9 +255,22 @@ namespace TerrariaEncyclopedia.UI
                 WidgetInput.ConsumeClick();
                 if (_section != section)
                 {
-                    _section = section;
+                    SwitchSection(section);
                 }
             }
+        }
+
+        private void SwitchSection(Section section)
+        {
+            if (_section == section)
+                return;
+
+            if (_section == Section.Items)
+                _search.Unfocus();
+            else
+                _npcSearch.Unfocus();
+
+            _section = section;
         }
 
         private void DrawGridView()
@@ -1266,7 +1279,7 @@ namespace TerrariaEncyclopedia.UI
                 if (WidgetInput.MouseLeftClick)
                 {
                     // Cross-section navigation: jump straight to the item's own detail page.
-                    _section = Section.Items;
+                    SwitchSection(Section.Items);
                     _navigation.Home();
                     OpenDetail(row.Item);
                     WidgetInput.ConsumeClick();
