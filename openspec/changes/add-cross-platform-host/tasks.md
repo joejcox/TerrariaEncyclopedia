@@ -26,7 +26,7 @@
   - Acceptance: Compile-time registered fake features receive ordered lifecycle callbacks and key transitions; a throwing feature is disabled without stopping healthy features.
   - Verify: dotnet test tests/TerrariaEncyclopedia.Runtime.Tests/TerrariaEncyclopedia.Runtime.Tests.csproj
 
-- [ ] T04 Add the required renderer, widgets, tooltip support, macOS FNA build flavour, and third-party attribution
+- [x] T04 Add the required renderer, widgets, tooltip support, macOS FNA build flavour, and third-party attribution
   - Depends on: T03
   - Writes: src/TerrariaEncyclopedia.Runtime/UI/**, src/TerrariaEncyclopedia.Runtime/TerrariaEncyclopedia.Runtime.csproj, THIRD_PARTY_NOTICES.md, tests/TerrariaEncyclopedia.Runtime.Tests/UI/**
   - Locks: dependency-manifest
