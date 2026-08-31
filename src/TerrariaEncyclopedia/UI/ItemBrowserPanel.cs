@@ -88,6 +88,7 @@ namespace TerrariaEncyclopedia.UI
         private readonly TextInput _npcSearch;
         private readonly ScrollView _npcScroll = new ScrollView();
         private readonly ScrollView _npcDetailScroll = new ScrollView();
+        private readonly ScrollView _bossChecklistScroll = new ScrollView();
         private int _npcActiveTab;
         private bool _npcHardmodeOnly;
         private int _npcSortModeIndex;
@@ -218,10 +219,14 @@ namespace TerrariaEncyclopedia.UI
                     if (_view == ViewMode.Grid) DrawGridView();
                     else DrawDetailView();
                 }
-                else
+                else if (_section.Current == EncyclopediaSection.Npcs)
                 {
                     if (_npcView == ViewMode.Grid) DrawNpcGridView();
                     else DrawNpcDetailView();
+                }
+                else
+                {
+                    DrawBossChecklistView();
                 }
             }
             finally
@@ -232,9 +237,12 @@ namespace TerrariaEncyclopedia.UI
 
         private void DrawSectionToggle(int x, int y, int width)
         {
-            int halfWidth = width / 2;
-            DrawSectionButton(x, y, halfWidth - 2, "Items", EncyclopediaSection.Items);
-            DrawSectionButton(x + halfWidth + 2, y, width - halfWidth - 2, "NPCs", EncyclopediaSection.Npcs);
+            const int gap = 2;
+            int buttonWidth = (width - gap * 2) / 3;
+            DrawSectionButton(x, y, buttonWidth, "Items", EncyclopediaSection.Items);
+            DrawSectionButton(x + buttonWidth + gap, y, buttonWidth, "NPCs", EncyclopediaSection.Npcs);
+            int checklistX = x + (buttonWidth + gap) * 2;
+            DrawSectionButton(checklistX, y, width - (checklistX - x), "Boss Checklist", EncyclopediaSection.BossChecklist);
         }
 
         private void DrawSectionButton(int x, int y, int width, string label, EncyclopediaSection section)
@@ -799,6 +807,74 @@ namespace TerrariaEncyclopedia.UI
             DrawNpcGrid(gridX, gridY, gridWidth, gridHeight, interactive);
 
             if (_npcSortDropdownOpen) DrawNpcSortDropdown();
+        }
+
+        // ── Boss checklist ──────────────────────────────────────────────────
+
+        private void DrawBossChecklistView()
+        {
+            int x = _panel.ContentX;
+            int y = _panel.ContentY + SectionToggleHeight;
+            int width = _panel.ContentWidth;
+            int height = _panel.ContentHeight - SectionToggleHeight;
+            var bosses = _data.GetBossChecklist();
+            int defeated = bosses.Count(entry => entry.Defeated);
+            BossChecklistEntry next = bosses.FirstOrDefault(entry => !entry.Defeated);
+
+            UIRenderer.DrawText("Vanilla Boss Progress", x, y, UIColors.TextTitle);
+            string progress = bosses.Count == 0
+                ? "No boss data is available. Enter a world to view its progression."
+                : $"{defeated}/{bosses.Count} defeated";
+            UIRenderer.DrawText(progress, x, y + 24, UIColors.TextDim);
+
+            if (next != null)
+                UIRenderer.DrawText("Next: " + next.Name, x + 180, y + 24, UIColors.AccentText);
+            else if (bosses.Count > 0)
+                UIRenderer.DrawText("All listed bosses defeated", x + 180, y + 24, UIColors.AccentText);
+
+            const int rowHeight = 48;
+            int listY = y + 54;
+            int listHeight = Math.Max(0, height - 54);
+            _bossChecklistScroll.Begin(x, listY, width, listHeight, bosses.Count * rowHeight);
+
+            for (int i = 0; i < bosses.Count; i++)
+            {
+                int contentY = i * rowHeight;
+                if (!_bossChecklistScroll.IsVisible(contentY, rowHeight)) continue;
+
+                int rowY = _bossChecklistScroll.ContentY + contentY;
+                DrawBossChecklistRow(x, rowY, width, rowHeight, bosses[i], next == bosses[i]);
+            }
+
+            _bossChecklistScroll.End();
+        }
+
+        private void DrawBossChecklistRow(int x, int y, int width, int height, BossChecklistEntry entry, bool isNext)
+        {
+            bool hover = WidgetInput.IsMouseOver(x, y, width, height - 2);
+            Color4 background = entry.Defeated ? UIColors.ItemActiveBg : (hover ? UIColors.SectionBg : UIColors.ItemBg);
+            UIRenderer.DrawRect(x, y, width, height - 2, background);
+            if (hover || isNext)
+                UIRenderer.DrawRectOutline(x, y, width, height - 2, isNext ? UIColors.Accent : UIColors.Border);
+
+            UIRenderer.DrawNPC(entry.Npc.Id, x + 6, y + 6, 34, 34);
+            UIRenderer.DrawText(entry.Name, x + 50, y + 7, hover ? UIColors.AccentText : UIColors.Text);
+            string status = entry.Defeated ? "DEFEATED" : (isNext ? "NEXT BOSS" : "REMAINING");
+            Color4 statusColour = entry.Defeated ? LabelGreen : (isNext ? UIColors.AccentText : UIColors.TextDim);
+            int statusWidth = TextUtil.MeasureWidth(status);
+            UIRenderer.DrawText(status, x + width - statusWidth - 10, y + 7, statusColour);
+            UIRenderer.DrawText("Open boss details, summoning and drops", x + 50, y + 26, UIColors.TextDim);
+
+            if (hover)
+            {
+                Tooltip.Set(entry.Name, entry.Defeated ? "Defeated — open details" : "Open details");
+                if (WidgetInput.MouseLeftClick)
+                {
+                    WidgetInput.ConsumeClick();
+                    _section.SwitchTo(EncyclopediaSection.Npcs);
+                    OpenNpcDetail(entry.Npc);
+                }
+            }
         }
 
         private void DrawNpcTabs(int x, int y, int width, bool interactive)

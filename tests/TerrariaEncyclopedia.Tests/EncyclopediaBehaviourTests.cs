@@ -111,6 +111,47 @@ namespace TerrariaEncyclopedia.Tests
             Assert.Equal("Expert tactics", source.GetBossInfo("Eye of Cthulhu").ExpertMode);
         }
 
+        [Fact]
+        public void BossChecklistUsesVanillaOrderCurrentWorldFlagsAndDetailNpc()
+        {
+            var bosses = new[]
+            {
+                "King Slime", "Eye of Cthulhu", "Eater of Worlds", "Queen Bee", "Skeletron", "Deerclops",
+                "Wall of Flesh", "Queen Slime", "The Destroyer", "Retinazer", "Skeletron Prime", "Plantera",
+                "Golem", "Duke Fishron", "Empress of Light", "Lunatic Cultist", "Moon Lord"
+            }.Select((name, id) => Npc(500 + id, name, 1, boss: true)).ToArray();
+
+            var checklist = BossChecklistCatalogue.Build(bosses, new BossProgressSnapshot
+            {
+                HasWorld = true,
+                KingSlime = true,
+                EvilBoss = true,
+                Twins = true,
+                MoonLord = true
+            });
+
+            Assert.Equal(new[]
+            {
+                "King Slime", "Eye of Cthulhu", "Eater of Worlds / Brain of Cthulhu", "Queen Bee", "Skeletron",
+                "Deerclops", "Wall of Flesh", "Queen Slime", "The Destroyer", "The Twins", "Skeletron Prime",
+                "Plantera", "Golem", "Duke Fishron", "Empress of Light", "Lunatic Cultist", "Moon Lord"
+            }, checklist.Select(entry => entry.Name));
+            Assert.Equal(new[] { "King Slime", "Eater of Worlds / Brain of Cthulhu", "The Twins", "Moon Lord" },
+                checklist.Where(entry => entry.Defeated).Select(entry => entry.Name));
+            Assert.Equal("Retinazer", checklist.Single(entry => entry.Name == "The Twins").Npc.Name);
+        }
+
+        [Fact]
+        public void BossChecklistDoesNotReportProgressWithoutAnActiveWorld()
+        {
+            var checklist = BossChecklistCatalogue.Build(
+                new[] { Npc(50, "King Slime", 2000, boss: true) },
+                new BossProgressSnapshot { KingSlime = true });
+
+            Assert.Single(checklist);
+            Assert.False(checklist[0].Defeated);
+        }
+
         private static int FirstItem(ItemSortMode mode)
         {
             return EncyclopediaQueries.FilterItems(Items, null, false, null, mode, _ => false)[0].Id;
@@ -174,6 +215,7 @@ namespace TerrariaEncyclopedia.Tests
                 Name = npcName,
                 ExpertMode = "Expert tactics"
             };
+            public IReadOnlyList<BossChecklistEntry> GetBossChecklist() => new BossChecklistEntry[0];
         }
     }
 }

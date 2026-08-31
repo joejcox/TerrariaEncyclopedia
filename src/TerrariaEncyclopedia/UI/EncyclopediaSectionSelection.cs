@@ -5,7 +5,8 @@ namespace TerrariaEncyclopedia.UI
     internal enum EncyclopediaSection
     {
         Items,
-        Npcs
+        Npcs,
+        BossChecklist
     }
 
     internal sealed class EncyclopediaSectionSelection
@@ -26,10 +27,8 @@ namespace TerrariaEncyclopedia.UI
             if (Current == next)
                 return;
 
-            if (Current == EncyclopediaSection.Items)
-                unfocusItems();
-            else
-                unfocusNpcs();
+            if (Current == EncyclopediaSection.Items) unfocusItems();
+            if (Current == EncyclopediaSection.Npcs) unfocusNpcs();
 
             Current = next;
         }

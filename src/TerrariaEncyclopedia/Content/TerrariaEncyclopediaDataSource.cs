@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Terraria;
 
 namespace TerrariaEncyclopedia.Content
 {
@@ -70,6 +71,41 @@ namespace TerrariaEncyclopedia.Content
         public bool IsHardmodeNpc(string npcName) => WikiEnrichment.IsHardmodeNpc(npcName);
 
         public BossWikiInfo GetBossInfo(string npcName) => WikiEnrichment.GetBossInfo(npcName);
+
+        public IReadOnlyList<BossChecklistEntry> GetBossChecklist()
+        {
+            EnsureNpcsLoaded();
+            return BossChecklistCatalogue.Build(npcs, ReadBossProgress());
+        }
+
+        private static BossProgressSnapshot ReadBossProgress()
+        {
+            // Terraria resets these fields while at the title screen. Never present old-world
+            // state as progress there; the panel refreshes this snapshot every time it draws.
+            if (Main.gameMenu) return new BossProgressSnapshot();
+
+            return new BossProgressSnapshot
+            {
+                HasWorld = true,
+                KingSlime = NPC.downedSlimeKing,
+                EyeOfCthulhu = NPC.downedBoss1,
+                EvilBoss = NPC.downedBoss2,
+                QueenBee = NPC.downedQueenBee,
+                Skeletron = NPC.downedBoss3,
+                Deerclops = NPC.downedDeerclops,
+                WallOfFlesh = Main.hardMode,
+                QueenSlime = NPC.downedQueenSlime,
+                Destroyer = NPC.downedMechBoss1,
+                Twins = NPC.downedMechBoss2,
+                SkeletronPrime = NPC.downedMechBoss3,
+                Plantera = NPC.downedPlantBoss,
+                Golem = NPC.downedGolemBoss,
+                DukeFishron = NPC.downedFishron,
+                EmpressOfLight = NPC.downedEmpressOfLight,
+                LunaticCultist = NPC.downedAncientCultist,
+                MoonLord = NPC.downedMoonlord,
+            };
+        }
 
         private void EnsureItemsLoaded()
         {
