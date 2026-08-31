@@ -11,6 +11,19 @@ not modify the game installation.
 | macOS x64, Terraria 1.4.5.8 | Archive suitable; run the same smoke checks on an Intel Mac before calling the build runtime-tested there | The release files are managed IL and the installed `Terraria.bin.osx` is a universal x86_64/arm64 executable. The archive includes no architecture-specific native code. |
 | Normal Steam launch | Unchanged by installation or release assembly | The archive is unpacked outside the game directory. Both launchers only add `MONO_BUNDLED_OPTIONS` to their own child process before `exec`ing the stock launcher; they do not write, copy, patch, or replace game files. Confirm with the release procedure below. |
 
+## 2026-08-31 release sign-off
+
+The supported Apple Silicon Terraria 1.4.5.8 installation completed both bounded
+smoke checks. The Encyclopedia marker confirmed feature initialisation, updates,
+rendering, an open panel, live item/NPC data, and tooltip creation. `Terraria.exe`
+was `d52c7ea7e4e312d8937fd20d1f2609f0d6bd26daddf5bfab2d106ca9077103e0`
+both before and after the checks.
+
+A separate normal launch was then started through Steam's `steam://run/105600`
+route with no `MONO_BUNDLED_OPTIONS` environment value. The stock
+`Terraria.bin.osx` process started successfully, was terminated as the bounded
+test process, and the same managed-assembly digest was confirmed afterwards.
+
 ## Release evidence and checks
 
 Use an idle Terraria installation: the smoke scripts deliberately refuse to
