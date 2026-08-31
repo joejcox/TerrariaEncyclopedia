@@ -6,7 +6,8 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
-- Wiki-sourced boss data for the four Lunar Event pillars (Vortex/Nebula/Solar/Stardust), found missing via a live cross-check against every real in-game boss — total boss coverage is now 24/24. Their Type/Environment/Summoning/Aftermath/Tips fields are mostly empty (known gap: they share one combined wiki page structured unlike a standalone boss page); their live game data (stats, drops, hardmode marking) is unaffected.
+- Wiki-sourced boss data for the four Lunar Event pillars (Vortex/Nebula/Solar/Stardust). Their Type/Environment/Summoning/Aftermath/Tips fields are mostly empty (known gap: they share one combined wiki page structured unlike a standalone boss page); their live game data (stats, drops, hardmode marking) is unaffected.
+- Full boss coverage: `NpcCatalogue.IsBoss` now also recognizes 9 event/invasion bosses (Betsy, Ogre, Dark Mage, Mourning Wood, Pumpking, Everscream, Santa-NK1, Ice Queen, Flying Dutchman) that the engine's own boss/bestiary flags don't mark as bosses but the wiki does — bringing total boss coverage to 33/33, matching the wiki's "Boss NPCs" category exactly.
 
 ## [0.8.0] - 2026-08-31
 
