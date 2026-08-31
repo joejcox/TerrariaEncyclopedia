@@ -414,13 +414,24 @@ public static class Program
             parts.Add(guidance);
             for (var next = node.NextSibling; next != null; next = next.NextSibling)
             {
+                // Only consume the contiguous lead block. A later section may contain a Shop,
+                // Combat, or Drops list whose wording resembles an arrival prerequisite.
+                if (next.Name is "h2" or "h3"
+                    || (next.Name == "div" && next.GetAttributeValue("id", "") == "toc"))
+                    break;
+
                 if (next.Name == "ul")
                 {
-                    CollectAcquisitionListItems(next, parts);
+                    CollectAcquisitionListItems(next, parts, followsAcquisitionLead: true);
                     continue;
                 }
 
-                if (next.Name != "p") continue;
+                if (next.Name != "p")
+                {
+                    if (next.NodeType == HtmlNodeType.Text && string.IsNullOrWhiteSpace(next.InnerText))
+                        continue;
+                    break;
+                }
 
                 string continuation = ExtractAcquisitionSentences(ExtractCleanText(next), npcName);
                 if (continuation.Length == 0) break;
@@ -440,12 +451,15 @@ public static class Program
     /// read like a move-in, rescue, visit, or prerequisite condition; shop, combat, loot, and
     /// other encyclopaedia details must not leak into the compact "How to Get" field.
     /// </summary>
-    private static void CollectAcquisitionListItems(HtmlNode list, List<string> parts)
+    private static void CollectAcquisitionListItems(
+        HtmlNode list,
+        List<string> parts,
+        bool followsAcquisitionLead)
     {
         foreach (var item in list.SelectNodes("./li") ?? Enumerable.Empty<HtmlNode>())
         {
             string text = ExtractCleanText(item);
-            if (IsAcquisitionListItem(text)) parts.Add(text);
+            if (IsAcquisitionListItem(text, followsAcquisitionLead)) parts.Add(text);
         }
     }
 
@@ -489,7 +503,7 @@ public static class Program
             && cues.Any(cue => text.IndexOf(cue, StringComparison.OrdinalIgnoreCase) >= 0);
     }
 
-    private static bool IsAcquisitionListItem(string text)
+    private static bool IsAcquisitionListItem(string text, bool followsAcquisitionLead)
     {
         if (string.IsNullOrWhiteSpace(text) || ContainsNonAcquisitionDetail(text)) return false;
 
@@ -508,7 +522,12 @@ public static class Program
             "frost legion", "glowing mushroom",
         };
 
-        return arrivalCues.Concat(prerequisiteCues)
+        if (arrivalCues.Any(cue => text.IndexOf(cue, StringComparison.OrdinalIgnoreCase) >= 0))
+            return true;
+
+        // A prerequisite-only bullet is meaningful only immediately after an arrival lead;
+        // never infer that relationship from an arbitrary later wiki section.
+        return followsAcquisitionLead && prerequisiteCues
             .Any(cue => text.IndexOf(cue, StringComparison.OrdinalIgnoreCase) >= 0);
     }
 
