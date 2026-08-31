@@ -60,7 +60,7 @@ The migrated Encyclopedia SHALL use the same logical UI coordinate space as Terr
 - **THEN** the tab presents a visible hover or selected highlight without changing its hit target
 
 ### Requirement: Current Encyclopedia content remains available through the first-party host
-The migrated Encyclopedia SHALL expose its current event, boss, NPC preference, NPC shop, and item acquisition information through repository-owned feature and data-source interfaces.
+The migrated Encyclopedia SHALL expose its current event, boss, NPC preference, NPC shop, town-NPC acquisition, and item acquisition information through repository-owned feature and data-source interfaces.
 
 #### Scenario: Event catalogue
 - **WHEN** the user selects the Events section and searches or opens an event
@@ -73,6 +73,10 @@ The migrated Encyclopedia SHALL expose its current event, boss, NPC preference, 
 #### Scenario: NPC preferences and shops
 - **WHEN** the user opens a town NPC with preference or shop data
 - **THEN** its living preferences and current shop inventory are displayed and linked NPC or item rows navigate to their details
+
+#### Scenario: Town NPC acquisition guidance
+- **WHEN** the user opens a town NPC with wiki-sourced move-in, rescue, or arrival requirements
+- **THEN** its How to Get guidance is displayed through the repository-owned data source without unrelated non-town entries or scraper artefacts
 
 #### Scenario: Item acquisition information
 - **WHEN** the user opens an item sold by an NPC or dropped by an enemy

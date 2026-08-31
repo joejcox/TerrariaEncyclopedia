@@ -7,7 +7,7 @@ Terraria Encyclopedia currently inherits TerrariaModder's Windows-only runtime a
 - Add a minimal host that launches the installed Terraria managed assembly without modifying the game installation.
 - Support native macOS launch layouts, including Apple Silicon, by using the runtime and native libraries shipped with the Terraria installation.
 - Replace the Encyclopedia's direct TerrariaModder lifecycle, input, logging, and UI dependencies with repository-owned modules.
-- Preserve the current Events, boss, NPC preference/shop, and item acquisition additions while routing them through those repository-owned modules.
+- Preserve the current Events, boss, NPC preference/shop, town-NPC acquisition, and item acquisition additions while routing them through those repository-owned modules.
 - Allow multiple compile-time registered first-party quality-of-life features to share the host; the Encyclopedia remains the initial feature and Boss Checklist is the planned first follow-up.
 - Preserve the current Windows/TerrariaModder path; replacing it is outside this macOS-focused delivery.
 - Add macOS build, packaging, diagnostics, and compatibility checks.
