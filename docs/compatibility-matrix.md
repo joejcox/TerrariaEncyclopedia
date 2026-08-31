@@ -24,6 +24,11 @@ route with no `MONO_BUNDLED_OPTIONS` environment value. The stock
 `Terraria.bin.osx` process started successfully, was terminated as the bounded
 test process, and the same managed-assembly digest was confirmed afterwards.
 
+The release packager's five focused tests and installed-path verification
+passed. A freshly assembled archive was inspected: it contained exactly the
+11 allow-listed release files and no Terraria, FNA, TerrariaModder,
+TerrariaInjector, Harmony, or Mono.Cecil files.
+
 ## Release evidence and checks
 
 Use an idle Terraria installation: the smoke scripts deliberately refuse to
