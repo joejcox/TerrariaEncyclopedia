@@ -1,0 +1,17 @@
+{
+  "id": "terraria-encyclopedia",
+  "name": "Terraria Encyclopedia",
+  "version": "0.1.0",
+  "author": "Joe Cox",
+  "description": "Read-only in-game item browser. Phase 1: version check plus a version/item-count display panel.",
+  "entry_dll": "TerrariaEncyclopedia.dll",
+
+  "keybinds": [
+    {
+      "id": "toggle",
+      "label": "Toggle Encyclopedia",
+      "description": "Open/close the Encyclopedia window",
+      "default": "F2"
+    }
+  ]
+}

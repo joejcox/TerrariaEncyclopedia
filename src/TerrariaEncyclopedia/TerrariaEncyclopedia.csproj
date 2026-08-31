@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <AssemblyName>TerrariaEncyclopedia</AssemblyName>
+    <RootNamespace>TerrariaEncyclopedia</RootNamespace>
+    <OutputType>Library</OutputType>
+    <LangVersion>latest</LangVersion>
+    <OutputPath>..\..\build\plugins\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Terraria">
+      <HintPath>..\..\Terraria\Terraria.exe</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="TerrariaModder.Core">
+      <HintPath>..\..\Terraria\TerrariaModder\core\TerrariaModder.Core.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+</Project>
