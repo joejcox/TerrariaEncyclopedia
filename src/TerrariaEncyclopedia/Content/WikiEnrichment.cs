@@ -23,6 +23,16 @@ namespace TerrariaEncyclopedia.Content
         public string Tips { get; set; }
     }
 
+    public class EventWikiInfo
+    {
+        public string Name { get; set; }
+        public string WikiPage { get; set; }
+        public string Summoning { get; set; }
+        public string Completing { get; set; }
+        public string Notes { get; set; }
+        public string Tips { get; set; }
+    }
+
     public class NpcPreferencesWikiInfo
     {
         public string Name { get; set; }
@@ -53,6 +63,7 @@ namespace TerrariaEncyclopedia.Content
         private static HashSet<string> _hardmodeItems = new HashSet<string>();
         private static HashSet<string> _hardmodeNpcs = new HashSet<string>();
         private static Dictionary<string, NpcPreferencesWikiInfo> _npcPreferences = new Dictionary<string, NpcPreferencesWikiInfo>();
+        private static List<EventWikiInfo> _events = new List<EventWikiInfo>();
 
         private static void EnsureLoaded()
         {
@@ -68,6 +79,8 @@ namespace TerrariaEncyclopedia.Content
 
             var prefs = ReadJson<List<NpcPreferencesWikiInfo>>(serializer, Path.Combine(dir, "npc-preferences.json")) ?? new List<NpcPreferencesWikiInfo>();
             _npcPreferences = prefs.Where(p => p.Name != null).ToDictionary(p => p.Name);
+
+            _events = ReadJson<List<EventWikiInfo>>(serializer, Path.Combine(dir, "events.json")) ?? new List<EventWikiInfo>();
         }
 
         private static T ReadJson<T>(JavaScriptSerializer serializer, string path) where T : class
@@ -107,6 +120,12 @@ namespace TerrariaEncyclopedia.Content
         {
             EnsureLoaded();
             return _npcPreferences.TryGetValue(npcName, out var info) ? info : null;
+        }
+
+        public static List<EventWikiInfo> GetAllEvents()
+        {
+            EnsureLoaded();
+            return _events;
         }
     }
 }

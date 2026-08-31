@@ -16,7 +16,7 @@ namespace TerrariaEncyclopedia.UI
     /// </summary>
     public class ItemBrowserPanel
     {
-        private enum Section { Items, Npcs }
+        private enum Section { Items, Npcs, Events }
 
         private const int SectionToggleHeight = 30;
 
@@ -103,15 +103,27 @@ namespace TerrariaEncyclopedia.UI
         private ViewMode _npcView = ViewMode.Grid;
         private NpcEntry _npcDetailItem;
 
+        // ── Events section state ──
+        // Events have no live base data at all (see WikiEnrichment/EventWikiInfo) — the wiki
+        // entry itself is the display entry, no separate catalogue+enrichment merge needed.
+        private List<EventWikiInfo> _events = new List<EventWikiInfo>();
+        private List<EventWikiInfo> _filteredEvents = new List<EventWikiInfo>();
+        private readonly TextInput _eventSearch = new TextInput("Search events...", 200);
+        private readonly ScrollView _eventScroll = new ScrollView();
+        private readonly ScrollView _eventDetailScroll = new ScrollView();
+        private ViewMode _eventView = ViewMode.Grid;
+        private EventWikiInfo _eventDetailItem;
+
         public ItemBrowserPanel()
         {
             _panel = new DraggablePanel("terraria-encyclopedia", "Terraria Encyclopedia", 1200, 750);
             // Same UIScale/scissor-rect mismatch found in Phase 1 — see Mod.cs history.
             _panel.ClipContent = false;
             _panel.RegisterDrawCallback(OnDraw);
-            _panel.OnClose = () => { _search.Unfocus(); _npcSearch.Unfocus(); };
+            _panel.OnClose = () => { _search.Unfocus(); _npcSearch.Unfocus(); _eventSearch.Unfocus(); };
             _search.KeyBlockId = "terraria-encyclopedia";
             _npcSearch.KeyBlockId = "terraria-encyclopedia";
+            _eventSearch.KeyBlockId = "terraria-encyclopedia";
         }
 
         public void Toggle()
@@ -138,6 +150,12 @@ namespace TerrariaEncyclopedia.UI
                 FilterNpcs();
             }
 
+            if (_events.Count == 0)
+            {
+                _events = WikiEnrichment.GetAllEvents();
+                FilterEvents();
+            }
+
             GoHome();
             _panel.Open();
         }
@@ -149,6 +167,7 @@ namespace TerrariaEncyclopedia.UI
             if (!_panel.IsOpen) return;
             _search.Update();
             _npcSearch.Update();
+            _eventSearch.Update();
         }
 
         public void Unload()
@@ -206,6 +225,8 @@ namespace TerrariaEncyclopedia.UI
             _view = ViewMode.Grid;
             _npcDetailItem = null;
             _npcView = ViewMode.Grid;
+            _eventDetailItem = null;
+            _eventView = ViewMode.Grid;
         }
 
         private void OpenDetail(ItemEntry entry)
@@ -243,10 +264,15 @@ namespace TerrariaEncyclopedia.UI
                     if (_view == ViewMode.Grid) DrawGridView();
                     else DrawDetailView();
                 }
-                else
+                else if (_section == Section.Npcs)
                 {
                     if (_npcView == ViewMode.Grid) DrawNpcGridView();
                     else DrawNpcDetailView();
+                }
+                else
+                {
+                    if (_eventView == ViewMode.Grid) DrawEventListView();
+                    else DrawEventDetailView();
                 }
             }
             finally
@@ -257,9 +283,10 @@ namespace TerrariaEncyclopedia.UI
 
         private void DrawSectionToggle(int x, int y, int width)
         {
-            int halfWidth = width / 2;
-            DrawSectionButton(x, y, halfWidth - 2, "Items", Section.Items);
-            DrawSectionButton(x + halfWidth + 2, y, width - halfWidth - 2, "NPCs", Section.Npcs);
+            int thirdWidth = width / 3;
+            DrawSectionButton(x, y, thirdWidth - 2, "Items", Section.Items);
+            DrawSectionButton(x + thirdWidth + 2, y, thirdWidth - 2, "NPCs", Section.Npcs);
+            DrawSectionButton(x + thirdWidth * 2 + 4, y, width - thirdWidth * 2 - 4, "Events", Section.Events);
         }
 
         private void DrawSectionButton(int x, int y, int width, string label, Section section)
@@ -1537,6 +1564,155 @@ namespace TerrariaEncyclopedia.UI
                     WidgetInput.ConsumeClick();
                 }
             }
+        }
+
+        // ── Events section ───────────────────────────────────────────────────
+        // No live base data exists for events at all (confirmed via reflection — only Old One's
+        // Army has a dedicated NPCID.Sets array; every other event's enemy roster and triggers
+        // are imperative spawn logic, same pattern as shop contents and neighbor preferences), so
+        // this section is wiki-sourced end to end rather than a live-catalogue-plus-enrichment
+        // merge like Items/NPCs.
+
+        private void FilterEvents()
+        {
+            IEnumerable<EventWikiInfo> source = _events;
+            string search = _eventSearch.Text;
+            if (!string.IsNullOrEmpty(search))
+            {
+                string lower = search.ToLowerInvariant();
+                source = source.Where(e => e.Name.ToLowerInvariant().Contains(lower));
+            }
+
+            _filteredEvents = source.OrderBy(e => e.Name).ToList();
+            _eventScroll.ResetScroll();
+        }
+
+        private static readonly string[] DefaultCollapsedEventSections = { "Completing", "Notes", "Tips" };
+
+        private void OpenEventDetail(EventWikiInfo evt)
+        {
+            _eventDetailItem = evt;
+            _eventView = ViewMode.Detail;
+            _eventDetailScroll.ResetScroll();
+
+            _collapsedSections.Clear();
+            foreach (var key in DefaultCollapsedEventSections) _collapsedSections.Add(key);
+        }
+
+        private const int EventRowHeight = 36;
+
+        private void DrawEventListView()
+        {
+            var s = new StackLayout(_panel.ContentX, _panel.ContentY + SectionToggleHeight, _panel.ContentWidth);
+
+            int searchY = s.Advance(28);
+            _eventSearch.Draw(s.X, searchY, 200, 26);
+            if (_eventSearch.HasChanged) FilterEvents();
+            s.Advance(10);
+
+            int listX = s.X;
+            int listY = s.CurrentY;
+            int listWidth = s.Width;
+            int listHeight = _panel.ContentHeight - SectionToggleHeight - s.TotalHeight;
+
+            int contentHeight = _filteredEvents.Count * EventRowHeight;
+            _eventScroll.Begin(listX, listY, listWidth, listHeight, contentHeight);
+
+            int rowY = 0;
+            foreach (var evt in _filteredEvents)
+            {
+                if (_eventScroll.IsVisible(rowY, EventRowHeight))
+                {
+                    int drawY = _eventScroll.ContentY + rowY;
+                    bool isHover = WidgetInput.IsMouseOver(listX, drawY, listWidth, EventRowHeight - 4);
+                    if (isHover)
+                        UIRenderer.DrawRect(listX, drawY, listWidth, EventRowHeight - 4, UIColors.InputFocusBg);
+
+                    UIRenderer.DrawText(evt.Name, listX + 8, drawY + 8, isHover ? UIColors.AccentText : UIColors.Text);
+
+                    if (isHover && WidgetInput.MouseLeftClick)
+                    {
+                        OpenEventDetail(evt);
+                        WidgetInput.ConsumeClick();
+                    }
+                }
+                rowY += EventRowHeight;
+            }
+
+            _eventScroll.End();
+
+            if (_filteredEvents.Count == 0)
+                UIRenderer.DrawText("No events found", listX + 5, listY + 10, UIColors.Warning);
+        }
+
+        private void DrawEventDetailView()
+        {
+            var evt = _eventDetailItem;
+            if (evt == null) { GoHome(); return; }
+
+            int x = _panel.ContentX + DetailPadX;
+            int y = _panel.ContentY + SectionToggleHeight;
+            int width = _panel.ContentWidth - DetailPadX * 2;
+
+            DrawNavBar(x, y, width, GoHome, GoHome, false); // events don't cross-navigate to each other
+            y += NavBarHeight + 6;
+
+            UIRenderer.DrawText(evt.Name, x, y, UIColors.TextTitle);
+            y += 32;
+
+            int bodyHeight = _panel.ContentHeight - (y - _panel.ContentY);
+            DrawEventBody(x, y, width, bodyHeight, evt);
+        }
+
+        private void DrawEventBody(int x, int y, int width, int height, EventWikiInfo evt)
+        {
+            var rows = new List<BodyRow>();
+
+            // Summoning is a plain non-collapsible heading, like NPC Description — it's the
+            // single most useful field on a first read ("how do I actually start this").
+            if (!string.IsNullOrEmpty(evt.Summoning))
+            {
+                rows.Add(new BodyRow { Header = "Summoning", Height = RowHeight });
+                AddWrappedRows(rows, evt.Summoning, width);
+                rows.Add(new BodyRow { Suffix = "", Height = 8 });
+            }
+
+            if (!string.IsNullOrEmpty(evt.Completing))
+            {
+                AddSection(rows, "Completing", () => AddWrappedRows(rows, evt.Completing, width));
+                rows.Add(new BodyRow { Suffix = "", Height = 6 });
+            }
+
+            if (!string.IsNullOrEmpty(evt.Notes))
+            {
+                AddSection(rows, "Notes", () => AddWrappedRows(rows, evt.Notes, width));
+                rows.Add(new BodyRow { Suffix = "", Height = 6 });
+            }
+
+            if (!string.IsNullOrEmpty(evt.Tips))
+            {
+                AddSection(rows, "Tips", () => AddWrappedRows(rows, evt.Tips, width));
+                rows.Add(new BodyRow { Suffix = "", Height = 6 });
+            }
+
+            if (rows.Count == 0)
+                rows.Add(new BodyRow { Suffix = "No wiki data available for this event.", Height = RowHeight });
+
+            int contentHeight = rows.Sum(r => r.Height);
+            _eventDetailScroll.Begin(x, y, width, height, contentHeight);
+
+            int rowY = 0;
+            foreach (var row in rows)
+            {
+                if (_eventDetailScroll.IsVisible(rowY, row.Height))
+                {
+                    int drawY = _eventDetailScroll.ContentY + rowY;
+                    DrawNpcBodyRow(x, drawY, width, row);
+                }
+                rowY += row.Height;
+            }
+
+            _eventDetailScroll.End();
         }
     }
 }

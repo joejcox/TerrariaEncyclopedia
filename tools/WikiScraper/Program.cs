@@ -64,6 +64,29 @@ public static class Program
         ("Flying Dutchman", "Flying_Dutchman", new[] { "Flying Dutchman" }),
     };
 
+    // Cross-checked against the wiki's own "Random events"/"Summoned events" categories
+    // (confirmed via its API) rather than hand-guessed. Deliberately excludes the purely
+    // cosmetic/ambient weather entries also in those categories (Rain, Windy Day, Thunderstorm,
+    // Boulder/Coin/Meteor rain, Starfall) — those aren't the "how do I fight/survive this"
+    // content this feature is for. Old One's Army isn't in either wiki category (it's tagged
+    // differently there) but is unambiguously a real event, so it's added directly.
+    private static readonly (string Name, string WikiPage)[] Events =
+    {
+        ("Blood Moon", "Blood_Moon"),
+        ("Solar Eclipse", "Solar_Eclipse"),
+        ("Goblin Army", "Goblin_Army"),
+        ("Pirate Invasion", "Pirate_Invasion"),
+        ("Frost Legion", "Frost_Legion"),
+        ("Pumpkin Moon", "Pumpkin_Moon"),
+        ("Frost Moon", "Frost_Moon"),
+        ("Martian Madness", "Martian_Madness"),
+        ("Lunar Events", "Lunar_Events"),
+        ("Old One's Army", "Old_One's_Army"),
+        ("Slime Rain", "Slime_Rain"),
+        ("Sandstorm", "Sandstorm"),
+        ("Party", "Party"),
+    };
+
     // The full live town-NPC list (from NPC.townNPC), confirmed via a one-time in-game dump —
     // not guessed. A few of these (the town pets, the slime variants, Old Man, Traveling
     // Merchant) likely have no "Living preferences" table on their wiki page at all; that's
@@ -94,8 +117,51 @@ public static class Program
         await ScrapeHardmodeCategory("Hardmode-only items", Path.Combine(outDir, "hardmode-items.json"));
         await ScrapeHardmodeCategory("Hardmode-only NPCs", Path.Combine(outDir, "hardmode-npcs.json"));
         await ScrapeNpcPreferences(outDir);
+        await ScrapeEvents(outDir);
 
         Console.WriteLine("Done.");
+    }
+
+    /// <summary>
+    /// Events have no live data source at all — confirmed via reflection: only Old One's Army
+    /// has a dedicated NPCID.Sets array (BelongsToInvasionOldOnesArmy); every other event's enemy
+    /// roster is imperative spawn logic, not queryable data (same pattern as shop contents and
+    /// neighbor preferences). Wiki page structure varies more per event than per boss (e.g. "How
+    /// it starts" is titled "Summoning" on some pages, "Criteria" on others), so multiple heading
+    /// candidates are tried per field, same approach as the boss scraper's Summoning section.
+    /// </summary>
+    private static async Task ScrapeEvents(string outDir)
+    {
+        var results = new List<EventInfo>();
+
+        foreach (var (name, wikiPage) in Events)
+        {
+            Console.WriteLine($"Fetching {name} ({wikiPage})...");
+            try
+            {
+                string html = await FetchPageHtml(wikiPage);
+                var doc = new HtmlDocument();
+                doc.LoadHtml(html);
+
+                var info = new EventInfo { Name = name, WikiPage = wikiPage };
+                info.Summoning = ExtractSection(doc, "Summoning", "Summoning_and_spawning", "Criteria", "Trigger");
+                info.Completing = ExtractSection(doc, "Completing", "Aftermath");
+                info.Notes = ExtractSection(doc, "Notes");
+                info.Tips = ExtractSection(doc, "Tips");
+
+                results.Add(info);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"  FAILED: {ex.Message}");
+            }
+
+            await Task.Delay(500);
+        }
+
+        string json = JsonSerializer.Serialize(results, new JsonSerializerOptions { WriteIndented = true });
+        File.WriteAllText(Path.Combine(outDir, "events.json"), json);
+        Console.WriteLine($"Wrote {results.Count} event entries.");
     }
 
     /// <summary>
@@ -385,4 +451,14 @@ public class NpcPreferencesInfo
     public string[] DislikeNeighbors { get; set; } = Array.Empty<string>();
     public string[] HateBiomes { get; set; } = Array.Empty<string>();
     public string[] HateNeighbors { get; set; } = Array.Empty<string>();
+}
+
+public class EventInfo
+{
+    public string Name { get; set; } = "";
+    public string WikiPage { get; set; } = "";
+    public string? Summoning { get; set; }
+    public string? Completing { get; set; }
+    public string? Notes { get; set; }
+    public string? Tips { get; set; }
 }

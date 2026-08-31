@@ -11,6 +11,7 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 - Town NPC Living Preferences (Loves/Likes/Dislikes/Hates x Biome/Neighbor), wiki-sourced for full accuracy — neighbor preferences turned out not to be reflectable from live game data at all (a single ~900-instruction hardcoded method, not a data structure). Neighbor names are clickable, jumping straight to that NPC's page.
 - Town NPC shop inventories ("Items Sold") with live item + coin-icon cost.
 - Item detail pages now show "Dropped by" and "Sold by" for items with no crafting recipe, reusing the same live drop-rule and shop data — this also fixes item pages showing a generic Hardmode badge instead of the real, more precise condition (e.g. "In Master Mode").
+- New top-level **Events** section (Blood Moon, invasions, Pumpkin/Frost Moon, Martian Madness, Lunar Events, Old One's Army, and more) — entirely wiki-sourced, since events have no live data source at all (only Old One's Army has a dedicated engine-level enemy list; everything else is imperative spawn logic).
 
 ### Fixed
 - Weapon crit chance displayed 4 percentage points too low everywhere (Core: `ItemTooltip.cs` drew `item.crit` directly instead of accounting for the game's implicit +4% base, confirmed via IL disassembly of `Player.ResetEffects`).
