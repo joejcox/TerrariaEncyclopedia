@@ -59,7 +59,16 @@ namespace TerrariaEncyclopedia.Content
         public static BossWikiInfo GetBossInfo(string npcName)
         {
             EnsureLoaded();
-            return _bosses.FirstOrDefault(b => b.MatchNames != null && b.MatchNames.Contains(npcName));
+            if (string.IsNullOrWhiteSpace(npcName))
+                return null;
+
+            // Checklist labels may combine alternate evil/mechanical bosses (for example,
+            // "Eater of Worlds / Brain of Cthulhu"). Resolve each displayed name to the
+            // corresponding wiki entry so every checklist row has summon instructions.
+            string[] candidates = npcName.Split(new[] { " / " }, StringSplitOptions.RemoveEmptyEntries);
+            return _bosses.FirstOrDefault(b => b.MatchNames != null
+                && candidates.Any(candidate => b.MatchNames.Any(match =>
+                    string.Equals(match, candidate, StringComparison.OrdinalIgnoreCase))));
         }
 
         // Exact-match against wiki page titles — some misses are expected (e.g. armor sets are
