@@ -19,6 +19,7 @@ using TerrariaEncyclopedia.Runtime.UI.Input;
 using TerrariaEncyclopedia.Runtime.UI.Rendering;
 using TerrariaEncyclopedia.Runtime.UI.Tooltips;
 using TerrariaEncyclopedia.UI;
+using TerrariaEncyclopedia.Qol;
 
 namespace TerrariaEncyclopedia.Host.Mono
 {
@@ -42,6 +43,11 @@ namespace TerrariaEncyclopedia.Host.Mono
         private static bool smokeHoverSent;
         private static bool overlayOwnsInputBlock;
         private static bool previousInputBlock;
+        private static InventoryQolController inventoryQol;
+        private static readonly IInventoryQolGame inventoryQolGame = new TerrariaInventoryQolGame();
+        private static readonly string inventorySortKey = ReadQolKey("TERRARIA_ENCYCLOPEDIA_SORT_INVENTORY_KEY", "I");
+        private static readonly string chestSortKey = ReadQolKey("TERRARIA_ENCYCLOPEDIA_SORT_CHEST_KEY", "O");
+        private static readonly string quickStackKey = ReadQolKey("TERRARIA_ENCYCLOPEDIA_QUICK_STACK_KEY", "K");
 
         public static void Configure(string featureMarkerPath)
         {
@@ -134,6 +140,10 @@ namespace TerrariaEncyclopedia.Host.Mono
                         feature));
                 runtime = new FeatureRuntime(registry, new ConsoleLogSink(), renderer);
                 runtime.Initialise();
+                inventoryQol = new InventoryQolController(
+                    inventoryQolGame,
+                    diagnostic => Console.Error.WriteLine(
+                        "Terraria Encyclopedia inventory QoL action failed: " + diagnostic.Exception));
 
                 FeatureStatus status = runtime.Features.Single();
                 initialised = status.IsInitialised && status.IsEnabled;
@@ -165,6 +175,7 @@ namespace TerrariaEncyclopedia.Host.Mono
                 processedUpdateCount = gameUpdateCount;
 
                 InputSnapshot snapshot = CaptureInput();
+                UpdateInventoryQol(snapshot);
                 if (!smokeToggleSent
                     && string.Equals(
                         Environment.GetEnvironmentVariable("TERRARIA_ENCYCLOPEDIA_SMOKE_OPEN"),
@@ -298,6 +309,33 @@ namespace TerrariaEncyclopedia.Host.Mono
                 mouse.ScrollWheelValue);
         }
 
+        private static void UpdateInventoryQol(InputSnapshot snapshot)
+        {
+            // Keep game mutations out of the overlay: Terraria must receive the input there.
+            if (inventoryQol == null)
+                return;
+            if (feature?.IsOpen == true)
+            {
+                inventoryQol.Release();
+                return;
+            }
+
+            inventoryQol.TryInvokeEdge(IsKeyDown(snapshot, inventorySortKey), InventoryQolAction.SortInventory, out _);
+            inventoryQol.TryInvokeEdge(IsKeyDown(snapshot, chestSortKey), InventoryQolAction.SortChest, out _);
+            inventoryQol.TryInvokeEdge(IsKeyDown(snapshot, quickStackKey), InventoryQolAction.QuickStackNearby, out _);
+        }
+
+        private static string ReadQolKey(string variable, string fallback)
+        {
+            string value = Environment.GetEnvironmentVariable(variable);
+            return string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
+        }
+
+        private static bool IsKeyDown(InputSnapshot snapshot, string key)
+        {
+            return snapshot != null && snapshot.IsKeyDown(new InputKey(key));
+        }
+
         private static void WriteMarker(string phase, string detail)
         {
             if (string.IsNullOrEmpty(markerPath))
@@ -426,6 +464,44 @@ namespace TerrariaEncyclopedia.Host.Mono
                     Console.WriteLine(line);
                 if (entry.Exception != null)
                     Console.Error.WriteLine(entry.Exception);
+            }
+        }
+
+        private sealed class TerrariaInventoryQolGame : IInventoryQolGame
+        {
+            public bool IsGameMenu => Main.gameMenu;
+
+            public bool HasLocalPlayer => Main.LocalPlayer != null && Main.LocalPlayer.active;
+
+            private bool HasSinglePlayerAuthority => Main.netMode == 0;
+
+            public bool CanSortInventory => HasSinglePlayerAuthority && HasLocalPlayer && Main.playerInventory;
+
+            public bool HasOpenChest => HasSinglePlayerAuthority && HasLocalPlayer && Main.playerInventory && Main.LocalPlayer.chest >= 0;
+
+            public bool CanQuickStack => HasSinglePlayerAuthority && HasLocalPlayer && Main.playerInventory && HasOpenChest;
+
+            public void SortInventory() => InvokePlayerAction("SortInventory");
+
+            public void SortChest() => InvokePlayerAction("SortChest");
+
+            public void SendQuickStackToNearbyChests() => InvokePlayerAction("SendQuickStackToNearbyChests");
+
+            private static void InvokePlayerAction(string methodName)
+            {
+                Player player = Main.LocalPlayer;
+                if (player == null)
+                    throw new InvalidOperationException("Terraria has no local player.");
+
+                MethodInfo method = typeof(Player).GetMethod(
+                    methodName,
+                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+                    null,
+                    Type.EmptyTypes,
+                    null);
+                if (method == null)
+                    throw new MissingMethodException(typeof(Player).FullName, methodName);
+                method.Invoke(player, null);
             }
         }
 

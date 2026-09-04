@@ -14,6 +14,8 @@
     <Compile Remove="GameHost.cs" />
   </ItemGroup>
   <ItemGroup Condition="'$(EnableEncyclopediaFeature)' == 'true'">
+    <ProjectReference Include="..\TerrariaEncyclopedia.Qol\TerrariaEncyclopedia.Qol.csproj"
+                      AdditionalProperties="TargetFramework=net48" />
     <ProjectReference Include="..\TerrariaEncyclopedia.Runtime\TerrariaEncyclopedia.Runtime.csproj"
                       AdditionalProperties="GameFramework=FNA;FnaReferencePath=$(FnaReferencePath)" />
     <ProjectReference Include="..\TerrariaEncyclopedia\TerrariaEncyclopedia.csproj"

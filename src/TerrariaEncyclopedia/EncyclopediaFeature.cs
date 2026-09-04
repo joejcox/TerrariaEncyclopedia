@@ -16,6 +16,7 @@ namespace TerrariaEncyclopedia
         private IFeatureLogger log;
         private EncyclopediaUi ui;
         private ItemBrowserPanel browser;
+        private IEncyclopediaFeatureRenderer renderer;
         private bool supported;
 
         public bool IsOpen => browser?.IsOpen == true;
@@ -40,7 +41,7 @@ namespace TerrariaEncyclopedia
                 return;
             }
 
-            var renderer = context.Renderer as IEncyclopediaFeatureRenderer;
+            renderer = context.Renderer as IEncyclopediaFeatureRenderer;
             if (renderer == null)
             {
                 throw new InvalidOperationException(
@@ -68,7 +69,17 @@ namespace TerrariaEncyclopedia
         public void Render()
         {
             if (supported)
+            {
                 browser.Render();
+                if (browser.IsOpen)
+                {
+                    RenderRectangle viewport = renderer.Viewport;
+                    renderer.DrawText(
+                        "QoL: I sort inventory  O sort open chest  K quick-stack nearby chests (single-player)",
+                        new InputPoint(12, Math.Max(12, viewport.Height - renderer.TextLineHeight - 12)),
+                        new RenderColour(190, 190, 190));
+                }
+            }
         }
 
         public void Unload()
@@ -77,6 +88,7 @@ namespace TerrariaEncyclopedia
                 return;
 
             browser.Unload();
+            renderer = null;
             EncyclopediaUiContext.Clear(ui);
             supported = false;
             log.Info(FeatureName + " unloaded.");

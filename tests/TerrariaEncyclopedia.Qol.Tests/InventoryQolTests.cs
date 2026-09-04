@@ -78,8 +78,6 @@ public sealed class InventoryQolTests
         public bool ThrowOnInventorySort { get; set; }
         public void SortInventory() { if (ThrowOnInventorySort) throw new InvalidOperationException("boom"); InventorySorts++; }
         public void SortChest() => ChestSorts++;
-        public void QuickStackToNearbyInventories() { }
-        public void QuickStackToNearbyBanks() { }
         public void SendQuickStackToNearbyChests() => NearbyChestCalls++;
     }
 }

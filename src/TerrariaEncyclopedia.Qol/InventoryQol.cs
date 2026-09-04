@@ -12,8 +12,6 @@ namespace TerrariaEncyclopedia.Qol
         bool CanQuickStack { get; }
         void SortInventory();
         void SortChest();
-        void QuickStackToNearbyInventories();
-        void QuickStackToNearbyBanks();
         void SendQuickStackToNearbyChests();
     }
 

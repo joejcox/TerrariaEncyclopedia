@@ -112,7 +112,7 @@ namespace TerrariaEncyclopedia.Runtime
 
         public int ScrollWheelValue { get; }
 
-        internal bool IsKeyDown(InputKey key)
+        public bool IsKeyDown(InputKey key)
         {
             return keysDown.Contains(key);
         }
