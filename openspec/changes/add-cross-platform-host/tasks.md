@@ -55,7 +55,7 @@
   - Verify changed: dotnet test tests/TerrariaEncyclopedia.Tests/TerrariaEncyclopedia.Tests.csproj --filter FullyQualifiedName~TerrariaUiCoordinateSpaceTests
   - Verify: dotnet test tests/TerrariaEncyclopedia.Tests/TerrariaEncyclopedia.Tests.csproj && dotnet build src/TerrariaEncyclopedia.Host.Mono/TerrariaEncyclopedia.Host.Mono.csproj -c Release -p:TerrariaReferencePath="/Users/josephanson/Library/Application Support/Steam/steamapps/common/Terraria/Terraria.app/Contents/Resources/Terraria.exe" -p:FnaReferencePath="/Users/josephanson/Library/Application Support/Steam/steamapps/common/Terraria/Terraria.app/Contents/Resources/FNA.dll"
 
-- [ ] T11 Integrate current Encyclopedia content without regressing the macOS host
+- [x] T11 Integrate current Encyclopedia content without regressing the macOS host
   - Depends on: T10
   - Writes: CHANGELOG.md, README.md, docs/RELEASING.md, docs/framework-patches.md, tools/WikiScraper/Program.cs, src/TerrariaEncyclopedia.Host.Mono/GameHost.cs, src/TerrariaEncyclopedia/Content/**, src/TerrariaEncyclopedia/TerrariaEncyclopedia.csproj, src/TerrariaEncyclopedia/UI/EncyclopediaSectionSelection.cs, src/TerrariaEncyclopedia/UI/ItemBrowserPanel.cs, src/TerrariaEncyclopedia/WikiData/**, tests/TerrariaEncyclopedia.Tests/**
   - Locks: dependency-manifest, macos-terraria-process
@@ -64,8 +64,17 @@
   - Verify changed: dotnet test tests/TerrariaEncyclopedia.Tests/TerrariaEncyclopedia.Tests.csproj --filter FullyQualifiedName~EncyclopediaBehaviourTests
   - Verify: dotnet test tests/TerrariaEncyclopedia.Tests/TerrariaEncyclopedia.Tests.csproj && dotnet test tests/TerrariaEncyclopedia.Runtime.Tests/TerrariaEncyclopedia.Runtime.Tests.csproj && dotnet build src/TerrariaEncyclopedia.Host.Mono/TerrariaEncyclopedia.Host.Mono.csproj -c Release -p:TerrariaReferencePath="/Users/josephanson/Library/Application Support/Steam/steamapps/common/Terraria/Terraria.app/Contents/Resources/Terraria.exe" -p:FnaReferencePath="/Users/josephanson/Library/Application Support/Steam/steamapps/common/Terraria/Terraria.app/Contents/Resources/FNA.dll" && tests/smoke/macos-encyclopedia.sh --terraria-path "/Users/josephanson/Library/Application Support/Steam/steamapps/common/Terraria"
 
-- [ ] T08 Add macOS release assembly, manifests, licence checks, and updated build/release documentation
+- [x] T12 Reconcile post-review town NPC acquisition guidance
   - Depends on: T11
+  - Writes: CHANGELOG.md, tools/WikiScraper/Program.cs, src/TerrariaEncyclopedia/Content/IEncyclopediaDataSource.cs, src/TerrariaEncyclopedia/Content/Models.cs, src/TerrariaEncyclopedia/Content/NpcPreferenceResolver.cs, src/TerrariaEncyclopedia/Content/TerrariaEncyclopediaDataSource.cs, src/TerrariaEncyclopedia/Content/WikiEnrichment.cs, src/TerrariaEncyclopedia/UI/ItemBrowserPanel.cs, src/TerrariaEncyclopedia/WikiData/npc-preferences.json, tests/TerrariaEncyclopedia.Tests/**
+  - Locks: macos-terraria-process
+  - Estimate: small
+  - Acceptance: Town NPC detail pages show clean wiki-sourced move-in, rescue, or arrival guidance through the repository-owned data source while existing preferences, shops, drops, navigation, and scaled interaction remain intact.
+  - Verify changed: dotnet test tests/TerrariaEncyclopedia.Tests/TerrariaEncyclopedia.Tests.csproj --filter FullyQualifiedName~EncyclopediaBehaviourTests
+  - Verify: dotnet test tests/TerrariaEncyclopedia.Tests/TerrariaEncyclopedia.Tests.csproj && dotnet build tools/WikiScraper/WikiScraper.csproj -c Release && dotnet build src/TerrariaEncyclopedia.Host.Mono/TerrariaEncyclopedia.Host.Mono.csproj -c Release -p:TerrariaReferencePath="/Users/josephanson/Library/Application Support/Steam/steamapps/common/Terraria/Terraria.app/Contents/Resources/Terraria.exe" -p:FnaReferencePath="/Users/josephanson/Library/Application Support/Steam/steamapps/common/Terraria/Terraria.app/Contents/Resources/FNA.dll" && tests/smoke/macos-encyclopedia.sh --terraria-path "/Users/josephanson/Library/Application Support/Steam/steamapps/common/Terraria"
+
+- [ ] T08 Add macOS release assembly, manifests, licence checks, and updated build/release documentation
+  - Depends on: T12
   - Writes: tools/Packager/**, docs/BUILDING.md, docs/RELEASING.md, README.md, tests/TerrariaEncyclopedia.Packager.Tests/**
   - Locks: dependency-manifest, release-layout
   - Estimate: medium

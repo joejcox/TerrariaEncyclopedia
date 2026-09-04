@@ -53,7 +53,16 @@ namespace TerrariaEncyclopedia.Content
                     };
 
                     if (item.shoot > 0)
-                        entry.ProjectileName = Lang.GetProjectileName(item.shoot)?.Value;
+                    {
+                        // Some projectiles (mostly pet/visual-only ones, e.g. Cosmic Skateboard's
+                        // Alien Skater) have no registered display name — GetProjectileName then
+                        // falls back to returning the raw, unresolved localization key itself
+                        // (e.g. "ProjectileName.MartianPet") rather than real text. Treat that
+                        // fallback as "no name" instead of showing the raw key.
+                        string projectileName = Lang.GetProjectileName(item.shoot)?.Value;
+                        if (projectileName != null && !projectileName.StartsWith("ProjectileName."))
+                            entry.ProjectileName = projectileName;
+                    }
 
                     if (item.buffType > 0)
                     {

@@ -16,7 +16,8 @@ namespace TerrariaEncyclopedia.Tests
             var session = new ExclusiveTextEntrySession(underlying);
             var section = new EncyclopediaSectionSelection(
                 () => session.End(ItemsOwner),
-                () => session.End(NpcsOwner));
+                () => session.End(NpcsOwner),
+                () => session.End(EventsOwner));
 
             session.Begin(ItemsOwner);
             Assert.False(CanToggleWithP(session));
@@ -27,10 +28,24 @@ namespace TerrariaEncyclopedia.Tests
             session.Begin(NpcsOwner);
             Assert.False(CanToggleWithP(session));
 
-            session.End(NpcsOwner);
+            section.SwitchTo(EncyclopediaSection.Events);
+            Assert.True(CanToggleWithP(session));
+
+            session.Begin(EventsOwner);
+            Assert.False(CanToggleWithP(session));
+
+            section.SwitchTo(EncyclopediaSection.Items);
             Assert.True(CanToggleWithP(session));
             Assert.Equal(
-                new[] { "begin:" + ItemsOwner, "end:" + ItemsOwner, "begin:" + NpcsOwner, "end:" + NpcsOwner },
+                new[]
+                {
+                    "begin:" + ItemsOwner,
+                    "end:" + ItemsOwner,
+                    "begin:" + NpcsOwner,
+                    "end:" + NpcsOwner,
+                    "begin:" + EventsOwner,
+                    "end:" + EventsOwner
+                },
                 underlying.Events);
         }
 
@@ -71,10 +86,13 @@ namespace TerrariaEncyclopedia.Tests
 
         private const string ItemsOwner = "terraria-encyclopedia-items";
         private const string NpcsOwner = "terraria-encyclopedia-npcs";
+        private const string EventsOwner = "terraria-encyclopedia-events";
 
         private static bool CanToggleWithP(ExclusiveTextEntrySession session)
         {
-            return !session.IsOwner(ItemsOwner) && !session.IsOwner(NpcsOwner);
+            return !session.IsOwner(ItemsOwner)
+                && !session.IsOwner(NpcsOwner)
+                && !session.IsOwner(EventsOwner);
         }
 
         private sealed class RecordingTextEntrySession : ITextEntrySession

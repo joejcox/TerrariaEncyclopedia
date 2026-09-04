@@ -22,6 +22,8 @@ namespace TerrariaEncyclopedia.Content
         private static List<BossWikiInfo> _bosses = new List<BossWikiInfo>();
         private static HashSet<string> _hardmodeItems = new HashSet<string>();
         private static HashSet<string> _hardmodeNpcs = new HashSet<string>();
+        private static Dictionary<string, NpcPreferencesWikiInfo> _npcPreferences = new Dictionary<string, NpcPreferencesWikiInfo>();
+        private static List<EventWikiInfo> _events = new List<EventWikiInfo>();
 
         private static void EnsureLoaded()
         {
@@ -32,6 +34,12 @@ namespace TerrariaEncyclopedia.Content
             _bosses = ReadJson<List<BossWikiInfo>>(Path.Combine(dir, "bosses.json")) ?? new List<BossWikiInfo>();
             _hardmodeItems = new HashSet<string>(ReadJson<List<string>>(Path.Combine(dir, "hardmode-items.json")) ?? new List<string>());
             _hardmodeNpcs = new HashSet<string>(ReadJson<List<string>>(Path.Combine(dir, "hardmode-npcs.json")) ?? new List<string>());
+            var preferences = ReadJson<List<NpcPreferencesWikiInfo>>(Path.Combine(dir, "npc-preferences.json"))
+                ?? new List<NpcPreferencesWikiInfo>();
+            _npcPreferences = preferences
+                .Where(preference => !string.IsNullOrEmpty(preference.Name))
+                .ToDictionary(preference => preference.Name);
+            _events = ReadJson<List<EventWikiInfo>>(Path.Combine(dir, "events.json")) ?? new List<EventWikiInfo>();
         }
 
         private static T ReadJson<T>(string path) where T : class
@@ -66,6 +74,18 @@ namespace TerrariaEncyclopedia.Content
         {
             EnsureLoaded();
             return _hardmodeNpcs.Contains(npcName);
+        }
+
+        public static NpcPreferencesWikiInfo GetNpcPreferences(string npcName)
+        {
+            EnsureLoaded();
+            return _npcPreferences.TryGetValue(npcName, out var info) ? info : null;
+        }
+
+        public static IReadOnlyList<EventWikiInfo> GetAllEvents()
+        {
+            EnsureLoaded();
+            return _events;
         }
     }
 }

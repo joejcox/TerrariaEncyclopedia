@@ -147,5 +147,51 @@ namespace TerrariaEncyclopedia.Content
 
             return result.ToList();
         }
+
+        public static IReadOnlyList<EventWikiInfo> FilterEvents(
+            IEnumerable<EventWikiInfo> events,
+            string search)
+        {
+            if (events == null)
+                throw new ArgumentNullException(nameof(events));
+
+            IEnumerable<EventWikiInfo> result = events;
+            if (!string.IsNullOrEmpty(search))
+            {
+                result = result.Where(item => item.Name != null
+                    && item.Name.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0);
+            }
+
+            return result.OrderBy(item => item.Name).ToList();
+        }
+
+        public static int DisplayedCriticalChance(
+            int itemCriticalChance,
+            bool melee,
+            bool ranged,
+            bool magic,
+            bool summon)
+        {
+            bool receivesPlayerBaseChance = !summon && (melee || ranged || magic);
+            return itemCriticalChance + (receivesPlayerBaseChance ? 4 : 0);
+        }
+
+        public static ItemAcquisitionDetails ComposeItemAcquisition(
+            IEnumerable<RecipeInfo> recipes,
+            IEnumerable<DropEntry> drops,
+            IEnumerable<ShopSellerEntry> sellers)
+        {
+            if (recipes == null)
+                throw new ArgumentNullException(nameof(recipes));
+            if (drops == null)
+                throw new ArgumentNullException(nameof(drops));
+            if (sellers == null)
+                throw new ArgumentNullException(nameof(sellers));
+
+            return new ItemAcquisitionDetails(
+                recipes.ToList(),
+                drops.OrderByDescending(drop => drop.Chance).ToList(),
+                sellers.ToList());
+        }
     }
 }

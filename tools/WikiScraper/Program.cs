@@ -41,6 +41,71 @@ public static class Program
         ("Moon Lord", "Moon_Lord", new[] { "Moon Lord", "Moon Lord's Hand", "Moon Lord's Core" }),
         ("Martian Saucer", "Martian_Saucer", new[] { "Martian Saucer" }),
         ("Empress of Light", "Empress_of_Light", new[] { "Empress of Light" }),
+        // Confirmed via a live boss-list dump (NPCID.Sets.ShouldBeCountedAsBossForBestiary) that
+        // these four were the only real bosses missing from this curated list — everything else
+        // already matched.
+        ("Vortex Pillar", "Vortex_Pillar", new[] { "Vortex Pillar" }),
+        ("Nebula Pillar", "Nebula_Pillar", new[] { "Nebula Pillar" }),
+        ("Solar Pillar", "Solar_Pillar", new[] { "Solar Pillar" }),
+        ("Stardust Pillar", "Stardust_Pillar", new[] { "Stardust Pillar" }),
+        // Event/invasion bosses: the wiki's "Boss NPCs" category lists these (confirmed via its
+        // API), but neither npc.boss nor NPCID.Sets.ShouldBeCountedAsBossForBestiary flag them in
+        // the actual game data (verified live) — see NpcCatalogue.ExtraWikiBosses. Both tiers of
+        // Dark Mage/Ogre share one display name each, so one MatchNames entry covers both NPCIDs.
+        // Brings the total to 33, matching the wiki's own count.
+        ("Betsy", "Betsy", new[] { "Betsy" }),
+        ("Ogre", "Ogre", new[] { "Ogre" }),
+        ("Dark Mage", "Dark_Mage", new[] { "Dark Mage" }),
+        ("Mourning Wood", "Mourning_Wood", new[] { "Mourning Wood" }),
+        ("Pumpking", "Pumpking", new[] { "Pumpking" }),
+        ("Everscream", "Everscream", new[] { "Everscream" }),
+        ("Santa-NK1", "Santa-NK1", new[] { "Santa-NK1" }),
+        ("Ice Queen", "Ice_Queen", new[] { "Ice Queen" }),
+        ("Flying Dutchman", "Flying_Dutchman", new[] { "Flying Dutchman" }),
+    };
+
+    // Cross-checked against the wiki's own "Random events"/"Summoned events" categories
+    // (confirmed via its API) rather than hand-guessed. Deliberately excludes the purely
+    // cosmetic/ambient weather entries also in those categories (Rain, Windy Day, Thunderstorm,
+    // Boulder/Coin/Meteor rain, Starfall) — those aren't the "how do I fight/survive this"
+    // content this feature is for. Old One's Army isn't in either wiki category (it's tagged
+    // differently there) but is unambiguously a real event, so it's added directly.
+    private static readonly (string Name, string WikiPage)[] Events =
+    {
+        ("Blood Moon", "Blood_Moon"),
+        ("Solar Eclipse", "Solar_Eclipse"),
+        ("Goblin Army", "Goblin_Army"),
+        ("Pirate Invasion", "Pirate_Invasion"),
+        ("Frost Legion", "Frost_Legion"),
+        ("Pumpkin Moon", "Pumpkin_Moon"),
+        ("Frost Moon", "Frost_Moon"),
+        ("Martian Madness", "Martian_Madness"),
+        ("Lunar Events", "Lunar_Events"),
+        ("Old One's Army", "Old_One's_Army"),
+        ("Slime Rain", "Slime_Rain"),
+        ("Sandstorm", "Sandstorm"),
+        ("Party", "Party"),
+    };
+
+    // The full live town-NPC list (from NPC.townNPC), confirmed via a one-time in-game dump —
+    // not guessed. A few of these (the town pets, the slime variants, Old Man, Traveling
+    // Merchant) have no "Living preferences" table on their wiki page at all.
+    private static readonly string[] TownNpcs =
+    {
+        "Merchant", "Nurse", "Arms Dealer", "Dryad", "Guide", "Old Man", "Demolitionist", "Clothier",
+        "Goblin Tinkerer", "Wizard", "Mechanic", "Santa Claus", "Truffle", "Steampunker", "Dye Trader",
+        "Party Girl", "Cyborg", "Painter", "Witch Doctor", "Pirate", "Stylist", "Traveling Merchant",
+        "Angler", "Tax Collector", "Tavernkeep", "Golfer", "Zoologist", "Cat", "Dog", "Bunny", "Princess",
+        "Nerdy Slime", "Cool Slime", "Elder Slime", "Clumsy Slime", "Diva Slime", "Surly Slime",
+        "Mystic Slime", "Squire Slime",
+    };
+
+    // These NPCs have useful arrival guidance despite having no standard living-preferences
+    // table. Other table-less names are deliberately excluded: notably, "Bunny" resolves to the
+    // ordinary Forest critter's page rather than the town pet.
+    private static readonly HashSet<string> AcquisitionOnlyNpcs = new(StringComparer.Ordinal)
+    {
+        "Old Man", "Traveling Merchant", "Princess",
     };
 
     public static async Task Main()
@@ -57,8 +122,127 @@ public static class Program
         await ScrapeBosses(outDir);
         await ScrapeHardmodeCategory("Hardmode-only items", Path.Combine(outDir, "hardmode-items.json"));
         await ScrapeHardmodeCategory("Hardmode-only NPCs", Path.Combine(outDir, "hardmode-npcs.json"));
+        await ScrapeNpcPreferences(outDir);
+        await ScrapeEvents(outDir);
 
         Console.WriteLine("Done.");
+    }
+
+    /// <summary>
+    /// Events have no live data source at all — confirmed via reflection: only Old One's Army
+    /// has a dedicated NPCID.Sets array (BelongsToInvasionOldOnesArmy); every other event's enemy
+    /// roster is imperative spawn logic, not queryable data (same pattern as shop contents and
+    /// neighbor preferences). Wiki page structure varies more per event than per boss (e.g. "How
+    /// it starts" is titled "Summoning" on some pages, "Criteria" on others), so multiple heading
+    /// candidates are tried per field, same approach as the boss scraper's Summoning section.
+    /// </summary>
+    private static async Task ScrapeEvents(string outDir)
+    {
+        var results = new List<EventInfo>();
+
+        foreach (var (name, wikiPage) in Events)
+        {
+            Console.WriteLine($"Fetching {name} ({wikiPage})...");
+            try
+            {
+                string html = await FetchPageHtml(wikiPage);
+                var doc = new HtmlDocument();
+                doc.LoadHtml(html);
+
+                var info = new EventInfo { Name = name, WikiPage = wikiPage };
+                info.Summoning = ExtractSection(doc, "Summoning", "Summoning_and_spawning", "Criteria", "Trigger");
+                info.Completing = ExtractSection(doc, "Completing", "Aftermath");
+                info.Notes = ExtractSection(doc, "Notes");
+                info.Tips = ExtractSection(doc, "Tips");
+
+                results.Add(info);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"  FAILED: {ex.Message}");
+            }
+
+            await Task.Delay(500);
+        }
+
+        string json = JsonSerializer.Serialize(results, new JsonSerializerOptions { WriteIndented = true });
+        File.WriteAllText(Path.Combine(outDir, "events.json"), json);
+        Console.WriteLine($"Wrote {results.Count} event entries.");
+    }
+
+    /// <summary>
+    /// Town NPCs' Loves/Likes/Dislikes/Hates x Biome/Neighbor table. Not reflectable from the
+    /// live game: biome preferences are (mostly) live-data-driven, but neighbor preferences turn
+    /// out to be a single ~900-instruction hardcoded method (confirmed via IL disassembly of
+    /// AllPersonalitiesModifier.ModifyShopPrice_Relationships) with no queryable data behind it,
+    /// so the whole table is sourced from the wiki instead for consistency between both columns.
+    /// </summary>
+    private static async Task ScrapeNpcPreferences(string outDir)
+    {
+        var results = new List<NpcPreferencesInfo>();
+
+        foreach (var name in TownNpcs)
+        {
+            string wikiPage = name.Replace(' ', '_');
+            Console.WriteLine($"Fetching preferences for {name} ({wikiPage})...");
+            try
+            {
+                string html = await FetchPageHtml(wikiPage);
+                var doc = new HtmlDocument();
+                doc.LoadHtml(html);
+
+                var info = new NpcPreferencesInfo { Name = name, WikiPage = wikiPage };
+                var table = doc.DocumentNode.SelectSingleNode("//table[contains(@class,'living-preferences')]");
+                if (table != null)
+                {
+                    (info.LoveBiomes, info.LoveNeighbors) = ParsePreferenceRow(table, "love");
+                    (info.LikeBiomes, info.LikeNeighbors) = ParsePreferenceRow(table, "like");
+                    (info.DislikeBiomes, info.DislikeNeighbors) = ParsePreferenceRow(table, "dislike");
+                    (info.HateBiomes, info.HateNeighbors) = ParsePreferenceRow(table, "hate");
+                }
+
+                // "How do I get this NPC" (available house + move-in condition, e.g. Tavernkeep's
+                // rescue-as-Unconscious-Man-after-EoW/BoC) lives only in the unstructured intro
+                // text before any heading — there's no dedicated section for it at all.
+                if (table != null || AcquisitionOnlyNpcs.Contains(name))
+                    info.HowToGet = ExtractAcquisitionGuidance(doc, name);
+
+                int total = info.LoveBiomes.Length + info.LoveNeighbors.Length + info.LikeBiomes.Length
+                    + info.LikeNeighbors.Length + info.DislikeBiomes.Length + info.DislikeNeighbors.Length
+                    + info.HateBiomes.Length + info.HateNeighbors.Length
+                    + (info.HowToGet?.Length ?? 0);
+                if (total > 0) results.Add(info);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"  FAILED: {ex.Message}");
+            }
+
+            await Task.Delay(500);
+        }
+
+        string json = JsonSerializer.Serialize(results, new JsonSerializerOptions { WriteIndented = true });
+        File.WriteAllText(Path.Combine(outDir, "npc-preferences.json"), json);
+        Console.WriteLine($"Wrote {results.Count} NPC preference entries.");
+    }
+
+    private static (string[] Biomes, string[] Neighbors) ParsePreferenceRow(HtmlNode table, string rowClass)
+    {
+        var row = table.SelectSingleNode($".//tr[contains(@class,'{rowClass}')]");
+        var cells = row?.SelectNodes("./td");
+        if (cells == null || cells.Count < 2) return (Array.Empty<string>(), Array.Empty<string>());
+        return (ExtractPreferenceNames(cells[0]), ExtractPreferenceNames(cells[1]));
+    }
+
+    // Each entry is an <li> containing two <a title="X">-wrapped links to the same page — one
+    // wrapping the icon <img>, one wrapping the visible text (nested a variable number of
+    // <span>s deep depending on the entry type). Filtering to the <a> that has no <img>
+    // descendant reliably picks just the text link regardless of nesting depth.
+    private static string[] ExtractPreferenceNames(HtmlNode cell)
+    {
+        var links = cell.SelectNodes(".//li//a[not(.//img)]");
+        if (links == null) return Array.Empty<string>();
+        return links.Select(a => HtmlEntity.DeEntitize(a.InnerText).Trim()).Where(s => s.Length > 0).ToArray();
     }
 
     private static async Task ScrapeBosses(string outDir)
@@ -150,7 +334,7 @@ public static class Program
             foreach (var nestedUl in (clone.SelectNodes(".//ul") ?? Enumerable.Empty<HtmlNode>()).ToList())
                 nestedUl.Remove();
 
-            string text = HtmlEntity.DeEntitize(clone.InnerText).Trim();
+            string text = ExtractCleanText(clone);
             if (text.Length > 0) parts.Add(indent + "- " + text);
 
             var childUl = li.SelectSingleNode("./ul");
@@ -191,7 +375,7 @@ public static class Program
             }
             else if (node.Name == "p")
             {
-                string text = HtmlEntity.DeEntitize(node.InnerText).Trim();
+                string text = ExtractCleanText(node);
                 if (text.Length > 0) parts.Add(text);
             }
             else if (node.Name == "ul")
@@ -203,11 +387,176 @@ public static class Program
         }
 
         if (parts.Count == 0) return null;
+        return JoinAndCleanFootnotes(parts);
+    }
 
-        // Strip "[edit]" section-edit links and "[3]"-style footnote reference markers that
-        // bleed into InnerText from nested <span>/<sup> markup — noise, not content. Joined with
-        // newlines (not spaces) so bullet points and paragraphs each land on their own line
-        // instead of running together as one continuous paragraph.
+    /// <summary>
+    /// The wiki puts town NPC arrival requirements in its unstructured lead, alongside shop,
+    /// combat, drops, and trivia. Retain only the consecutive lead sentences and condition lists
+    /// that describe moving in, rescue, spawning, or visiting.
+    /// </summary>
+    private static string? ExtractAcquisitionGuidance(HtmlDocument doc, string npcName)
+    {
+        var root = doc.DocumentNode.SelectSingleNode("//div[contains(@class,'mw-parser-output')]");
+        if (root == null) return null;
+
+        var parts = new List<string>();
+        foreach (var node in root.ChildNodes)
+        {
+            if (node.Name == "h2") break;
+            if (node.Name == "div" && node.GetAttributeValue("id", "") == "toc") break;
+
+            if (node.Name != "p") continue;
+
+            string guidance = ExtractAcquisitionSentences(ExtractCleanText(node), npcName);
+            if (guidance.Length == 0) continue;
+
+            parts.Add(guidance);
+            for (var next = node.NextSibling; next != null; next = next.NextSibling)
+            {
+                // Only consume the contiguous lead block. A later section may contain a Shop,
+                // Combat, or Drops list whose wording resembles an arrival prerequisite.
+                if (next.Name is "h2" or "h3"
+                    || (next.Name == "div" && next.GetAttributeValue("id", "") == "toc"))
+                    break;
+
+                if (next.Name == "ul")
+                {
+                    CollectAcquisitionListItems(next, parts, followsAcquisitionLead: true);
+                    continue;
+                }
+
+                if (next.Name != "p")
+                {
+                    if (next.NodeType == HtmlNodeType.Text && string.IsNullOrWhiteSpace(next.InnerText))
+                        continue;
+                    break;
+                }
+
+                string continuation = ExtractAcquisitionSentences(ExtractCleanText(next), npcName);
+                if (continuation.Length == 0) break;
+                parts.Add(continuation);
+            }
+
+            break;
+            // Anything else (message-box version notice, infobox, quote blockquote) is skipped.
+        }
+
+        if (parts.Count == 0) return null;
+        return JoinAndCleanFootnotes(parts);
+    }
+
+    /// <summary>
+    /// Lead lists on NPC pages are not dedicated arrival data. Only retain list entries that
+    /// read like a move-in, rescue, visit, or prerequisite condition; shop, combat, loot, and
+    /// other encyclopaedia details must not leak into the compact "How to Get" field.
+    /// </summary>
+    private static void CollectAcquisitionListItems(
+        HtmlNode list,
+        List<string> parts,
+        bool followsAcquisitionLead)
+    {
+        foreach (var item in list.SelectNodes("./li") ?? Enumerable.Empty<HtmlNode>())
+        {
+            string text = ExtractCleanText(item);
+            if (IsAcquisitionListItem(text, followsAcquisitionLead)) parts.Add(text);
+        }
+    }
+
+    private static string ExtractAcquisitionSentences(string text, string npcName)
+    {
+        var sentences = text.Split(new[] { ". ", "! ", "? " }, StringSplitOptions.None);
+        var matches = new List<string>();
+        foreach (string sentence in sentences)
+        {
+            string trimmed = sentence.Trim();
+            if (!ContainsAcquisitionCue(trimmed) || !IsAboutNpc(trimmed, npcName)) continue;
+
+            int moveIn = trimmed.IndexOf("will move in", StringComparison.OrdinalIgnoreCase);
+            matches.Add(moveIn >= 0
+                ? $"{npcName} {trimmed.Substring(moveIn)}"
+                : trimmed);
+        }
+
+        return string.Join(" ", matches);
+    }
+
+    private static bool IsAboutNpc(string text, string npcName)
+    {
+        return text.IndexOf(npcName, StringComparison.OrdinalIgnoreCase) >= 0
+            || text.StartsWith("He ", StringComparison.OrdinalIgnoreCase)
+            || text.StartsWith("She ", StringComparison.OrdinalIgnoreCase)
+            || text.StartsWith("It ", StringComparison.OrdinalIgnoreCase)
+            || text.StartsWith("They ", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool ContainsAcquisitionCue(string text)
+    {
+        string[] cues =
+        {
+            "will move in", "move into", "can arrive", "will arrive", "spawn", "rescu",
+            "encountered", "can be found", "randomly visits",
+            "random chance of appearing", "vacant house", "does not require his own house",
+        };
+
+        return text.IndexOf("respawn", StringComparison.OrdinalIgnoreCase) < 0
+            && cues.Any(cue => text.IndexOf(cue, StringComparison.OrdinalIgnoreCase) >= 0);
+    }
+
+    private static bool IsAcquisitionListItem(string text, bool followsAcquisitionLead)
+    {
+        if (string.IsNullOrWhiteSpace(text) || ContainsNonAcquisitionDetail(text)) return false;
+
+        string[] arrivalCues =
+        {
+            "will move in", "can move in", "move into", "can arrive", "will arrive",
+            "will spawn", "can spawn", "spawns", "rescu", "bound", "unconscious",
+            "tortured", "encountered", "can be found", "randomly visits",
+            "random chance of appearing", "can appear", "will appear", "vacant house",
+            "available house", "requires a house", "does not require a house",
+        };
+        string[] prerequisiteCues =
+        {
+            "at least", "all players", "any player", "in their inventories", "health",
+            "defeated", "hardmode", "invasion", "bestiar", "town npc", "other npcs",
+            "frost legion", "glowing mushroom",
+        };
+
+        if (arrivalCues.Any(cue => text.IndexOf(cue, StringComparison.OrdinalIgnoreCase) >= 0))
+            return true;
+
+        // A prerequisite-only bullet is meaningful only immediately after an arrival lead;
+        // never infer that relationship from an arbitrary later wiki section.
+        return followsAcquisitionLead && prerequisiteCues
+            .Any(cue => text.IndexOf(cue, StringComparison.OrdinalIgnoreCase) >= 0);
+    }
+
+    private static bool ContainsNonAcquisitionDetail(string text)
+    {
+        string[] excludedCues =
+        {
+            "vendor", "sells", "shop", "purchase", "buy", "price", "discount",
+            "attack", "damage", "defend", "fight", "combat", "weapon", "enemy",
+            "drops", "drop ", "loot", "reward", "banner",
+        };
+
+        return excludedCues.Any(cue => text.IndexOf(cue, StringComparison.OrdinalIgnoreCase) >= 0);
+    }
+
+    private static string ExtractCleanText(HtmlNode node)
+    {
+        var clone = node.CloneNode(true);
+        foreach (var marker in (clone.SelectNodes(".//sup") ?? Enumerable.Empty<HtmlNode>()).ToList())
+            marker.Remove();
+        return HtmlEntity.DeEntitize(clone.InnerText).Trim();
+    }
+
+    // Strip "[edit]" section-edit links and "[3]"-style footnote reference markers that bleed
+    // into InnerText from nested <span>/<sup> markup — noise, not content. Joined with newlines
+    // (not spaces) so bullet points and paragraphs each land on their own line instead of
+    // running together as one continuous paragraph.
+    private static string JoinAndCleanFootnotes(List<string> parts)
+    {
         string joined = string.Join("\n", parts);
         joined = System.Text.RegularExpressions.Regex.Replace(joined, @"\[edit\]", "");
         joined = System.Text.RegularExpressions.Regex.Replace(joined, @"\[\d+\]", "");
@@ -265,5 +614,30 @@ public class BossInfo
     public string? Summoning { get; set; }
     public string? ExpertMode { get; set; }
     public string? Aftermath { get; set; }
+    public string? Tips { get; set; }
+}
+
+public class NpcPreferencesInfo
+{
+    public string Name { get; set; } = "";
+    public string WikiPage { get; set; } = "";
+    public string? HowToGet { get; set; }
+    public string[] LoveBiomes { get; set; } = Array.Empty<string>();
+    public string[] LoveNeighbors { get; set; } = Array.Empty<string>();
+    public string[] LikeBiomes { get; set; } = Array.Empty<string>();
+    public string[] LikeNeighbors { get; set; } = Array.Empty<string>();
+    public string[] DislikeBiomes { get; set; } = Array.Empty<string>();
+    public string[] DislikeNeighbors { get; set; } = Array.Empty<string>();
+    public string[] HateBiomes { get; set; } = Array.Empty<string>();
+    public string[] HateNeighbors { get; set; } = Array.Empty<string>();
+}
+
+public class EventInfo
+{
+    public string Name { get; set; } = "";
+    public string WikiPage { get; set; } = "";
+    public string? Summoning { get; set; }
+    public string? Completing { get; set; }
+    public string? Notes { get; set; }
     public string? Tips { get; set; }
 }

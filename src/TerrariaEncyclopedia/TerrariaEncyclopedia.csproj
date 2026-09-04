@@ -27,6 +27,8 @@
     <Compile Remove="Content\DropCatalogue.cs" />
     <Compile Remove="Content\ItemCatalogue.cs" />
     <Compile Remove="Content\NpcCatalogue.cs" />
+    <Compile Remove="Content\NpcPersonalityCatalogue.cs" />
+    <Compile Remove="Content\NpcShopCatalogue.cs" />
     <Compile Remove="Content\RecipeCatalogue.cs" />
     <Compile Remove="Content\TerrariaEncyclopediaDataSource.cs" />
     <Compile Remove="Content\WikiEnrichment.cs" />

@@ -6,6 +6,7 @@ namespace TerrariaEncyclopedia.UI
     {
         Items,
         Npcs,
+        Events,
         BossChecklist
     }
 
@@ -13,11 +14,16 @@ namespace TerrariaEncyclopedia.UI
     {
         private readonly Action unfocusItems;
         private readonly Action unfocusNpcs;
+        private readonly Action unfocusEvents;
 
-        public EncyclopediaSectionSelection(Action unfocusItems, Action unfocusNpcs)
+        public EncyclopediaSectionSelection(
+            Action unfocusItems,
+            Action unfocusNpcs,
+            Action unfocusEvents = null)
         {
             this.unfocusItems = unfocusItems ?? throw new ArgumentNullException(nameof(unfocusItems));
             this.unfocusNpcs = unfocusNpcs ?? throw new ArgumentNullException(nameof(unfocusNpcs));
+            this.unfocusEvents = unfocusEvents ?? (() => { });
         }
 
         public EncyclopediaSection Current { get; private set; } = EncyclopediaSection.Items;
@@ -27,8 +33,12 @@ namespace TerrariaEncyclopedia.UI
             if (Current == next)
                 return;
 
-            if (Current == EncyclopediaSection.Items) unfocusItems();
-            if (Current == EncyclopediaSection.Npcs) unfocusNpcs();
+            if (Current == EncyclopediaSection.Items)
+                unfocusItems();
+            else if (Current == EncyclopediaSection.Npcs)
+                unfocusNpcs();
+            else if (Current == EncyclopediaSection.Events)
+                unfocusEvents();
 
             Current = next;
         }

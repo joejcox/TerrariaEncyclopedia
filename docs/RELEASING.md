@@ -1,74 +1,43 @@
-# Cutting a release
+# Cutting a macOS release
 
-What a friend downloads from the Releases page has to include this
-project's own **patched** TerrariaModder Core, not just the mod DLL — see
-[`BUILDING.md`](BUILDING.md) for why. So the release zip is a small overlay
-of the whole modded install, meant to be extracted straight into someone's
-Terraria folder.
+The macOS archive is a self-contained, project-owned launcher overlay. It is
+not extracted into Terraria and contains no game binaries, FNA, legacy Windows
+loaders, or TerrariaModder files.
 
-## 1. Bump the version
+## Build and verify
 
-- `src/TerrariaEncyclopedia/Mod.cs` → `Version => "X.Y.Z"`
-- `src/TerrariaEncyclopedia/manifest.json` → `"version": "X.Y.Z"`
+Build the Mono host as described in [BUILDING.md](BUILDING.md), then run:
 
-## 2. Build
-
-```
-dotnet build src/Core/TerrariaModder.Core.csproj -c Release          # in your framework checkout
-dotnet build src/TerrariaEncyclopedia/TerrariaEncyclopedia.csproj -c Release
+```sh
+dotnet test tests/TerrariaEncyclopedia.Packager.Tests/TerrariaEncyclopedia.Packager.Tests.csproj
+dotnet run --project tools/Packager -- --verify-only \
+  --terraria-path "$HOME/Library/Application Support/Steam/steamapps/common/Terraria"
 ```
 
-## 3. Assemble the zip
+## Assemble
 
-Stage these files (paths relative to a Terraria install root) into an empty
-folder, then zip the folder's *contents* (not the folder itself):
-
-```
-TerrariaInjector.exe
-0Harmony.dll
-Mono.Cecil.dll
-Mono.Cecil.Mdb.dll
-Mono.Cecil.Pdb.dll
-Mono.Cecil.Rocks.dll
-TerrariaModder/core/TerrariaModder.Core.dll
-TerrariaModder/core/config.ini
-TerrariaModder/core/config.json
-TerrariaModder/core/Docs/*
-TerrariaModder/mods/terraria-encyclopedia/TerrariaEncyclopedia.dll
-TerrariaModder/mods/terraria-encyclopedia/manifest.json
-TerrariaModder/mods/terraria-encyclopedia/WikiData/*.json
+```sh
+dotnet run --project tools/Packager -- \
+  --terraria-path "$HOME/Library/Application Support/Steam/steamapps/common/Terraria" \
+  --output artifacts/TerrariaEncyclopedia-macos.zip
 ```
 
-Deliberately **excluded**:
+The archive contains the project host, its project-built runtime and feature
+assemblies, wiki data, a macOS launcher, the README, and third-party notices.
+`tools/Packager` rejects any unapproved entry, including `Terraria.exe`,
+`FNA.dll`, `TerrariaInjector.exe`, Harmony, Cecil, or TerrariaModder paths.
 
-- `TerrariaModder/core/identity.json` — a per-install random ID the
-  framework generates itself on first run; shipping the maintainer's own ID
-  would make every recipient's install identical, which defeats its purpose.
-- `TerrariaModder/core/logs/` — runtime output, not install state.
-- Anything under `TerrariaModder/core/deps/` — must stay empty (see
-  `framework-patches.md`, patch #2); including a stray `0Harmony.dll` there
-  reintroduces the "no keybind works" bug.
+## Compatibility sign-off
 
-Name the zip `TerrariaEncyclopedia-vX.Y.Z.zip`.
+Follow the full [macOS compatibility matrix](compatibility-matrix.md) before
+publishing. It covers the arm64 smoke checks, the x64 suitability boundary,
+archive inspection, unchanged game-file hashes, and a normal Steam launch
+after the bounded host checks have ended.
 
-## 4. Publish
+Do not run a smoke check while Terraria is open. It refuses to share a running
+game process; close Terraria first, then let the script start and terminate its
+own bounded process.
 
-Create a GitHub Release on this repo tagged `vX.Y.Z`, attach the zip, and
-paste in what changed. Point people at the root `README.md` quick start for
-install steps rather than repeating them in the release notes.
-
-## On updates reaching people automatically
-
-There's no auto-update today — deliberately: this is a small-audience,
-read-only tool, so a "check Releases occasionally" model is enough, and
-avoids the complexity/risk of a mod silently pulling and running new code.
-If that ever stops being enough, the natural next step is a scheduled job
-that re-runs `tools/WikiScraper`, diffs its output against what's committed,
-and opens a PR (not an auto-publish — scraped wiki content should get a
-human glance before shipping) when the wiki has changed; a separate check
-comparing the detected Terraria version against `GameVersionGuard` would
-flag when the game itself has moved on, since that needs API
-re-verification before a new build ships, not just new data. The mod could
-then check the Releases API on startup and show an in-panel "update
-available" notice — still no auto-install, consistent with the mod being
-read-only end to end.
+Publish the zip and its versioned release notes. Users unpack it anywhere
+outside their Terraria installation and run `launch-macos.sh`. They can pass
+`--terraria-path` when Steam is installed in a non-standard location.

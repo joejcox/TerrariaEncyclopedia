@@ -114,10 +114,27 @@ the real font and caused wrapped text to overlap. Added a `TextLineHeight`
 property that reads the same font measurement's `Vector2.Y`, so callers get
 the real value instead of guessing.
 
+## 7. `src/Core/UI/Widgets/ItemTooltip.cs` — weapon crit chance showed 4 points too low
+
+Every weapon's tooltip showed a crit chance 4 percentage points lower than
+the real game (e.g. Meowmere showed "0%" instead of "4%"). The tooltip drew
+`item.crit` directly, but that field only holds the *bonus* on top of an
+implicit base — confirmed via IL disassembly of `Player.ResetEffects`, which
+sets `meleeCrit`/`rangedCrit`/`magicCrit` to exactly `4` before any item or
+buff bonus is added. Armor's crit bonus display was unaffected (armor has no
+such implicit base to add).
+
+**Fix**: the melee/ranged/magic crit line now shows `crit + 4` instead of
+the raw field.
+
+The repository-owned FNA host applies the same rule in
+`src/TerrariaEncyclopedia.Host.Mono/GameHost.cs`; summon weapons do not receive
+the implicit 4% base.
+
 ## Deploy checklist after rebuilding the framework from source
 
 1. `dotnet build src/Core/TerrariaModder.Core.csproj -c Release` (with patches
-   #1, #3, #4, #5, #6 applied) → `TerrariaModder.Core.dll`
+   #1, #3, #4, #5, #6, #7 applied) → `TerrariaModder.Core.dll`
 2. `dotnet build TerrariaInjector.csproj -c Release` (SDK-style conversion —
    see `project-plan.md` Phase 0 — Harmony 2.4.2, Mono.Cecil 0.11.6)
 3. Copy `TerrariaModder.Core.dll` → `Terraria/TerrariaModder/core/`

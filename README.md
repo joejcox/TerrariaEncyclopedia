@@ -1,6 +1,6 @@
 # Terraria Encyclopedia
 
-A read-only, in-game item / NPC / boss browser for Terraria **1.4.5.8**
+A read-only, in-game item / NPC / boss / event browser for Terraria **1.4.5.8**
 (Steam). Press a key, search or browse, click through to a full detail page —
 recipes, a recursive crafting tree, real drop-rate data, sell prices, buffs,
 and wiki-sourced boss info (type, environment, summoning, aftermath, tips).
@@ -10,29 +10,26 @@ already-loaded game state (items, recipes, NPC drop tables, your Journey
 Mode research progress) — no `.plr`/`.wld` file is ever written, and nothing
 about world generation, spawning, or gameplay is changed.
 
-It runs on top of [TerrariaModder](https://terrariamodder.com/), a
-Harmony-based injector that loads mods alongside `Terraria.exe` without
-patching any game files on disk. Your normal Steam launch of Terraria is
-completely unaffected either way.
+On macOS, it runs through a repository-owned Mono host that loads before the
+game entry point without patching any game file on disk. Your normal Steam
+launch of Terraria remains unaffected.
 
 ## Quick start (just want to use it)
 
-1. Grab the latest `TerrariaEncyclopedia-vX.Y.Z.zip` from this repo's
+1. Grab the latest `TerrariaEncyclopedia-macos.zip` from this repo's
    Releases page.
-2. Close Terraria and Steam if they're open.
-3. Extract the zip's contents **directly into your Terraria install folder**
-   — the same folder that contains `Terraria.exe`. On Steam that's usually
-   `...\steamapps\common\Terraria`. Merge folders when asked; nothing in the
-   zip overwrites `Terraria.exe` itself.
-4. Launch **`TerrariaInjector.exe`** (in that same folder) instead of
-   launching Terraria through Steam. Play normally — worlds, characters,
-   and Steam Cloud all work exactly as before.
+2. Extract it anywhere outside the Terraria installation, for example
+   `~/Applications/TerrariaEncyclopedia`.
+3. In Terminal, run `./launch-macos.sh`. The default Steam location is used;
+   pass `--terraria-path /path/to/Terraria` for another library.
+4. Play normally — worlds, characters, and Steam Cloud are unchanged.
 5. In-game, press **P** to open or close the Encyclopedia. Use the
-   Items/NPCs toggle at the top, search, sort, and category tabs to browse;
+   Items/NPCs/Events tabs at the top, search, sort, and category tabs to browse;
    click anything to open its detail page.
 
-Launching Terraria through Steam as usual still works and is unmodified —
-the injector is a separate, optional way to launch with mods loaded.
+Launching Terraria through Steam as usual still works and is unmodified. The
+release includes no Terraria-owned file and does not replace anything in the
+game folder.
 
 If Terraria updates to a version this build doesn't recognize, the mod logs
 a warning and disables itself rather than doing anything unpredictable;
@@ -47,13 +44,22 @@ build in that case.
   price (with real coin icons), buff granted (icon + tooltip + duration),
   projectile created, Journey Mode research count, crafting station, direct
   recipe, a recursive crafting tree of what each ingredient is itself made
-  from, and what other items use this one.
+  from, drop and seller sources whether or not the item is craftable, and what
+  other items use this one.
 - **NPCs & Bosses** — search/filter/sort, town/enemy/boss tabs, stats, real
   drop-rate percentages (sorted highest-chance first) including conditions
-  like "Downed Plantera," and — for the 20 vanilla bosses — wiki-sourced
+  like "Downed Plantera," town-NPC shops and living preferences, and — for
+  all 33 wiki-recognised bosses — wiki-sourced
   type, environment, knockback resistance, immunities, summoning method,
   Expert Mode changes, aftermath, and tips.
+- **Events** — search 13 invasions, moons and world events, with wiki-sourced
+  summoning, completion, notes and tips.
 - **Hardmode marking** for items/NPCs that are Hardmode-exclusive.
+
+Town-NPC shop conditions are cached per browsing session: reopening the
+Encyclopedia clears the cache, the first item seller lookup captures all known
+shops, and entering an NPC detail page refreshes that NPC's inventory. This
+keeps detail pages current without rebuilding a shop on each rendered frame.
 
 ## For developers
 
@@ -61,11 +67,7 @@ Building the mod (and the framework it depends on) from source, and cutting
 a new release bundle, are documented separately so this file stays a
 quick-start:
 
-- [`docs/BUILDING.md`](docs/BUILDING.md) — set up the toolchain, build
-  TerrariaModder + this mod from source, deploy locally for testing.
-- [`docs/RELEASING.md`](docs/RELEASING.md) — assemble and version the
-  distributable zip referenced above.
-- [`docs/framework-patches.md`](docs/framework-patches.md) — the specific
-  patches this project's fork of TerrariaModder's Core carries, and why.
-- [`CLAUDE.md`](CLAUDE.md) — ground rules and known state for anyone (or any
-  AI assistant) picking up work here, e.g. macOS support.
+- [`docs/BUILDING.md`](docs/BUILDING.md) — build the macOS host from source.
+- [`docs/RELEASING.md`](docs/RELEASING.md) — verify and assemble the
+  distributable macOS archive.
+- [`CHANGELOG.md`](CHANGELOG.md) — what changed in each version.
