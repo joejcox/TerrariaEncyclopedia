@@ -100,9 +100,8 @@ namespace TerrariaEncyclopedia.UI
         public ItemBrowserPanel(IEncyclopediaDataSource data)
         {
             _data = data ?? throw new ArgumentNullException(nameof(data));
-            ITextEntrySession textEntry = EncyclopediaUiContext.Current.TextEntry;
-            _search = new TextInput("terraria-encyclopedia-items", "Search items...", 200, textEntry);
-            _npcSearch = new TextInput("terraria-encyclopedia-npcs", "Search NPCs...", 200, textEntry);
+            _search = new TextInput("terraria-encyclopedia-items", "Search items...", 200);
+            _npcSearch = new TextInput("terraria-encyclopedia-npcs", "Search NPCs...", 200);
             _section = new EncyclopediaSectionSelection(_search.Unfocus, _npcSearch.Unfocus);
             _panel = new DraggablePanel("terraria-encyclopedia", "Terraria Encyclopedia", 1200, 750);
             // Same UIScale/scissor-rect mismatch found in Phase 1 — see Mod.cs history.
