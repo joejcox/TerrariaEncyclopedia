@@ -312,14 +312,10 @@ namespace TerrariaEncyclopedia.Host.Mono
 
         private static void UpdateInventoryQol(InputSnapshot snapshot)
         {
-            // Keep game mutations out of the overlay: Terraria must receive the input there.
+            // QoL actions operate on Terraria's native inventory state and remain available while
+            // the Encyclopaedia is open. Release edge state when no snapshot is available.
             if (inventoryQol == null)
                 return;
-            if (feature?.IsOpen == true)
-            {
-                inventoryQol.Release();
-                return;
-            }
 
             inventoryQol.TryInvokeEdge(IsKeyDown(snapshot, inventorySortKey), InventoryQolAction.SortInventory, out _);
             inventoryQol.TryInvokeEdge(IsKeyDown(snapshot, chestSortKey), InventoryQolAction.SortChest, out _);
