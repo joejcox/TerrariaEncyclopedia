@@ -49,7 +49,8 @@ namespace TerrariaEncyclopedia.Host.Mono
         private static readonly string inventorySortKey = ReadQolKey("TERRARIA_ENCYCLOPEDIA_SORT_INVENTORY_KEY", "I");
         private static readonly string chestSortKey = ReadQolKey("TERRARIA_ENCYCLOPEDIA_SORT_CHEST_KEY", "O");
         private static readonly string quickStackKey = ReadQolKey("TERRARIA_ENCYCLOPEDIA_QUICK_STACK_KEY", "K");
-        private static readonly MemberInfo terrariaKeyStateMember = FindKeyboardStateMember();
+        private static MemberInfo terrariaKeyStateMember;
+        private static bool keyboardStateMemberResolved;
 
         public static void Configure(string featureMarkerPath)
         {
@@ -316,6 +317,22 @@ namespace TerrariaEncyclopedia.Host.Mono
             // Terraria updates Main.keyState as part of its input pipeline. Reading that state
             // keeps third-party callbacks in sync with the game on macOS/FNA, where a direct
             // Keyboard.GetState() poll can lag or return an empty state during the tick.
+            if (!keyboardStateMemberResolved)
+            {
+                // Resolve only after Terraria has entered its normal update loop. Resolving
+                // Main's fields during GameHost type initialisation runs before ReLogic's
+                // dependencies are loaded by the Mono launcher.
+                keyboardStateMemberResolved = true;
+                try
+                {
+                    terrariaKeyStateMember = FindKeyboardStateMember();
+                }
+                catch (Exception exception)
+                {
+                    Console.Error.WriteLine("Terraria keyboard state discovery failed: " + exception.Message);
+                }
+            }
+
             if (terrariaKeyStateMember != null)
             {
                 try
