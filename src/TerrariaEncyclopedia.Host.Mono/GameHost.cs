@@ -12,6 +12,7 @@ using Microsoft.Xna.Framework.Input;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.GameInput;
+using Terraria.UI;
 using TerrariaEncyclopedia.Content;
 using TerrariaEncyclopedia.Hosting;
 using TerrariaEncyclopedia.Runtime;
@@ -573,28 +574,11 @@ namespace TerrariaEncyclopedia.Host.Mono
             // an already-open chest is not required.
             public bool CanQuickStack => HasSinglePlayerAuthority && HasLocalPlayer && Main.playerInventory;
 
-            public void SortInventory() => InvokePlayerAction("SortInventory");
+            public void SortInventory() => ItemSorting.SortInventory();
 
-            public void SortChest() => InvokePlayerAction("SortChest");
+            public void SortChest() => ItemSorting.SortChest();
 
-            public void SendQuickStackToNearbyChests() => InvokePlayerAction("SendQuickStackToNearbyChests");
-
-            private static void InvokePlayerAction(string methodName)
-            {
-                Player player = Main.LocalPlayer;
-                if (player == null)
-                    throw new InvalidOperationException("Terraria has no local player.");
-
-                MethodInfo method = typeof(Player).GetMethod(
-                    methodName,
-                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
-                    null,
-                    Type.EmptyTypes,
-                    null);
-                if (method == null)
-                    throw new MissingMethodException(typeof(Player).FullName, methodName);
-                method.Invoke(player, null);
-            }
+            public void SendQuickStackToNearbyChests() => Main.LocalPlayer.QuickStackAllChests();
         }
 
         private sealed class TerrariaFeatureRenderer : IEncyclopediaFeatureRenderer

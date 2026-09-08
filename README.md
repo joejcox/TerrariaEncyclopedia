@@ -27,6 +27,24 @@ launch of Terraria remains unaffected.
    Items/NPCs/Events tabs at the top, search, sort, and category tabs to browse;
    click anything to open its detail page.
 
+### Check the QoL shortcuts on their own
+
+Launch from Terminal so the host's diagnostics stay visible. To rule out a
+Terraria key-binding conflict, temporarily give the three actions distinct
+function keys:
+
+```sh
+TERRARIA_ENCYCLOPEDIA_SORT_INVENTORY_KEY=F6 \
+TERRARIA_ENCYCLOPEDIA_SORT_CHEST_KEY=F7 \
+TERRARIA_ENCYCLOPEDIA_QUICK_STACK_KEY=F8 \
+./launch-macos.sh
+```
+
+In a single-player world, press **F6** with the inventory open, **F7** with a
+chest open, and **F8** with the inventory open while near a chest. Sorting and
+quick-stack are edge-triggered, so release the key between attempts. The
+defaults remain **I**, **O**, and **K**.
+
 Launching Terraria through Steam as usual still works and is unmodified. The
 release includes no Terraria-owned file and does not replace anything in the
 game folder.
