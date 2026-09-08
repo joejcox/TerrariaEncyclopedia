@@ -472,11 +472,11 @@ namespace TerrariaEncyclopedia.Host.Mono
 
             private bool HasSinglePlayerAuthority => Main.netMode == 0;
 
-            public bool CanSortInventory => HasSinglePlayerAuthority && HasLocalPlayer && Main.playerInventory;
+            public bool CanSortInventory => HasSinglePlayerAuthority && HasLocalPlayer;
 
-            public bool HasOpenChest => HasSinglePlayerAuthority && HasLocalPlayer && Main.playerInventory && Main.LocalPlayer.chest >= 0;
+            public bool HasOpenChest => HasSinglePlayerAuthority && HasLocalPlayer && Main.LocalPlayer.chest >= 0;
 
-            public bool CanQuickStack => HasSinglePlayerAuthority && HasLocalPlayer && Main.playerInventory && HasOpenChest;
+            public bool CanQuickStack => HasSinglePlayerAuthority && HasLocalPlayer && HasOpenChest;
 
             public void SortInventory() => InvokePlayerAction("SortInventory");
 
