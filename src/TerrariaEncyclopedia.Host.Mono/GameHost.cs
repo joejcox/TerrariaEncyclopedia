@@ -476,7 +476,9 @@ namespace TerrariaEncyclopedia.Host.Mono
 
             public bool HasOpenChest => HasSinglePlayerAuthority && HasLocalPlayer && Main.LocalPlayer.chest >= 0;
 
-            public bool CanQuickStack => HasSinglePlayerAuthority && HasLocalPlayer && HasOpenChest;
+            // Vanilla quick-stack acts from the open inventory and discovers nearby chests;
+            // an already-open chest is not required.
+            public bool CanQuickStack => HasSinglePlayerAuthority && HasLocalPlayer && Main.playerInventory;
 
             public void SortInventory() => InvokePlayerAction("SortInventory");
 
