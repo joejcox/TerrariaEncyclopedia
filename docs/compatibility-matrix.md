@@ -30,6 +30,20 @@ passed. A freshly assembled archive was inspected: it contained exactly the
 11 allow-listed release files and no Terraria, FNA, TerrariaModder,
 TerrariaInjector, Harmony, or Mono.Cecil files.
 
+## 2026-09-08 current-branch verification
+
+The current `master` branch (`70db515`) passed the packager's five tests, the
+installed-path manifest and licence check, and a fresh archive inspection with
+the same 11 allow-listed files. Both bounded macOS smoke checks completed on
+Apple Silicon, and `Terraria.exe` remained
+`d52c7ea7e4e312d8937fd20d1f2609f0d6bd26daddf5bfab2d106ca9077103e0` before and
+after each check.
+
+A normal Steam launch via `steam://run/105600` also started successfully with
+`MONO_BUNDLED_OPTIONS` unset. The process was stopped after startup verification
+because this automation session does not have macOS Accessibility permission to
+send the normal Cmd-Q event; the prior sign-off above includes a normal quit.
+
 ## Release evidence and checks
 
 Use an idle Terraria installation: the smoke scripts deliberately refuse to

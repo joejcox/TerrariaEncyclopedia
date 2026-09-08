@@ -73,7 +73,7 @@
   - Verify changed: dotnet test tests/TerrariaEncyclopedia.Tests/TerrariaEncyclopedia.Tests.csproj --filter FullyQualifiedName~EncyclopediaBehaviourTests
   - Verify: dotnet test tests/TerrariaEncyclopedia.Tests/TerrariaEncyclopedia.Tests.csproj && dotnet build tools/WikiScraper/WikiScraper.csproj -c Release && dotnet build src/TerrariaEncyclopedia.Host.Mono/TerrariaEncyclopedia.Host.Mono.csproj -c Release -p:TerrariaReferencePath="/Users/josephanson/Library/Application Support/Steam/steamapps/common/Terraria/Terraria.app/Contents/Resources/Terraria.exe" -p:FnaReferencePath="/Users/josephanson/Library/Application Support/Steam/steamapps/common/Terraria/Terraria.app/Contents/Resources/FNA.dll" && tests/smoke/macos-encyclopedia.sh --terraria-path "/Users/josephanson/Library/Application Support/Steam/steamapps/common/Terraria"
 
-- [ ] T08 Add macOS release assembly, manifests, licence checks, and updated build/release documentation
+- [x] T08 Add macOS release assembly, manifests, licence checks, and updated build/release documentation
   - Depends on: T12
   - Writes: tools/Packager/**, docs/BUILDING.md, docs/RELEASING.md, README.md, tests/TerrariaEncyclopedia.Packager.Tests/**
   - Locks: dependency-manifest, release-layout
@@ -81,7 +81,7 @@
   - Acceptance: The macOS archive contains only project and permitted third-party files, accepts an optional installation path, and contains no Terraria-owned or legacy Windows loader files.
   - Verify: dotnet test tests/TerrariaEncyclopedia.Packager.Tests/TerrariaEncyclopedia.Packager.Tests.csproj && dotnet run --project tools/Packager -- --verify-only
 
-- [ ] T09 Run macOS compatibility checks and confirm normal Steam launches remain unaffected
+- [x] T09 Run macOS compatibility checks and confirm normal Steam launches remain unaffected
   - Depends on: T08
   - Writes: docs/compatibility-matrix.md, docs/RELEASING.md
   - Locks: macos-terraria-process, release-layout
