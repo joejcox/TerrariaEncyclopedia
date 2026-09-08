@@ -39,18 +39,17 @@ namespace TerrariaEncyclopedia.Host.Mono
         private static EncyclopediaFeature feature;
         private static long updateCount;
         private static long renderCount;
-        private static ulong processedUpdateCount = ulong.MaxValue;
         private static bool smokeToggleSent;
         private static bool smokeHoverSent;
         private static bool overlayOwnsInputBlock;
         private static bool previousInputBlock;
         private static InventoryQolController inventoryQol;
+        private static PlayerClass currentPlayerClass = PlayerClass.Unknown;
+        internal static PlayerClass CurrentPlayerClass => currentPlayerClass;
         private static readonly IInventoryQolGame inventoryQolGame = new TerrariaInventoryQolGame();
         private static readonly string inventorySortKey = ReadQolKey("TERRARIA_ENCYCLOPEDIA_SORT_INVENTORY_KEY", "I");
         private static readonly string chestSortKey = ReadQolKey("TERRARIA_ENCYCLOPEDIA_SORT_CHEST_KEY", "O");
         private static readonly string quickStackKey = ReadQolKey("TERRARIA_ENCYCLOPEDIA_QUICK_STACK_KEY", "K");
-        private static MemberInfo terrariaKeyStateMember;
-        private static bool keyboardStateMemberResolved;
 
         public static void Configure(string featureMarkerPath)
         {
@@ -119,7 +118,12 @@ namespace TerrariaEncyclopedia.Host.Mono
                 }
 
                 Main.OnEngineLoad += AfterInitialise;
-                Main.OnTickForThirdPartySoftwareOnly += AfterUpdate;
+                // Terraria invokes the third-party tick both before and after input handling.
+                // Use the internal tick for normal gameplay so snapshots contain this frame's
+                // key and mouse state; the menu-only bridge keeps the feature available while
+                // Terraria returns early before the internal tick.
+                Main.OnTickForThirdPartySoftwareOnly += AfterMenuTick;
+                Main.OnTickForInternalCodeOnly += AfterUpdate;
                 Main.OnPostDraw += AfterDraw;
 
                 patchesInstalled = true;
@@ -172,12 +176,9 @@ namespace TerrariaEncyclopedia.Host.Mono
 
             try
             {
-                ulong gameUpdateCount = Main.GameUpdateCount;
-                if (!Main.gameMenu && processedUpdateCount == gameUpdateCount)
-                    return;
-                processedUpdateCount = gameUpdateCount;
-
                 InputSnapshot snapshot = CaptureInput();
+                currentPlayerClass = InferCurrentPlayerClass();
+                feature?.SetPlayerClass(currentPlayerClass);
                 UpdateInventoryQol(snapshot);
                 if (!smokeToggleSent
                     && string.Equals(
@@ -218,6 +219,12 @@ namespace TerrariaEncyclopedia.Host.Mono
                 Console.Error.WriteLine("Terraria Encyclopedia update host failed: " + exception);
                 DisableFeature("feature-host-failed", "update-" + exception.GetType().Name);
             }
+        }
+
+        private static void AfterMenuTick()
+        {
+            if (Main.gameMenu)
+                AfterUpdate();
         }
 
         private static void AfterDraw(GameTime gameTime)
@@ -286,9 +293,9 @@ namespace TerrariaEncyclopedia.Host.Mono
 
         private static InputSnapshot CaptureInput()
         {
-            KeyboardState keyboard = ReadTerrariaKeyboardState();
+            IEnumerable<Keys> pressedKeys = ReadPressedKeys();
             MouseState mouse = Mouse.GetState();
-            IEnumerable<InputKey> keys = keyboard.GetPressedKeys()
+            IEnumerable<InputKey> keys = pressedKeys
                 .Select(key => new InputKey(key.ToString()));
             var buttons = new List<MouseButton>();
             if (mouse.LeftButton == ButtonState.Pressed)
@@ -312,65 +319,32 @@ namespace TerrariaEncyclopedia.Host.Mono
                 mouse.ScrollWheelValue);
         }
 
-        private static KeyboardState ReadTerrariaKeyboardState()
+        private static IEnumerable<Keys> ReadPressedKeys()
         {
-            // Terraria updates Main.keyState as part of its input pipeline. Reading that state
-            // keeps third-party callbacks in sync with the game on macOS/FNA, where a direct
-            // Keyboard.GetState() poll can lag or return an empty state during the tick.
-            if (!keyboardStateMemberResolved)
+            // Terraria's public helper is the authoritative snapshot used by the game's
+            // input pipeline. Do not merge it with a second snapshot: a lagging FNA snapshot
+            // can keep a released key alive and break edge-triggered shortcuts.
+            try
             {
-                // Resolve only after Terraria has entered its normal update loop. Resolving
-                // Main's fields during GameHost type initialisation runs before ReLogic's
-                // dependencies are loaded by the Mono launcher.
-                keyboardStateMemberResolved = true;
-                try
-                {
-                    terrariaKeyStateMember = FindKeyboardStateMember();
-                }
-                catch (Exception exception)
-                {
-                    Console.Error.WriteLine("Terraria keyboard state discovery failed: " + exception.Message);
-                }
+                List<Keys> terrariaKeys = PlayerInput.GetPressedKeys();
+                if (terrariaKeys != null)
+                    return terrariaKeys;
+            }
+            catch (Exception exception)
+            {
+                Console.Error.WriteLine("Terraria keyboard state read failed: " + exception.Message);
             }
 
-            if (terrariaKeyStateMember != null)
+            // Keep a narrow fallback for game builds where the public helper is unavailable.
+            try
             {
-                try
-                {
-                    object value = terrariaKeyStateMember is FieldInfo field
-                        ? field.GetValue(null)
-                        : ((PropertyInfo)terrariaKeyStateMember).GetValue(null, null);
-                    if (value is KeyboardState state)
-                        return state;
-                }
-                catch (Exception exception)
-                {
-                    Console.Error.WriteLine("Terraria keyboard state read failed: " + exception.Message);
-                }
+                return Keyboard.GetState().GetPressedKeys();
             }
-            return Keyboard.GetState();
-        }
-
-        private static MemberInfo FindKeyboardStateMember()
-        {
-            foreach (Type type in new[] { typeof(Main), typeof(PlayerInput) })
+            catch (Exception exception)
             {
-                foreach (string name in new[] { "keyState", "_keyState" })
-                {
-                    FieldInfo field = type.GetField(
-                        name,
-                        BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-                    if (field != null && typeof(KeyboardState).IsAssignableFrom(field.FieldType))
-                        return field;
-
-                    PropertyInfo property = type.GetProperty(
-                        name,
-                        BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-                    if (property != null && typeof(KeyboardState).IsAssignableFrom(property.PropertyType))
-                        return property;
-                }
+                Console.Error.WriteLine("Fallback keyboard state read failed: " + exception.Message);
+                return Array.Empty<Keys>();
             }
-            return null;
         }
 
         private static void UpdateInventoryQol(InputSnapshot snapshot)
@@ -383,6 +357,62 @@ namespace TerrariaEncyclopedia.Host.Mono
             inventoryQol.TryInvokeEdge(IsKeyDown(snapshot, inventorySortKey), InventoryQolAction.SortInventory, out _);
             inventoryQol.TryInvokeEdge(IsKeyDown(snapshot, chestSortKey), InventoryQolAction.SortChest, out _);
             inventoryQol.TryInvokeEdge(IsKeyDown(snapshot, quickStackKey), InventoryQolAction.QuickStackNearby, out _);
+        }
+
+        private static PlayerClass InferCurrentPlayerClass()
+        {
+            try
+            {
+                Player player = Main.LocalPlayer;
+                if (Main.gameMenu || player == null || !player.active)
+                    return PlayerClass.Unknown;
+
+                var items = new List<PlayerClassItem>();
+                int held = player.selectedItem;
+                if (player.inventory != null)
+                {
+                    for (int i = 0; i < player.inventory.Length; i++)
+                    {
+                        if (i != held)
+                            AddClassItem(items, player.inventory[i], false, false);
+                    }
+                }
+                AddClassItems(items, player.armor, true);
+                if (held >= 0 && player.inventory != null && held < player.inventory.Length)
+                    AddClassItem(items, player.inventory[held], false, true);
+                return PlayerClassInference.Infer(items);
+            }
+            catch (Exception exception)
+            {
+                Console.Error.WriteLine("Terraria player class inference failed: " + exception.Message);
+                return PlayerClass.Unknown;
+            }
+        }
+
+        private static void AddClassItems(List<PlayerClassItem> target, Item[] items, bool equipped)
+        {
+            if (items == null) return;
+            // Player.armor stores functional armour/accessories first; later entries are
+            // vanity/social slots and must not change the inferred active class.
+            int functionalCount = Math.Min(10, items.Length);
+            for (int i = 0; i < functionalCount; i++)
+                AddClassItem(target, items[i], equipped, false);
+        }
+
+        private static void AddClassItem(List<PlayerClassItem> target, Item item, bool equipped, bool held)
+        {
+            if (item == null || item.IsAir) return;
+            target.Add(new PlayerClassItem
+            {
+                Melee = item.melee,
+                Ranged = item.ranged,
+                Magic = item.magic,
+                Summon = item.summon,
+                Sentry = item.sentry,
+                Equipped = equipped,
+                Held = held,
+                Damage = item.damage
+            });
         }
 
         private static string ReadQolKey(string variable, string fallback)

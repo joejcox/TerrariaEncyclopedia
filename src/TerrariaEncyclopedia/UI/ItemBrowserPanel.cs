@@ -68,6 +68,7 @@ namespace TerrariaEncyclopedia.UI
 
         private ViewMode _view = ViewMode.Grid;
         private ItemEntry _detailItem;
+        private PlayerClass _playerClass = PlayerClass.Unknown;
         private readonly EntryNavigation _navigation = new EntryNavigation();
 
         private readonly EncyclopediaSectionSelection _section;
@@ -96,6 +97,7 @@ namespace TerrariaEncyclopedia.UI
         private int _npcSortButtonX, _npcSortButtonY, _npcSortButtonWidth;
         private ViewMode _npcView = ViewMode.Grid;
         private NpcEntry _npcDetailItem;
+        private string _npcBossDisplayName;
 
         public ItemBrowserPanel(IEncyclopediaDataSource data)
         {
@@ -117,6 +119,8 @@ namespace TerrariaEncyclopedia.UI
         public int LoadedItemCount => _all.Count;
 
         public int LoadedNpcCount => _allNpcs.Count;
+
+        public void SetPlayerClass(PlayerClass playerClass) => _playerClass = playerClass;
 
         public void Toggle()
         {
@@ -184,6 +188,7 @@ namespace TerrariaEncyclopedia.UI
             _detailItem = null;
             _view = ViewMode.Grid;
             _npcDetailItem = null;
+            _npcBossDisplayName = null;
             _npcView = ViewMode.Grid;
         }
 
@@ -872,6 +877,7 @@ namespace TerrariaEncyclopedia.UI
                 {
                     WidgetInput.ConsumeClick();
                     _section.SwitchTo(EncyclopediaSection.Npcs);
+                    _npcBossDisplayName = entry.Name;
                     OpenNpcDetail(entry.Npc);
                 }
             }
@@ -1013,6 +1019,7 @@ namespace TerrariaEncyclopedia.UI
                     Tooltip.Set(entry.Name, entry.IsBoss ? "Boss" : entry.IsTownNpc ? "Town NPC" : "Enemy");
                     if (WidgetInput.MouseLeftClick)
                     {
+                        _npcBossDisplayName = null;
                         OpenNpcDetail(entry);
                         WidgetInput.ConsumeClick();
                     }
@@ -1252,10 +1259,14 @@ namespace TerrariaEncyclopedia.UI
 
             if (entry.IsBoss)
             {
-                var wiki = _data.GetBossInfo(entry.Name);
+                string bossName = _npcBossDisplayName ?? entry.Name;
+                var wiki = _data.GetBossInfo(bossName);
+                rows.Add(new BodyRow { Suffix = "", Height = 8 });
+                AddSection(rows, "Preparation goals — " + _playerClass, () =>
+                    AddWrappedRows(rows, BossPreparationGuide.For(bossName, _playerClass), width));
                 if (wiki != null)
                 {
-                    rows.Add(new BodyRow { Suffix = "", Height = 8 });
+                    rows.Add(new BodyRow { Suffix = "", Height = 6 });
 
                     if (!string.IsNullOrEmpty(wiki.Summoning))
                     {

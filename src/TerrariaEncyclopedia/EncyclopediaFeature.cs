@@ -18,12 +18,19 @@ namespace TerrariaEncyclopedia
         private ItemBrowserPanel browser;
         private IEncyclopediaFeatureRenderer renderer;
         private bool supported;
+        private PlayerClass playerClass = PlayerClass.Unknown;
 
         public bool IsOpen => browser?.IsOpen == true;
 
         public int LoadedItemCount => browser?.LoadedItemCount ?? 0;
 
         public int LoadedNpcCount => browser?.LoadedNpcCount ?? 0;
+
+        public void SetPlayerClass(PlayerClass value)
+        {
+            playerClass = value;
+            browser?.SetPlayerClass(value);
+        }
 
         public void Initialise(IFeatureContext context)
         {
@@ -51,6 +58,7 @@ namespace TerrariaEncyclopedia
             ui = new EncyclopediaUi(renderer, context.Input);
             EncyclopediaUiContext.Set(ui);
             browser = new ItemBrowserPanel(new TerrariaEncyclopediaDataSource());
+            browser.SetPlayerClass(playerClass);
             context.KeyBindings.RegisterToggle(new InputKey("P"), Toggle);
             supported = true;
             log.Info(

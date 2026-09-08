@@ -1,7 +1,84 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace TerrariaEncyclopedia.Content
 {
+    public enum PlayerClass
+    {
+        Unknown,
+        Melee,
+        Ranged,
+        Magic,
+        Summoner,
+        Hybrid
+    }
+
+    public sealed class PlayerClassItem
+    {
+        public bool Melee;
+        public bool Ranged;
+        public bool Magic;
+        public bool Summon;
+        public bool Sentry;
+        public bool Equipped;
+        public bool Held;
+        public int Damage;
+    }
+
+    public static class PlayerClassInference
+    {
+        // Treat a class as mixed when the runner-up is at least 75% of the top score.
+        private const int HybridClosenessPercent = 75;
+        private const int InventoryContributionCap = 2;
+
+        public static PlayerClass Infer(IEnumerable<PlayerClassItem> items)
+        {
+            if (items == null) return PlayerClass.Unknown;
+            int[] activeScores = new int[4];
+            int[] inventoryScores = new int[4];
+            foreach (PlayerClassItem item in items)
+            {
+                if (item == null || item.Damage <= 0) continue;
+                int weight = item.Held ? 4 : (item.Equipped ? 3 : 1);
+                AddScore(activeScores, inventoryScores, 0, item.Melee, item.Equipped || item.Held, weight);
+                AddScore(activeScores, inventoryScores, 1, item.Ranged, item.Equipped || item.Held, weight);
+                AddScore(activeScores, inventoryScores, 2, item.Magic, item.Equipped || item.Held, weight);
+                AddScore(activeScores, inventoryScores, 3, item.Summon || item.Sentry, item.Equipped || item.Held, weight);
+            }
+            int[] scores = new int[4];
+            for (int i = 0; i < scores.Length; i++)
+                scores[i] = activeScores[i] + Math.Min(InventoryContributionCap, inventoryScores[i]);
+            int highest = scores.Max();
+            if (highest == 0) return PlayerClass.Unknown;
+            int secondHighest = scores.OrderByDescending(score => score).Skip(1).First();
+            if (secondHighest > 0 && secondHighest * 100 >= highest * HybridClosenessPercent)
+                return PlayerClass.Hybrid;
+            int winners = scores.Count(score => score == highest);
+            if (winners != 1) return PlayerClass.Hybrid;
+            if (scores[0] == highest) return PlayerClass.Melee;
+            if (scores[1] == highest) return PlayerClass.Ranged;
+            if (scores[2] == highest) return PlayerClass.Magic;
+            return PlayerClass.Summoner;
+        }
+
+        private static void AddScore(
+            int[] activeScores,
+            int[] inventoryScores,
+            int classIndex,
+            bool matchesClass,
+            bool active,
+            int weight)
+        {
+            if (!matchesClass)
+                return;
+            if (active)
+                activeScores[classIndex] += weight;
+            else
+                inventoryScores[classIndex] += weight;
+        }
+    }
+
     public enum ItemCategory
     {
         Weapon,

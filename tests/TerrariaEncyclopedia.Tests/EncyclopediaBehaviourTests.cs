@@ -139,6 +139,103 @@ namespace TerrariaEncyclopedia.Tests
         }
 
         [Fact]
+        public void BossPreparationGuideCombinesClassAndBossGoals()
+        {
+            string guide = BossPreparationGuide.For("Eye of Cthulhu", PlayerClass.Ranged);
+
+            Assert.Contains("Ranged focus", guide);
+            Assert.Contains("Fossil", guide);
+            Assert.Contains("Suspicious Looking Eye", guide);
+        }
+
+        [Fact]
+        public void PlayerClassInferenceWeightsHeldAndEquippedItems()
+        {
+            PlayerClass result = PlayerClassInference.Infer(new[]
+            {
+                new PlayerClassItem { Melee = true, Damage = 20 },
+                new PlayerClassItem { Ranged = true, Equipped = true, Damage = 1 },
+                new PlayerClassItem { Ranged = true, Held = true, Damage = 1 }
+            });
+
+            Assert.Equal(PlayerClass.Ranged, result);
+        }
+
+        [Fact]
+        public void PlayerClassInferenceTreatsCloseScoresAsHybrid()
+        {
+            PlayerClass result = PlayerClassInference.Infer(new[]
+            {
+                new PlayerClassItem { Melee = true, Equipped = true, Damage = 1 },
+                new PlayerClassItem { Ranged = true, Equipped = true, Damage = 1 },
+                new PlayerClassItem { Ranged = true, Damage = 1 }
+            });
+
+            Assert.Equal(PlayerClass.Hybrid, result);
+        }
+
+        [Fact]
+        public void BossPreparationGuideFallsBackForUnknownBossAndClass()
+        {
+            string guide = BossPreparationGuide.For("Future Boss", (PlayerClass)999);
+
+            Assert.Contains("General focus", guide);
+            Assert.Contains("summon item", guide);
+        }
+
+        [Fact]
+        public void BossPreparationGuideCanonicalisesAlternateNpcNames()
+        {
+            Assert.Contains("Worm Food", BossPreparationGuide.For("Eater of Worlds", PlayerClass.Melee));
+            Assert.Contains("Worm Food", BossPreparationGuide.For("Brain of Cthulhu", PlayerClass.Melee));
+            Assert.Contains("Mechanical Eye", BossPreparationGuide.For("Retinazer", PlayerClass.Melee));
+            Assert.Contains("Mechanical Eye", BossPreparationGuide.For("Spazmatism", PlayerClass.Melee));
+        }
+
+        [Fact]
+        public void WikiEnrichmentCombinesSummonInstructionsForCombinedBosses()
+        {
+            BossWikiInfo evilBoss = WikiEnrichment.GetBossInfo("Eater of Worlds / Brain of Cthulhu");
+            Assert.NotNull(evilBoss);
+            Assert.Contains("Worm Food", evilBoss.Summoning);
+            Assert.Contains("Bloody Spine", evilBoss.Summoning);
+
+            BossWikiInfo twins = WikiEnrichment.GetBossInfo("The Twins");
+            Assert.NotNull(twins);
+            Assert.Contains("Mechanical Eye", twins.Summoning);
+        }
+
+        [Fact]
+        public void PlayerClassInferenceReturnsPrimaryClassJustBelowHybridThreshold()
+        {
+            PlayerClass result = PlayerClassInference.Infer(new[]
+            {
+                new PlayerClassItem { Melee = true, Equipped = true, Damage = 1 },
+                new PlayerClassItem { Ranged = true, Held = true, Damage = 1 },
+                new PlayerClassItem { Ranged = true, Damage = 1 },
+                new PlayerClassItem { Ranged = true, Damage = 1 }
+            });
+
+            Assert.Equal(PlayerClass.Ranged, result);
+        }
+
+        [Fact]
+        public void PlayerClassInferenceDoesNotLetCarriedItemsOverrideHeldClass()
+        {
+            PlayerClass result = PlayerClassInference.Infer(new[]
+            {
+                new PlayerClassItem { Ranged = true, Held = true, Damage = 1 },
+                new PlayerClassItem { Melee = true, Damage = 1 },
+                new PlayerClassItem { Melee = true, Damage = 1 },
+                new PlayerClassItem { Melee = true, Damage = 1 },
+                new PlayerClassItem { Melee = true, Damage = 1 },
+                new PlayerClassItem { Melee = true, Damage = 1 }
+            });
+
+            Assert.Equal(PlayerClass.Ranged, result);
+        }
+
+        [Fact]
         public void MixedAcquisitionRetainsCraftingDropsAndSellers()
         {
             var recipe = new RecipeInfo { ResultItemId = 99 };

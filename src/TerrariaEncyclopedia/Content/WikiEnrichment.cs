@@ -66,9 +66,30 @@ namespace TerrariaEncyclopedia.Content
             // "Eater of Worlds / Brain of Cthulhu"). Resolve each displayed name to the
             // corresponding wiki entry so every checklist row has summon instructions.
             string[] candidates = npcName.Split(new[] { " / " }, StringSplitOptions.RemoveEmptyEntries);
-            return _bosses.FirstOrDefault(b => b.MatchNames != null
+            if (string.Equals(npcName, "The Twins", StringComparison.OrdinalIgnoreCase))
+                candidates = new[] { "Retinazer", "Spazmatism" };
+            List<BossWikiInfo> matches = _bosses.Where(b => b.MatchNames != null
                 && candidates.Any(candidate => b.MatchNames.Any(match =>
-                    string.Equals(match, candidate, StringComparison.OrdinalIgnoreCase))));
+                    string.Equals(match, candidate, StringComparison.OrdinalIgnoreCase)))).ToList();
+            if (matches.Count <= 1)
+                return matches.FirstOrDefault();
+
+            BossWikiInfo first = matches[0];
+            return new BossWikiInfo
+            {
+                Name = npcName,
+                WikiPage = string.Join(" / ", matches.Select(match => match.WikiPage).Where(page => !string.IsNullOrEmpty(page))),
+                MatchNames = matches.SelectMany(match => match.MatchNames ?? new string[0]).Distinct(StringComparer.OrdinalIgnoreCase).ToArray(),
+                Types = first.Types,
+                Environments = first.Environments,
+                AiType = first.AiType,
+                KbResist = first.KbResist,
+                ImmuneTo = first.ImmuneTo,
+                Summoning = string.Join("\n\n", matches.Select(match => match.Summoning).Where(text => !string.IsNullOrWhiteSpace(text))),
+                ExpertMode = first.ExpertMode,
+                Aftermath = first.Aftermath,
+                Tips = first.Tips
+            };
         }
 
         // Exact-match against wiki page titles — some misses are expected (e.g. armor sets are

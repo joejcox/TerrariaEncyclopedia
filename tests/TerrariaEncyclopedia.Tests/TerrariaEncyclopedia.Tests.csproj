@@ -15,5 +15,10 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\TerrariaEncyclopedia\TerrariaEncyclopedia.csproj" />
+    <Compile Include="..\..\src\TerrariaEncyclopedia\Content\WikiEnrichment.cs"
+             Link="Content\WikiEnrichment.cs" />
+    <None Include="..\..\src\TerrariaEncyclopedia\WikiData\bosses.json"
+          Link="WikiData\bosses.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
