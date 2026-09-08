@@ -83,7 +83,7 @@ namespace TerrariaEncyclopedia
                 {
                     RenderRectangle viewport = renderer.Viewport;
                     renderer.DrawText(
-                        "QoL: I sort inventory  O sort open chest  K quick-stack nearby chests (single-player)",
+                        "QoL: I sort inventory  O sort open chest  K quick-stack nearby chests (single-player and multiplayer)",
                         new InputPoint(12, Math.Max(12, viewport.Height - renderer.TextLineHeight - 12)),
                         new RenderColour(190, 190, 190));
                 }

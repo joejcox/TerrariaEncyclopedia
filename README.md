@@ -40,10 +40,11 @@ TERRARIA_ENCYCLOPEDIA_QUICK_STACK_KEY=F8 \
 ./launch-macos.sh
 ```
 
-In a single-player world, press **F6** with the inventory open, **F7** with a
-chest open, and **F8** with the inventory open while near a chest. Sorting and
-quick-stack are edge-triggered, so release the key between attempts. The
-defaults remain **I**, **O**, and **K**.
+In a world, press **F6** with the inventory open, **F7** with a normal chest
+open, and **F8** with the inventory open while near a chest. These actions also
+work for a local client in multiplayer; Terraria handles the network
+synchronisation. Sorting and quick-stack are edge-triggered, so release the
+key between attempts. The defaults remain **I**, **O**, and **K**.
 
 Launching Terraria through Steam as usual still works and is unmodified. The
 release includes no Terraria-owned file and does not replace anything in the

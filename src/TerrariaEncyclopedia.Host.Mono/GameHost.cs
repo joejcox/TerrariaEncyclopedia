@@ -564,15 +564,15 @@ namespace TerrariaEncyclopedia.Host.Mono
 
             public bool HasLocalPlayer => Main.LocalPlayer != null && Main.LocalPlayer.active;
 
-            private bool HasSinglePlayerAuthority => Main.netMode == 0;
+            private bool IsClientSession => Main.netMode == 0 || Main.netMode == 1;
 
-            public bool CanSortInventory => HasSinglePlayerAuthority && HasLocalPlayer;
+            public bool CanSortInventory => IsClientSession && HasLocalPlayer;
 
-            public bool HasOpenChest => HasSinglePlayerAuthority && HasLocalPlayer && Main.LocalPlayer.chest >= 0;
+            public bool HasOpenChest => IsClientSession && HasLocalPlayer && Main.LocalPlayer.chest >= 0;
 
             // Vanilla quick-stack acts from the open inventory and discovers nearby chests;
             // an already-open chest is not required.
-            public bool CanQuickStack => HasSinglePlayerAuthority && HasLocalPlayer && Main.playerInventory;
+            public bool CanQuickStack => IsClientSession && HasLocalPlayer && Main.playerInventory;
 
             public void SortInventory() => ItemSorting.SortInventory();
 
