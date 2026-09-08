@@ -49,7 +49,7 @@ namespace TerrariaEncyclopedia.Host.Mono
         private static readonly string inventorySortKey = ReadQolKey("TERRARIA_ENCYCLOPEDIA_SORT_INVENTORY_KEY", "I");
         private static readonly string chestSortKey = ReadQolKey("TERRARIA_ENCYCLOPEDIA_SORT_CHEST_KEY", "O");
         private static readonly string quickStackKey = ReadQolKey("TERRARIA_ENCYCLOPEDIA_QUICK_STACK_KEY", "K");
-        private static readonly FieldInfo terrariaKeyStateField = FindKeyboardStateField("keyState");
+        private static readonly MemberInfo terrariaKeyStateMember = FindKeyboardStateMember();
 
         public static void Configure(string featureMarkerPath)
         {
@@ -316,11 +316,13 @@ namespace TerrariaEncyclopedia.Host.Mono
             // Terraria updates Main.keyState as part of its input pipeline. Reading that state
             // keeps third-party callbacks in sync with the game on macOS/FNA, where a direct
             // Keyboard.GetState() poll can lag or return an empty state during the tick.
-            if (terrariaKeyStateField != null)
+            if (terrariaKeyStateMember != null)
             {
                 try
                 {
-                    object value = terrariaKeyStateField.GetValue(null);
+                    object value = terrariaKeyStateMember is FieldInfo field
+                        ? field.GetValue(null)
+                        : ((PropertyInfo)terrariaKeyStateMember).GetValue(null, null);
                     if (value is KeyboardState state)
                         return state;
                 }
@@ -332,11 +334,26 @@ namespace TerrariaEncyclopedia.Host.Mono
             return Keyboard.GetState();
         }
 
-        private static FieldInfo FindKeyboardStateField(string name)
+        private static MemberInfo FindKeyboardStateMember()
         {
-            return typeof(Main).GetField(
-                name,
-                BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+            foreach (Type type in new[] { typeof(Main), typeof(PlayerInput) })
+            {
+                foreach (string name in new[] { "keyState", "_keyState" })
+                {
+                    FieldInfo field = type.GetField(
+                        name,
+                        BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+                    if (field != null && typeof(KeyboardState).IsAssignableFrom(field.FieldType))
+                        return field;
+
+                    PropertyInfo property = type.GetProperty(
+                        name,
+                        BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+                    if (property != null && typeof(KeyboardState).IsAssignableFrom(property.PropertyType))
+                        return property;
+                }
+            }
+            return null;
         }
 
         private static void UpdateInventoryQol(InputSnapshot snapshot)
