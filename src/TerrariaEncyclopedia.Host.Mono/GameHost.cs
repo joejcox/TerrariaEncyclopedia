@@ -49,6 +49,7 @@ namespace TerrariaEncyclopedia.Host.Mono
         private static readonly string inventorySortKey = ReadQolKey("TERRARIA_ENCYCLOPEDIA_SORT_INVENTORY_KEY", "I");
         private static readonly string chestSortKey = ReadQolKey("TERRARIA_ENCYCLOPEDIA_SORT_CHEST_KEY", "O");
         private static readonly string quickStackKey = ReadQolKey("TERRARIA_ENCYCLOPEDIA_QUICK_STACK_KEY", "K");
+        private static readonly FieldInfo terrariaKeyStateField = FindKeyboardStateField("keyState");
 
         public static void Configure(string featureMarkerPath)
         {
@@ -284,7 +285,7 @@ namespace TerrariaEncyclopedia.Host.Mono
 
         private static InputSnapshot CaptureInput()
         {
-            KeyboardState keyboard = Keyboard.GetState();
+            KeyboardState keyboard = ReadTerrariaKeyboardState();
             MouseState mouse = Mouse.GetState();
             IEnumerable<InputKey> keys = keyboard.GetPressedKeys()
                 .Select(key => new InputKey(key.ToString()));
@@ -308,6 +309,34 @@ namespace TerrariaEncyclopedia.Host.Mono
                     Main.UIScale),
                 buttons,
                 mouse.ScrollWheelValue);
+        }
+
+        private static KeyboardState ReadTerrariaKeyboardState()
+        {
+            // Terraria updates Main.keyState as part of its input pipeline. Reading that state
+            // keeps third-party callbacks in sync with the game on macOS/FNA, where a direct
+            // Keyboard.GetState() poll can lag or return an empty state during the tick.
+            if (terrariaKeyStateField != null)
+            {
+                try
+                {
+                    object value = terrariaKeyStateField.GetValue(null);
+                    if (value is KeyboardState state)
+                        return state;
+                }
+                catch (Exception exception)
+                {
+                    Console.Error.WriteLine("Terraria keyboard state read failed: " + exception.Message);
+                }
+            }
+            return Keyboard.GetState();
+        }
+
+        private static FieldInfo FindKeyboardStateField(string name)
+        {
+            return typeof(Main).GetField(
+                name,
+                BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
         }
 
         private static void UpdateInventoryQol(InputSnapshot snapshot)
